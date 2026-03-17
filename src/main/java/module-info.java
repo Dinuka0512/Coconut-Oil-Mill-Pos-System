@@ -3,6 +3,6 @@ module com.dev09.kumaracoconutoil {
     requires javafx.fxml;
 
 
-    opens com.dev09.kumaracoconutoil to javafx.fxml;
+    opens com.dev09.kumaracoconutoil.controller to javafx.fxml;
     exports com.dev09.kumaracoconutoil;
 }
