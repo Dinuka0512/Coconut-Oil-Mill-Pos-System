@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 
 
@@ -11,6 +12,7 @@ import lombok.*;
 @Setter
 @ToString
 @Entity
+@Table(name="customer")
 public class CustomerEntity {
     @Id
     private String custId;

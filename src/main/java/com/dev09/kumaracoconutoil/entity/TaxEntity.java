@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @AllArgsConstructor
@@ -11,6 +12,7 @@ import lombok.*;
 @Setter
 @ToString
 @Entity
+@Table(name = "tax")
 public class TaxEntity {
     @Id
     private int id;
