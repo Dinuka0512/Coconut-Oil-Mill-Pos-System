@@ -1,9 +1,11 @@
 package com.dev09.kumaracoconutoil;
 
+import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.hibernate.Session;
 
 import java.io.IOException;
 

@@ -8,5 +8,6 @@ module com.dev09.kumaracoconutoil {
 
 
     opens com.dev09.kumaracoconutoil.controller to javafx.fxml;
+    opens com.dev09.kumaracoconutoil.entity;
     exports com.dev09.kumaracoconutoil;
 }

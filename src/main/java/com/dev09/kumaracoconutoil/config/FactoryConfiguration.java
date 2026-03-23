@@ -1,5 +1,6 @@
 package com.dev09.kumaracoconutoil.config;
 
+import com.dev09.kumaracoconutoil.entity.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -9,8 +10,14 @@ public class FactoryConfiguration {
     private static FactoryConfiguration factoryConfiguration;
 
     private FactoryConfiguration(){
-        Configuration config = new Configuration();
 
+        Configuration config = new Configuration()
+                .addAnnotatedClass(UserEntity.class)
+                .addAnnotatedClass(OrderEntity.class)
+                .addAnnotatedClass(OrderProductDetails.class)
+                .addAnnotatedClass(ProductEntity.class)
+                .addAnnotatedClass(TaxEntity.class)
+                .addAnnotatedClass(CustomerEntity.class);
         sessionFactory = config.buildSessionFactory();
     }
 
