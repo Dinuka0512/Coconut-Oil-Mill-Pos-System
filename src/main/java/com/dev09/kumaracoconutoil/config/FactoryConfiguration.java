@@ -14,7 +14,7 @@ public class FactoryConfiguration {
         Configuration config = new Configuration()
                 .addAnnotatedClass(UserEntity.class)
                 .addAnnotatedClass(OrderEntity.class)
-                .addAnnotatedClass(OrderProductDetails.class)
+                .addAnnotatedClass(OrderProductDetailsEntity.class)
                 .addAnnotatedClass(ProductEntity.class)
                 .addAnnotatedClass(TaxEntity.class)
                 .addAnnotatedClass(CustomerEntity.class);

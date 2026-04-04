@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 @Entity
 @Table(name = "order_product_details")
-public class OrderProductDetails {
+public class OrderProductDetailsEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

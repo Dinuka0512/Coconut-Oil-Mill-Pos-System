@@ -1,12 +1,11 @@
 package com.dev09.kumaracoconutoil.dao.custom.impl;
 
-import com.dev09.kumaracoconutoil.dao.SuperDao;
-import com.dev09.kumaracoconutoil.dao.custom.UserDao;
+import com.dev09.kumaracoconutoil.dao.custom.UserDAO;
 import com.dev09.kumaracoconutoil.entity.UserEntity;
 
 import java.util.ArrayList;
 
-public class UserDaoImpl implements UserDao {
+public class UserDAOImpl implements UserDAO {
     @Override
     public ArrayList<UserEntity> getAll() {
         return null;
@@ -24,7 +23,6 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean exist(String id) {
-
         return false;
     }
 
@@ -41,15 +39,5 @@ public class UserDaoImpl implements UserDao {
     @Override
     public UserEntity search(String id) {
         return null;
-    }
-
-    @Override
-    public boolean login(String email, String password) {
-        //check is exist
-        if(exist(email)){
-            //Email exist - Then check password
-
-        }
-        return false;
     }
 }

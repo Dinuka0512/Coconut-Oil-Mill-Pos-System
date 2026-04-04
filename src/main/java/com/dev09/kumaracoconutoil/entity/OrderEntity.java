@@ -26,5 +26,5 @@ public class OrderEntity {
     private CustomerEntity customer;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderProductDetails> orderProducts;
+    private List<OrderProductDetailsEntity> orderProducts;
 }
