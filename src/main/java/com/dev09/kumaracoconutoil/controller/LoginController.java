@@ -5,12 +5,16 @@ import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import org.hibernate.Session;
 
-public class LoginController {
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class LoginController implements Initializable {
     @FXML
     private TextField emailField;
 
@@ -34,10 +38,16 @@ public class LoginController {
             return;
         }
 
-        boolean isLogedIn = userBo.login(emailField.getText(), passwordField.getText());
+//        boolean isLogedIn = userBo.login(emailField.getText(), passwordField.getText());
 
-        if(isLogedIn){
-            new Alert(Alert.AlertType.CONFIRMATION, "Login Success").show();
-        }
+//        if(isLogedIn){
+//            new Alert(Alert.AlertType.CONFIRMATION, "Login Success").show();
+//        }
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        //FIRST HERE SAVE THE USER...
+        userBo.saveAdmin();
     }
 }

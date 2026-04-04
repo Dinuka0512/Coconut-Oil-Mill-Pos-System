@@ -5,4 +5,5 @@ import com.dev09.kumaracoconutoil.dao.SuperDAO;
 import com.dev09.kumaracoconutoil.entity.UserEntity;
 
 public interface UserDAO extends SuperDAO, CrudDAO<UserEntity> {
+    void saveAdmin();
 }
