@@ -39,7 +39,7 @@ public class DAOFactory {
             case ORDER_PRODUCT_DETAIL -> {
                 return new OrderProductDetailDAOImpl();
             }
-            
+
             default -> {
                 return null;
             }
