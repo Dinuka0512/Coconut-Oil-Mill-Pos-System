@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.6" prefWidth="796.0"
+            style="-fx-background-color: #f4f6f9;"
+            xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="view.Settings">
+
+    <children>
+
+        <!-- TITLE -->
+        <Label layoutX="20" layoutY="15" text="Settings"
+               style="-fx-text-fill: #2c3e50;">
+            <font><Font size="22"/></font>
+        </Label>
+
+        <!-- TAB SYSTEM -->
+        <TabPane layoutX="20" layoutY="50" prefWidth="756" prefHeight="450">
+
+            <!-- ================= GENERAL ================= -->
+            <Tab text="General">
+                <AnchorPane style="-fx-background-color: #f4f6f9;">
+
+                    <AnchorPane layoutX="20" layoutY="20"
+                                prefWidth="350" prefHeight="350"
+                                style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1),10,0,0,2);">
+
+                        <children>
+
+                            <Label layoutX="10" layoutY="10" text="System Name"/>
+                            <TextField layoutX="10" layoutY="35" prefWidth="300" promptText="Enter system name"/>
+
+                            <Label layoutX="10" layoutY="80" text="Company"/>
+                            <TextField layoutX="10" layoutY="105" prefWidth="300" promptText="Enter company name"/>
+
+                            <Label layoutX="10" layoutY="150" text="Currency"/>
+                            <ComboBox layoutX="10" layoutY="175" prefWidth="300" promptText="Select currency"/>
+
+                            <Label layoutX="10" layoutY="220" text="Theme"/>
+                            <ComboBox layoutX="10" layoutY="245" prefWidth="300" promptText="Light / Dark"/>
+
+                            <Button layoutX="10" layoutY="290" prefWidth="140"
+                                    text="Save"
+                                    style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-background-radius: 7;"/>
+
+                            <Button layoutX="170" layoutY="290" prefWidth="140"
+                                    text="Reset"
+                                    style="-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 7;"/>
+
+                        </children>
+                    </AnchorPane>
+
+                </AnchorPane>
+            </Tab>
+
+            <!-- ================= USERS ================= -->
+            <Tab text="Users">
+                <AnchorPane style="-fx-background-color: #f4f6f9;">
+
+                    <!-- SEARCH -->
+                    <TextField layoutX="20" layoutY="15" prefWidth="200" promptText="Search user"/>
+                    <Button layoutX="230" layoutY="15" text="Search"
+                            style="-fx-background-color: #34495e; -fx-text-fill: white;"/>
+
+                    <!-- TABLE -->
+                    <TableView layoutX="20" layoutY="50" prefWidth="450" prefHeight="330">
+                        <columns>
+                            <TableColumn text="User ID" prefWidth="100"/>
+                            <TableColumn text="Username" prefWidth="150"/>
+                            <TableColumn text="Role" prefWidth="180"/>
+                        </columns>
+                    </TableView>
+
+                    <!-- FORM -->
+                    <AnchorPane layoutX="500" layoutY="50"
+                                prefWidth="250" prefHeight="330"
+                                style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1),10,0,0,2);">
+
+                        <children>
+
+                            <Label layoutX="10" layoutY="10" text="User ID"/>
+                            <TextField layoutX="10" layoutY="35" prefWidth="220"/>
+
+                            <Label layoutX="10" layoutY="70" text="Username"/>
+                            <TextField layoutX="10" layoutY="95" prefWidth="220"/>
+
+                            <Label layoutX="10" layoutY="130" text="Role"/>
+                            <ComboBox layoutX="10" layoutY="155" prefWidth="220"/>
+
+                            <Button layoutX="10" layoutY="210" prefWidth="100"
+                                    text="Save"
+                                    style="-fx-background-color: #16a34a; -fx-text-fill: white;"/>
+
+                            <Button layoutX="120" layoutY="210" prefWidth="100"
+                                    text="Update"
+                                    style="-fx-background-color: #2563eb; -fx-text-fill: white;"/>
+
+                            <Button layoutX="10" layoutY="250" prefWidth="100"
+                                    text="Delete"
+                                    style="-fx-background-color: #dc2626; -fx-text-fill: white;"/>
+
+                            <Button layoutX="120" layoutY="250" prefWidth="100"
+                                    text="Reset"
+                                    style="-fx-background-color: #64748b; -fx-text-fill: white;"/>
+
+                        </children>
+                    </AnchorPane>
+
+                </AnchorPane>
+            </Tab>
+
+            <!-- ================= SECURITY ================= -->
+            <Tab text="Security">
+                <AnchorPane style="-fx-background-color: #f4f6f9;">
+
+                    <Label layoutX="20" layoutY="20" text="Change Password"/>
+                    <PasswordField layoutX="20" layoutY="50" prefWidth="200" promptText="New Password"/>
+                    <PasswordField layoutX="20" layoutY="90" prefWidth="200" promptText="Confirm Password"/>
+
+                    <Button layoutX="20" layoutY="130" prefWidth="120"
+                            text="Update"
+                            style="-fx-background-color: #2563eb; -fx-text-fill: white;"/>
+
+                </AnchorPane>
+            </Tab>
+
+            <!-- ================= NOTIFICATIONS ================= -->
+            <Tab text="Notifications">
+                <AnchorPane style="-fx-background-color: #f4f6f9;">
+
+                    <CheckBox layoutX="20" layoutY="20" text="Enable Email Notifications"/>
+                    <CheckBox layoutX="20" layoutY="50" text="Enable SMS Notifications"/>
+                    <CheckBox layoutX="20" layoutY="80" text="System Alerts"/>
+
+                    <Button layoutX="20" layoutY="120" prefWidth="120"
+                            text="Save"
+                            style="-fx-background-color: #16a34a; -fx-text-fill: white;"/>
+
+                </AnchorPane>
+            </Tab>
+
+        </TabPane>
+
+    </children>
+</AnchorPane>

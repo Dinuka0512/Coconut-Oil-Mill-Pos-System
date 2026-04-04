@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.6" prefWidth="796.0" style="-fx-background-color: #f4f6f9;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+
+        <!-- Title -->
+        <Label alignment="TOP_CENTER" layoutX="19.0" layoutY="18.0" style="-fx-text-fill: #2c3e50;" text="Customer Management">
+            <font>
+                <Font size="22" />
+            </font>
+        </Label>
+
+        <!-- Buttons -->
+        <HBox layoutX="40" layoutY="360" spacing="10" />
+
+        <!-- Search Bar -->
+        <HBox layoutX="380" layoutY="70" spacing="10" />
+
+        <!-- Table -->
+        <TableView layoutX="19.0" layoutY="108.0" prefHeight="399.0" prefWidth="472.0">
+
+            <columns>
+                <TableColumn prefWidth="96.00000190734863" text="ID" />
+                <TableColumn prefWidth="230.00003814697266" text="Name" />
+                <TableColumn minWidth="0.0" prefWidth="144.0" text="Contact" />
+            </columns>
+
+        </TableView>
+         <TextField fx:id="txtSearch" layoutX="19.0" layoutY="69.0" prefHeight="25.0" prefWidth="258.0" promptText="Search Customer..." />
+         <Button layoutX="289.0" layoutY="68.0" style="-fx-background-color: #34495e; -fx-text-fill: white;" text="Search" />
+      <AnchorPane layoutX="504.0" layoutY="49.0" prefHeight="459.0" prefWidth="278.0" style="-fx-background-color: #e6e6e6; -fx-background-radius: 20;">
+         <children>
+
+               <Label layoutX="20.0" layoutY="25.0" text="Customer ID" />
+               <TextField fx:id="txtCustomerId" layoutX="20.0" layoutY="52.0" prefHeight="25.0" prefWidth="229.0" promptText="Enter ID" />
+
+               <Label layoutX="20.0" layoutY="87.0" text="Name" />
+               <TextField fx:id="txtName" layoutX="21.0" layoutY="114.0" prefHeight="25.0" prefWidth="229.0" promptText="Enter Name" />
+
+               <Label layoutX="23.0" layoutY="272.0" text="Address" />
+               <TextField fx:id="txtAddress" layoutX="24.0" layoutY="297.0" prefHeight="25.0" prefWidth="229.0" promptText="Enter Address" />
+
+               <Label layoutX="23.0" layoutY="211.0" text="Email" />
+
+               <Label layoutX="23.0" layoutY="149.0" text="Contact" />
+               <TextField fx:id="txtEmail" layoutX="23.0" layoutY="238.0" prefHeight="25.0" prefWidth="229.0" promptText="Enter Email" />
+               <TextField fx:id="txtContact" layoutX="23.0" layoutY="176.0" prefHeight="25.0" prefWidth="229.0" promptText="Enter Contact Number" />
+            <Button layoutX="26.0" layoutY="355.0" mnemonicParsing="false" opacity="0.94" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #299676; -fx-background-radius: 7;" text="Save" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </Button>
+            <Button layoutX="104.0" layoutY="355.0" mnemonicParsing="false" opacity="0.69" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #2563eb; -fx-background-radius: 7;" text="update" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </Button>
+            <Button layoutX="181.0" layoutY="355.0" mnemonicParsing="false" opacity="0.83" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #dc2626; -fx-background-radius: 7;" text="Delete" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </Button>
+            <Button layoutX="38.0" layoutY="393.0" mnemonicParsing="false" opacity="0.63" prefHeight="25.0" prefWidth="197.0" style="-fx-background-color: #64748b; -fx-background-radius: 7;" text="Reset" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </Button>
+         </children>
+      </AnchorPane>
+
+    </children>
+</AnchorPane>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.6" prefWidth="796.0" style="-fx-background-color: #f4f6f9;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.Order">
+
+    <children>
+
+        <!-- TITLE -->
+        <Label layoutX="20" layoutY="15" style="-fx-text-fill: #2c3e50;" text="Order Management">
+            <font><Font size="22" /></font>
+        </Label>
+
+        <!-- SEARCH -->
+        <TextField layoutX="20" layoutY="60" prefWidth="250" promptText="Search Order..." />
+        <Button layoutX="280" layoutY="60" style="-fx-background-color: #34495e; -fx-text-fill: white;" text="Search" />
+
+        <!-- ORDER TABLE -->
+        <TableView layoutX="20" layoutY="100" prefHeight="403.0" prefWidth="469.0">
+            <columns>
+                <TableColumn prefWidth="59.33334541320801" text="Order ID" />
+                <TableColumn prefWidth="65.99999237060547" text="Cust_id" />
+                <TableColumn prefWidth="82.0" text="Date" />
+                <TableColumn prefWidth="104.66665649414062" text="item" />
+            <TableColumn prefWidth="62.66668701171875" text="Qty" />
+            <TableColumn prefWidth="93.33331298828125" text="price" />
+            </columns>
+        </TableView>
+
+        <!-- FORM CARD -->
+        <AnchorPane layoutX="503.0" layoutY="43.0" prefHeight="459.0" prefWidth="278.0" style="-fx-background-color: #e6e6e6; -fx-background-radius: 15;">
+
+            <children>
+
+                <!-- Order Info -->
+                <TextField layoutX="22.0" layoutY="50.0" prefHeight="25.0" prefWidth="228.0" promptText="Enter Order ID" />
+
+                <TextField layoutX="22.0" layoutY="109.0" prefHeight="25.0" prefWidth="228.0" promptText="Customer ID" />
+
+                <TextField layoutX="23.0" layoutY="165.0" prefHeight="25.0" prefWidth="228.0" promptText="Date" />
+
+                <ComboBox layoutX="23.0" layoutY="262.0" prefHeight="25.0" prefWidth="228.0" promptText="Payment" />
+
+                <!-- Item Add -->
+                <ComboBox layoutX="23.0" layoutY="302.0" prefHeight="25.0" prefWidth="228.0" promptText="Select Item" />
+
+                <TextField layoutX="23.0" layoutY="222.0" prefHeight="25.0" prefWidth="117.0" promptText="Qty" />
+
+                <Button layoutX="153.0" layoutY="221.0" style="-fx-background-color: #16a34a; -fx-text-fill: white;" text="Add" />
+
+                <!-- TOTAL -->
+                <Label layoutX="23.0" layoutY="337.0" style="-fx-font-weight: bold;" text="Total: Rs. 0.00">
+               <font>
+                  <Font size="16.0" />
+               </font></Label>
+
+                <!-- ACTION BUTTONS -->
+                <Button layoutX="24.0" layoutY="375.0" opacity="0.79" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #16a34a; -fx-text-fill: white;" text="Save">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="102.0" layoutY="375.0" opacity="0.77" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #2563eb; -fx-text-fill: white;" text="Update" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="180.0" layoutY="374.0" opacity="0.78" prefHeight="25.0" prefWidth="67.0" style="-fx-background-color: #dc2626; -fx-text-fill: white;" text="Delete">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="36.0" layoutY="411.0" opacity="0.59" prefHeight="25.0" prefWidth="200.0" style="-fx-background-color: #64748b; -fx-text-fill: white;" text="Reset" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+            <Label layoutX="22.0" layoutY="23.0" text="Order ID" />
+            <Label layoutX="22.0" layoutY="83.0" text="Customer ID" />
+            <Label layoutX="24.0" layoutY="142.0" text="Date" />
+            <Label layoutX="24.0" layoutY="198.0" text="Quntity" />
+
+            </children>
+        </AnchorPane>
+
+    </children>
+</AnchorPane>

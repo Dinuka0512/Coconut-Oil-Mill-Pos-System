@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.6" prefWidth="796.0" style="-fx-background-color: #f4f6f9;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.Tax">
+
+    <children>
+
+        <!-- TITLE -->
+        <Label layoutX="20" layoutY="15" style="-fx-text-fill: #2c3e50;" text="Tax Management">
+            <font>
+                <Font size="22" />
+            </font>
+        </Label>
+
+        <!-- SEARCH -->
+        <TextField fx:id="txtSearch" layoutX="20" layoutY="60" prefWidth="250" promptText="Search Tax..." />
+
+        <Button layoutX="280" layoutY="60" style="-fx-background-color: #34495e; -fx-text-fill: white;" text="Search" />
+
+        <!-- TABLE -->
+        <TableView layoutX="20" layoutY="100" prefHeight="398.0" prefWidth="467.0">
+
+            <columns>
+                <TableColumn prefWidth="144.66665077209473" text="ID" />
+                <TableColumn prefWidth="321.33331807454425" text="Tax (%)" />
+            </columns>
+
+        </TableView>
+
+        <!-- FORM CARD -->
+        <AnchorPane layoutX="500.0" layoutY="41.0" prefHeight="459.0" prefWidth="278.0" style="-fx-background-color: #e6e6e6; -fx-background-radius: 20;">
+
+            <children>
+
+                <Label layoutX="20.0" layoutY="35.0" text="Tax ID" />
+                <TextField fx:id="txtId" layoutX="20.0" layoutY="60.0" prefHeight="25.0" prefWidth="236.0" promptText="Enter ID" />
+
+                <Label layoutX="21.0" layoutY="96.0" text="Tax Percentage" />
+                <TextField fx:id="txtTax" layoutX="20.0" layoutY="124.0" prefHeight="25.0" prefWidth="236.0" promptText="Enter Tax %" />
+
+                <!-- BUTTONS -->
+                <Button layoutX="21.0" layoutY="308.0" opacity="0.77" prefHeight="25.0" prefWidth="73.0" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-background-radius: 7;" text="Save">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="104.0" layoutY="308.0" opacity="0.83" prefHeight="25.0" prefWidth="73.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 7;" text="Update">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="187.0" layoutY="308.0" opacity="0.75" prefHeight="25.0" prefWidth="73.0" style="-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 7;" text="Delete">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+                <Button layoutX="40.0" layoutY="345.0" opacity="0.57" prefHeight="25.0" prefWidth="202.0" style="-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 7;" text="Reset">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+            </children>
+        </AnchorPane>
+
+    </children>
+</AnchorPane>

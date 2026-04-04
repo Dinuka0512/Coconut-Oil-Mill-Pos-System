@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.6" prefWidth="796.0" style="-fx-background-color: #f4f6f9;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.Product">
+
+    <children>
+
+        <!-- TITLE -->
+        <Label layoutX="20" layoutY="15" style="-fx-text-fill: #2c3e50;" text="Product Management">
+            <font><Font size="22" /></font>
+        </Label>
+
+        <!-- SEARCH -->
+        <TextField fx:id="txtSearch" layoutX="20" layoutY="60" prefWidth="250" promptText="Search Product..." />
+        <Button layoutX="280" layoutY="60" style="-fx-background-color: #34495e; -fx-text-fill: white;" text="Search" />
+
+        <!-- PRODUCT TABLE -->
+        <TableView layoutX="20" layoutY="100" prefHeight="399.0" prefWidth="472.0">
+            <columns>
+                <TableColumn prefWidth="80" text="ID" />
+                <TableColumn prefWidth="175.99999237060547" text="Name" />
+                <TableColumn prefWidth="108.66665649414062" text="Category" />
+                <TableColumn prefWidth="106.6666259765625" text="Price" />
+            </columns>
+        </TableView>
+
+        <!-- FORM CARD -->
+        <AnchorPane layoutX="504.0" layoutY="39.0" prefHeight="459.0" prefWidth="278.0" style="-fx-background-color: #e6e6e6; -fx-background-radius: 20;">
+
+            <children>
+
+                <Label layoutX="20.0" layoutY="30.0" text="Product ID" />
+                <TextField fx:id="txtProductId" layoutX="20.0" layoutY="57.0" prefHeight="25.0" prefWidth="241.0" promptText="Enter Product ID" />
+
+                <Label layoutX="20.0" layoutY="92.0" text="Product Name" />
+                <TextField fx:id="txtName" layoutX="20.0" layoutY="119.0" prefHeight="25.0" prefWidth="241.0" promptText="Enter Name" />
+
+                <Label layoutX="21.0" layoutY="153.0" text="Category" />
+                <TextField fx:id="txtCategory" layoutX="20.0" layoutY="179.0" prefHeight="25.0" prefWidth="241.0" promptText="Enter Category" />
+
+                <Label layoutX="21.0" layoutY="216.0" text="Price" />
+                <TextField fx:id="txtPrice" layoutX="21.0" layoutY="242.0" prefHeight="25.0" prefWidth="241.0" promptText="Enter Price" />
+
+                <!-- ACTION BUTTONS -->
+                <Button layoutX="31.0" layoutY="351.0" opacity="0.79" prefHeight="25.0" prefWidth="69.0" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-background-radius: 7;" text="Save" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+                <Button layoutX="111.0" layoutY="351.0" opacity="0.73" prefHeight="25.0" prefWidth="69.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 7;" text="Update">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+                <Button layoutX="191.0" layoutY="350.0" opacity="0.81" prefHeight="25.0" prefWidth="69.0" style="-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 7;" text="Delete">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font></Button>
+                <Button layoutX="45.0" layoutY="387.0" opacity="0.53" prefHeight="25.0" prefWidth="203.0" style="-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 7;" text="Reset" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Button>
+
+            </children>
+        </AnchorPane>
+
+    </children>
+</AnchorPane>
