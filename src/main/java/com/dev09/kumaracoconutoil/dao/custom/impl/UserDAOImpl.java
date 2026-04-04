@@ -5,7 +5,6 @@ import com.dev09.kumaracoconutoil.dao.custom.UserDAO;
 import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.dto.extra.UserExtraDto;
 import com.dev09.kumaracoconutoil.entity.UserEntity;
-import jakarta.persistence.Query;
 import org.hibernate.Session;
 
 import java.util.ArrayList;

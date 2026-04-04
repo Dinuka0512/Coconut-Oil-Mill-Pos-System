@@ -36,12 +36,12 @@
                   <Image url="@../asets/user.png" />
                </image>
             </ImageView>
-            <Label alignment="CENTER_RIGHT" layoutX="645.0" layoutY="33.0" prefHeight="17.0" prefWidth="205.0" text="Sample@userName">
+            <Label fx:id="lblUserName" alignment="CENTER_RIGHT" layoutX="645.0" layoutY="33.0" prefHeight="17.0" prefWidth="205.0" text="Sample@userName">
                <font>
                   <Font name="System Bold" size="17.0" />
                </font>
             </Label>
-            <Label alignment="CENTER_RIGHT" layoutX="646.0" layoutY="52.0" prefHeight="17.0" prefWidth="205.0" text="Sample Email Address">
+            <Label fx:id="lblUserEmail" alignment="CENTER_RIGHT" layoutX="646.0" layoutY="52.0" prefHeight="17.0" prefWidth="205.0" text="Sample Email Address">
                <font>
                   <Font size="14.0" />
                </font></Label>
