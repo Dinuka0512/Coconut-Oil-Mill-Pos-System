@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
+import com.dev09.kumaracoconutoil.dto.extra.UserExtraDto;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -38,11 +39,13 @@ public class LoginController implements Initializable {
             return;
         }
 
-//        boolean isLogedIn = userBo.login(emailField.getText(), passwordField.getText());
-
-//        if(isLogedIn){
-//            new Alert(Alert.AlertType.CONFIRMATION, "Login Success").show();
-//        }
+        UserExtraDto userExtraDto = userBo.login(emailField.getText(), passwordField.getText());
+        if(userExtraDto.isLogin()){
+            DashboardController.userData = userExtraDto.getUserDto();
+            new Alert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage()).show();
+        }else{
+            new Alert(Alert.AlertType.WARNING, userExtraDto.getMessage()).show();
+        }
     }
 
     @Override
