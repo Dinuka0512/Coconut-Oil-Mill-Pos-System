@@ -49,11 +49,6 @@
       </AnchorPane>
       <AnchorPane layoutY="99.0" prefHeight="517.0" prefWidth="129.0" style="-fx-background-color: #dddcdc;">
          <children>
-            <Button layoutX="10.0" layoutY="17.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="72.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="128.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="183.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="428.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="26.0">
                <image>
                   <Image url="@../asets/home.png" />
@@ -84,11 +79,16 @@
                   <Image url="@../asets/product.png" />
                </image>
             </ImageView>
-            <Button layoutX="14.0" layoutY="474.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="95.0" style="-fx-background-color: red;" text="Log Out" textFill="WHITE">
+            <Button layoutX="14.0" layoutY="472.0" mnemonicParsing="false" onAction="#logOut" prefHeight="25.0" prefWidth="102.0" style="-fx-background-color: red;" text="Log Out" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="12.0" />
                </font>
             </Button>
+            <Button layoutX="10.0" layoutY="17.0" mnemonicParsing="false" onAction="#goToHome" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="72.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="128.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="183.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="428.0" mnemonicParsing="false" onAction="#goToSettings" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
       <AnchorPane fx:id="bodyContent" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0">
          <children>

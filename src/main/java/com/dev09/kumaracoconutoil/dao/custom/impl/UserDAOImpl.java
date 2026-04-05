@@ -33,8 +33,9 @@ public class UserDAOImpl implements UserDAO {
             UserEntity user = new UserEntity();
             user.setId(generateNewId());
             user.setName("Admin");
-            user.setEmail("admin@gmail.com");
-            user.setPassword("admin");
+            user.setEmail("admin");
+            user.setPassword("admin123");
+            user.setRole("admin");
 
             session.persist(user);
 
@@ -103,7 +104,8 @@ public class UserDAOImpl implements UserDAO {
                     user.getId(),
                     user.getName(),
                     user.getEmail(),
-                    user.getPassword()
+                    user.getPassword(),
+                    user.getRole()
             );
 
             return new UserExtraDto(dto, true, "Login successful!");

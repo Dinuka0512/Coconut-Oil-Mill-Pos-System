@@ -45,16 +45,22 @@ public class LoginController implements Initializable {
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
             new Alert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage()).show();
-            navigateToDashboard();
+            mainNavigateTo("/view/dashboard.fxml");
         }else{
             new Alert(Alert.AlertType.WARNING, userExtraDto.getMessage()).show();
         }
     }
 
-    private void navigateToDashboard() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        //FIRST HERE SAVE THE USER...
+        userBo.saveAdmin();
+    }
+
+    private void mainNavigateTo(String path) {
         try {
             // Load Dashboard FXML
-            AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource("/view/dashboard.fxml"));
+            AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
 
             // Clear current content
             body.getChildren().clear();
@@ -64,13 +70,7 @@ public class LoginController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot load Dashboard!").show();
+            new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
         }
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        //FIRST HERE SAVE THE USER...
-        userBo.saveAdmin();
     }
 }
