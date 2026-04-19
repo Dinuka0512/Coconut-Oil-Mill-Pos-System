@@ -1,21 +1,35 @@
 package com.dev09.kumaracoconutoil.bo;
 
-import com.dev09.kumaracoconutoil.bo.custom.impl.UserBoImpl;
+import com.dev09.kumaracoconutoil.bo.custom.impl.*;
 
 public class BOFactory {
-    public static BOFactory boFactory;
+    private static BOFactory boFactory;
     private BOFactory(){}
 
-    public static  BOFactory getInstance(){return (boFactory==null)? boFactory = new BOFactory() : boFactory;}
-
-    public enum getBoType{
-        USER
+    public static BOFactory getInstance(){
+        return (boFactory == null) ? boFactory = new BOFactory() : boFactory;
     }
 
-    public SuperBo getBo(getBoType type){
+    public enum BOType {
+        CUSTOMER, ORDER, ORDER_PRODUCT_DETAIL, PRODUCT, TAX, USER
+    }
+
+    public SuperBo getBo(BOType type){
         switch (type){
-            case USER -> {return new UserBoImpl();}
-            default -> {return null;}
+            case CUSTOMER:
+                return new CustomerBOImpl();
+            case ORDER:
+                return new OrderBOImpl();
+            case ORDER_PRODUCT_DETAIL:
+                return new OrderProductDetailBOImpl();
+            case PRODUCT:
+                return new ProductBOImpl();
+            case TAX:
+                return new TaxBOImpl();
+            case USER:
+                return new UserBoImpl();
+            default:
+                return null;
         }
     }
 }

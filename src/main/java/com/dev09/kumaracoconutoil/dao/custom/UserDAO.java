@@ -7,6 +7,6 @@ import com.dev09.kumaracoconutoil.entity.UserEntity;
 
 public interface UserDAO extends SuperDAO, CrudDAO<UserEntity> {
     void saveAdmin();
-
     UserExtraDto login(String email, String password);
+    boolean updateUser(UserEntity user);   // new method
 }

@@ -3,46 +3,33 @@ package com.dev09.kumaracoconutoil.dao;
 import com.dev09.kumaracoconutoil.dao.custom.impl.*;
 
 public class DAOFactory {
-    public static DAOFactory daoFactory;
+    private static DAOFactory daoFactory;
     private DAOFactory(){}
 
     public static DAOFactory getInstance(){
         return (daoFactory == null)? daoFactory = new DAOFactory() : daoFactory;
     }
 
-    public enum getDAOType{
-        CUSTOMER,ORDER,ORDER_PRODUCT_DETAIL,PRODUCT,TAX,USER
+    public enum DAOType{
+        CUSTOMER, ORDER, ORDER_PRODUCT_DETAIL, PRODUCT, TAX, USER
     }
 
-    public SuperDAO getDAO(getDAOType type){
+    public SuperDAO getDAO(DAOType type){
         switch (type){
-            case CUSTOMER -> {
+            case CUSTOMER:
                 return new CustomerDAOImpl();
-            }
-
-            case USER -> {
+            case USER:
                 return new UserDAOImpl();
-            }
-
-            case ORDER -> {
+            case ORDER:
                 return new OrderDAOImpl();
-            }
-
-            case TAX -> {
+            case TAX:
                 return new TaxDAOImpl();
-            }
-
-            case PRODUCT -> {
+            case PRODUCT:
                 return new ProductDAOImpl();
-            }
-
-            case ORDER_PRODUCT_DETAIL -> {
+            case ORDER_PRODUCT_DETAIL:
                 return new OrderProductDetailDAOImpl();
-            }
-
-            default -> {
+            default:
                 return null;
-            }
         }
     }
 }

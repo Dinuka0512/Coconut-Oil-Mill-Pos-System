@@ -16,8 +16,9 @@ import java.util.ResourceBundle;
 public class DashboardController implements Initializable {
     public static UserDto userData;
 
+
     @FXML
-    private AnchorPane body;
+    private AnchorPane body;              // ← not static anymore
 
     @FXML
     private AnchorPane bodyContent;
@@ -30,9 +31,16 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        //--- set the user name and the email...
-        lblUserEmail.setText(userData.getEmail());
-        lblUserName.setText(userData.getName());
+        // Set the user name and email
+        updateUserDisplay();
+    }
+
+    // Call this method whenever userData changes
+    public void updateUserDisplay() {
+        if (userData != null) {
+            lblUserName.setText(userData.getName());
+            lblUserEmail.setText(userData.getEmail());
+        }
     }
 
     @FXML
@@ -41,18 +49,11 @@ public class DashboardController implements Initializable {
         userData = null;
     }
 
-
     private void mainNavigateTo(String path) {
         try {
-            // Load Dashboard FXML
             AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
-
-            // Clear current content
             body.getChildren().clear();
-
-            // Add dashboard to the pane
             body.getChildren().add(dashboardPane);
-
         } catch (IOException e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
@@ -61,15 +62,9 @@ public class DashboardController implements Initializable {
 
     private void subNavigateTo(String path) {
         try {
-            // Load Dashboard FXML
-            AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
-
-            // Clear current content
+            AnchorPane pane = FXMLLoader.load(getClass().getResource(path));
             bodyContent.getChildren().clear();
-
-            // Add dashboard to the pane
-            bodyContent.getChildren().add(dashboardPane);
-
+            bodyContent.getChildren().add(pane);
         } catch (IOException e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
@@ -78,11 +73,27 @@ public class DashboardController implements Initializable {
 
     @FXML
     void goToSettings(ActionEvent event) {
+        SettingsController.dashboardTemp(body);
         subNavigateTo("/view/settings.fxml");
     }
 
     @FXML
     void goToHome(ActionEvent event) {
         mainNavigateTo("/view/dashboard.fxml");
+    }
+
+    @FXML
+    void goToCustomer(ActionEvent event) {
+        subNavigateTo("/view/customers.fxml");
+    }
+
+    @FXML
+    void goToInventory(ActionEvent event) {
+        subNavigateTo("/view/inventory.fxml");
+    }
+
+    @FXML
+    void goToOrder(ActionEvent event) {
+        subNavigateTo("/view/pos.fxml");
     }
 }

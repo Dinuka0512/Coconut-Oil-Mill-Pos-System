@@ -49,46 +49,46 @@
       </AnchorPane>
       <AnchorPane layoutY="99.0" prefHeight="517.0" prefWidth="129.0" style="-fx-background-color: #dddcdc;">
          <children>
+            <Label layoutX="55.0" layoutY="137.0" text="Product" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="135.0">
+               <image>
+                  <Image url="@../asets/product.png" />
+               </image>
+            </ImageView>
+            <Label layoutX="54.0" layoutY="191.0" text="Order" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="190.0">
+               <image>
+                  <Image url="@../asets/order.png" />
+               </image>
+            </ImageView>
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="26.0">
                <image>
                   <Image url="@../asets/home.png" />
                </image>
             </ImageView>
             <Label layoutX="57.0" layoutY="27.0" text="Home" />
-            <Label layoutX="55.0" layoutY="83.0" text="Product" />
-            <Label layoutX="54.0" layoutY="138.0" text="Order" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="192.0">
+            <Label layoutX="53.0" layoutY="82.0" text="Customer" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="80.0">
                <image>
-                  <Image url="@../asets/Customer.png" />
+                  <Image url="@../asets/customer.png" />
                </image>
             </ImageView>
-            <Label layoutX="53.0" layoutY="194.0" text="Customer" />
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="437.0">
                <image>
                   <Image url="@../asets/settings.png" />
                </image>
             </ImageView>
             <Label layoutX="54.0" layoutY="439.0" text="Settings" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="137.0">
-               <image>
-                  <Image url="@../asets/Order.png" />
-               </image>
-            </ImageView>
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="81.0">
-               <image>
-                  <Image url="@../asets/product.png" />
-               </image>
-            </ImageView>
             <Button layoutX="14.0" layoutY="472.0" mnemonicParsing="false" onAction="#logOut" prefHeight="25.0" prefWidth="102.0" style="-fx-background-color: red;" text="Log Out" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="12.0" />
                </font>
             </Button>
             <Button layoutX="10.0" layoutY="17.0" mnemonicParsing="false" onAction="#goToHome" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="72.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="128.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Button layoutX="10.0" layoutY="183.0" mnemonicParsing="false" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
             <Button layoutX="10.0" layoutY="428.0" mnemonicParsing="false" onAction="#goToSettings" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="126.0" mnemonicParsing="false" onAction="#goToInventory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="181.0" mnemonicParsing="false" onAction="#goToOrder" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="71.0" mnemonicParsing="false" onAction="#goToCustomer" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
       <AnchorPane fx:id="bodyContent" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0">
          <children>
@@ -125,7 +125,7 @@
                   </Label>
                   <ImageView fitHeight="17.0" fitWidth="23.0" layoutX="97.0" layoutY="19.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../asets/customers.png" />
+                        <Image url="@../asets/customer.png" />
                      </image>
                   </ImageView>
                </children>

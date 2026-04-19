@@ -12,12 +12,12 @@
     <children>
 
         <!-- Card Background -->
-        <AnchorPane layoutX="53.0" layoutY="39.0" prefHeight="440.0" prefWidth="440.0" style="-fx-background-color: white;                            -fx-background-radius: 20;                            -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15,0,0,5);">
+        <AnchorPane layoutX="142.0" layoutY="39.0" prefHeight="440.0" prefWidth="440.0" style="-fx-background-color: #dddcdc; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15,0,0,5);">
 
             <children>
 
                 <!-- Title -->
-                <Label layoutX="157.0" layoutY="28.0" style="-fx-text-fill: #333;" text="Edit Profile" textFill="#949494">
+                <Label layoutX="157.0" layoutY="28.0" style="-fx-text-fill: #333;" text="Edit Profile" textFill="#7b7b7b">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>

@@ -6,30 +6,27 @@ import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.dto.extra.UserExtraDto;
 import com.dev09.kumaracoconutoil.entity.UserEntity;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.util.ArrayList;
 
 public class UserDAOImpl implements UserDAO {
-    //SAVE ADMIN---
+
     @Override
     public void saveAdmin() {
         Session session = FactoryConfiguration.getInstance().getSession();
-
         try {
             session.beginTransaction();
 
-            //---check is Users are have
             Long count = (Long) session
                     .createQuery("SELECT COUNT(u.id) FROM UserEntity u")
                     .uniqueResult();
 
             if (count > 0) {
-                // Users already exist → do NOT create admin
                 session.getTransaction().commit();
                 return;
             }
 
-            // if No users → create admin
             UserEntity user = new UserEntity();
             user.setId(generateNewId());
             user.setName("Admin");
@@ -38,47 +35,35 @@ public class UserDAOImpl implements UserDAO {
             user.setRole("admin");
 
             session.persist(user);
-
             session.getTransaction().commit();
 
         } catch (Exception e) {
             session.getTransaction().rollback();
             e.printStackTrace();
-
         } finally {
             session.close();
         }
     }
 
-    // GENERATE NEW ID---
     @Override
     public String generateNewId() {
         Session session = FactoryConfiguration.getInstance().getSession();
-        String lastId = (String) session
-                .createQuery("SELECT u.id FROM UserEntity u ORDER BY u.id DESC")
-                .setMaxResults(1)
-                .uniqueResult();
-
-        session.close();
-
-        if (lastId == null) {
-            return "U001"; // first ID
+        try {
+            String lastId = (String) session
+                    .createQuery("SELECT u.id FROM UserEntity u ORDER BY u.id DESC")
+                    .setMaxResults(1)
+                    .uniqueResult();
+            if (lastId == null) return "U001";
+            int number = Integer.parseInt(lastId.substring(1));
+            return String.format("U%03d", number + 1);
+        } finally {
+            session.close();
         }
-
-        // Remove "U" and convert number
-        int number = Integer.parseInt(lastId.substring(1));
-        number++;
-
-        // Format with leading zeros
-        return String.format("U%03d", number);
     }
 
-    //LOGIN---
     @Override
     public UserExtraDto login(String email, String password) {
-
         Session session = FactoryConfiguration.getInstance().getSession();
-
         try {
             session.beginTransaction();
 
@@ -89,17 +74,14 @@ public class UserDAOImpl implements UserDAO {
 
             session.getTransaction().commit();
 
-            // User not found
             if (user == null) {
-                return new UserExtraDto(null, false, "User not found, \nSomething went wrong check your entered email..");
+                return new UserExtraDto(null, false, "User not found!");
             }
 
-            // Wrong password
             if (!user.getPassword().equals(password)) {
-                return new UserExtraDto(null, false, "Password is Wrong!");
+                return new UserExtraDto(null, false, "Password is wrong!");
             }
 
-            // Login success
             UserDto dto = new UserDto(
                     user.getId(),
                     user.getName(),
@@ -107,49 +89,38 @@ public class UserDAOImpl implements UserDAO {
                     user.getPassword(),
                     user.getRole()
             );
-
             return new UserExtraDto(dto, true, "Login successful!");
 
         } catch (Exception e) {
             e.printStackTrace();
             return new UserExtraDto(null, false, "Error occurred");
-
         } finally {
             session.close();
         }
     }
 
-
-
-    // ------------ Not Implemented -----
-
     @Override
-    public ArrayList<UserEntity> getAll() {
-        return null;
+    public boolean updateUser(UserEntity user) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        Transaction tx = session.beginTransaction();
+        try {
+            session.merge(user);
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            return false;
+        } finally {
+            session.close();
+        }
     }
 
-    @Override
-    public boolean save(UserEntity dto) {
-        return false;
-    }
-
-    @Override
-    public boolean update(UserEntity dto) {
-        return false;
-    }
-
-    @Override
-    public boolean exist(String id) {
-        return false;
-    }
-
-    @Override
-    public boolean delete(String id) {
-        return false;
-    }
-
-    @Override
-    public UserEntity search(String id) {
-        return null;
-    }
+    // ------------ Unused CRUD methods ----------
+    @Override public ArrayList<UserEntity> getAll() { return null; }
+    @Override public boolean save(UserEntity dto) { return false; }
+    @Override public boolean update(UserEntity dto) { return false; }
+    @Override public boolean exist(String id) { return false; }
+    @Override public boolean delete(String id) { return false; }
+    @Override public UserEntity search(String id) { return null; }
 }

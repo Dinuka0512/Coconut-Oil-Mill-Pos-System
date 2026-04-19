@@ -27,7 +27,7 @@ public class LoginController implements Initializable {
     @FXML
     private AnchorPane body;
 
-    private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.getBoType.USER);
+    private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
 
     @FXML
     void login(ActionEvent event) {
