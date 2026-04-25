@@ -198,9 +198,10 @@ public class CustomerController implements Initializable {
 
     @FXML
     void exportCustomer(ActionEvent event) throws IOException {
-        byte[] bytes = customerBO.exportAllCustomers();
+        var customers = customerBO.getAllCustomersEntity();
+        byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.AllCustomerReport(customers);
 
-        File tempFile = File.createTempFile("customers", ".pdf");
+        File tempFile = File.createTempFile("CustomerReport", ".pdf");
         java.nio.file.Files.write(tempFile.toPath(), bytes);
         java.awt.Desktop.getDesktop().open(tempFile);
     }

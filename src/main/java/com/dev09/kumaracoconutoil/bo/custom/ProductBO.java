@@ -13,4 +13,6 @@ public interface ProductBO extends SuperBo {
     boolean deleteProduct(String id);
     String generateNewProductId();
     ProductDto searchProduct(String id);
+
+    ArrayList<com.dev09.kumaracoconutoil.entity.ProductEntity> getAllProductsEntity();
 }

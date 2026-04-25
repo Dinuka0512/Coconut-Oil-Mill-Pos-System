@@ -15,6 +15,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.io.File;
+import java.nio.file.Files;
+import java.awt.Desktop;
 
 public class ProductController implements Initializable {
 
@@ -83,7 +86,17 @@ public class ProductController implements Initializable {
 
     @FXML
     void exportAllItems(ActionEvent event) {
-        // TODO: implement PDF export if needed
+        try {
+            var products = productBO.getAllProductsEntity();
+            byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.AllProductReport(products);
+
+            File tempFile = File.createTempFile("ProductReport", ".pdf");
+            Files.write(tempFile.toPath(), bytes);
+            Desktop.getDesktop().open(tempFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error generating report: " + e.getMessage()).show();
+        }
     }
 
     private void pageReset() {
@@ -100,6 +113,7 @@ public class ProductController implements Initializable {
 
     private void generateNextId() {
         currentProductId = productBO.generateNewProductId();
+        txtName.setText("");
     }
 
     @FXML

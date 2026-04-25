@@ -32,9 +32,6 @@ public class SettingsController {
         dashboardTemp = body;
     }
 
-    // Static reference to the dashboard controller (set by DashboardController)
-
-
     @FXML
     public void initialize() {
         currentUser = DashboardController.userData;
@@ -104,13 +101,8 @@ public class SettingsController {
 
     private void mainNavigateTo(String path) {
         try {
-            // Load Dashboard FXML
             AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
-
-            // Clear current content
             dashboardTemp.getChildren().clear();
-
-            // Add dashboard to the pane
             dashboardTemp.getChildren().add(dashboardPane);
 
         } catch (IOException e) {

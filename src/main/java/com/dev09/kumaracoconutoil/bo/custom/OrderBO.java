@@ -10,4 +10,6 @@ public interface OrderBO extends SuperBo {
     boolean placeOrder(OrderDto dto) throws SQLException, ClassNotFoundException;
     String generateNextOrderId() throws SQLException, ClassNotFoundException;
     ArrayList<OrderDto> getAllOrders() throws SQLException, ClassNotFoundException;
+    boolean deleteOrder(String orderId) throws SQLException, ClassNotFoundException;
+    byte[] generateOrderBill(String orderId) throws SQLException, ClassNotFoundException;
 }

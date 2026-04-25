@@ -1,7 +1,5 @@
 package com.dev09.kumaracoconutoil.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import lombok.*;
 
 @AllArgsConstructor

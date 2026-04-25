@@ -193,42 +193,46 @@ public class OrderController implements Initializable {
             new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
             return;
         }
-        double unitPrice = Double.parseDouble(lblUnitPrice.getText());
-        double total = qty * unitPrice;
-        Button btn = new Button("Remove");
+        try {
+            double unitPrice = Double.parseDouble(lblUnitPrice.getText());
+            double total = qty * unitPrice;
+            Button btn = new Button("Remove");
 
-        btn.setOnAction((e) -> {
-            ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
-            ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-            Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
+            btn.setOnAction((e) -> {
+                ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+                ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+                Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
 
-            if (result.orElse(no) == yes) {
-                int index = tblOrderCart.getSelectionModel().getSelectedIndex();
-                if (index >= 0) {
-                    obList.remove(index);
+                if (result.orElse(no) == yes) {
+                    int index = tblOrderCart.getSelectionModel().getSelectedIndex();
+                    if (index >= 0) {
+                        obList.remove(index);
+                        calculateTotal();
+                    }
+                }
+            });
+
+            for (int i = 0; i < obList.size(); i++) {
+                if (code.equals(obList.get(i).getCode())) {
+                    qty += obList.get(i).getQty();
+                    total = unitPrice * qty;
+
+                    obList.get(i).setQty(qty);
+                    obList.get(i).setTotal(total);
+
+                    tblOrderCart.refresh();
                     calculateTotal();
+                    txtQty.clear();
+                    return;
                 }
             }
-        });
 
-        for (int i = 0; i < obList.size(); i++) {
-            if (code.equals(obList.get(i).getCode())) {
-                qty += obList.get(i).getQty();
-                total = unitPrice * qty;
-
-                obList.get(i).setQty(qty);
-                obList.get(i).setTotal(total);
-
-                tblOrderCart.refresh();
-                calculateTotal();
-                txtQty.clear();
-                return;
-            }
+            obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
+            calculateTotal();
+            txtQty.clear();
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.WARNING, "Invalid unit price!").show();
         }
-
-        obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
-        calculateTotal();
-        txtQty.clear();
     }
 
     private void calculateTotal() {

@@ -5,7 +5,6 @@ import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.CustomerDAO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.entity.CustomerEntity;
-import com.dev09.kumaracoconutoil.util.PdfGenerator;
 
 import java.util.ArrayList;
 
@@ -29,20 +28,18 @@ public class CustomerBOImpl implements CustomerBO {
 
     @Override
     public boolean saveCustomer(CustomerDto dto) {
-        // Pass all 5 arguments: custId, name, contact, isDeleted=false, orders=null
         CustomerEntity entity = new CustomerEntity(
                 dto.getCustId(),
                 dto.getName(),
                 dto.getContact(),
-                false,   // isDeleted default false
-                null     // orders list can be null or empty
+                false,
+                null
         );
         return customerDAO.save(entity);
     }
 
     @Override
     public boolean updateCustomer(CustomerDto dto) {
-        // Same as save – all fields must be provided
         CustomerEntity entity = new CustomerEntity(
                 dto.getCustId(),
                 dto.getName(),
@@ -82,8 +79,7 @@ public class CustomerBOImpl implements CustomerBO {
     }
 
     @Override
-    public byte[] exportAllCustomers() {
-        ArrayList<CustomerEntity> all = customerDAO.getAll();
-        return PdfGenerator.exportAllCustomers(all);
+    public ArrayList<CustomerEntity> getAllCustomersEntity() {
+        return customerDAO.getAll();
     }
 }

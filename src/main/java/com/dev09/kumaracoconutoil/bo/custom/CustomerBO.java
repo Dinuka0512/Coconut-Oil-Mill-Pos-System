@@ -14,5 +14,5 @@ public interface CustomerBO extends SuperBo {
     String generateNewCustomerId();
     CustomerDto searchCustomer(String id);
 
-    byte[] exportAllCustomers();
+    ArrayList<com.dev09.kumaracoconutoil.entity.CustomerEntity> getAllCustomersEntity();
 }

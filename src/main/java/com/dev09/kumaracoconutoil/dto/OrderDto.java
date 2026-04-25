@@ -1,6 +1,5 @@
 package com.dev09.kumaracoconutoil.dto;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,4 +16,19 @@ public class OrderDto {
     private LocalDate date;
     private CustomerDto customer;
     private List<OrderProductDetailsDto> orderProducts;
+
+    public String getCustomerName() {
+        return customer != null ? customer.getName() : "";
+    }
+
+    public String getContact() {
+        return customer != null ? customer.getContact() : "";
+    }
+
+    public double getTotal() {
+        if (orderProducts == null) return 0.0;
+        return orderProducts.stream()
+                .mapToDouble(d -> d.getUnitPrice() * d.getQuantity())
+                .sum();
+    }
 }

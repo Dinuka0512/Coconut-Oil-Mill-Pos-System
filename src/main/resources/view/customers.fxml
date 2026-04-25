@@ -28,7 +28,7 @@
             <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
             <Button fx:id="btnDelete" layoutX="482.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
             <Button fx:id="btnClear" layoutX="402.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
-            <Button layoutX="22.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="199.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Customer Report" />
+            <Button layoutX="22.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="199.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
          </children>
       </AnchorPane>
       

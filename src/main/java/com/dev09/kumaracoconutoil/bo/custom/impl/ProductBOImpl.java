@@ -5,6 +5,7 @@ import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.ProductDAO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.entity.ProductEntity;
+import com.dev09.kumaracoconutoil.util.PdfGenerator;
 
 import java.util.ArrayList;
 
@@ -77,5 +78,12 @@ public class ProductBOImpl implements ProductBO {
             );
         }
         return null;
+    }
+
+
+
+    @Override
+    public ArrayList<ProductEntity> getAllProductsEntity() {
+        return productDAO.getAll();
     }
 }

@@ -42,6 +42,10 @@ public class LoginController implements Initializable {
         }
 
         UserExtraDto userExtraDto = userBo.login(emailField.getText(), passwordField.getText());
+        if(userExtraDto == null){
+            new Alert(Alert.AlertType.ERROR, "Login service error. Please try again.").show();
+            return;
+        }
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
             new Alert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage()).show();

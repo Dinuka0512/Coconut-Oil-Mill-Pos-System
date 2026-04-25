@@ -31,7 +31,7 @@ public class UserDAOImpl implements UserDAO {
             user.setId(generateNewId());
             user.setName("Admin");
             user.setEmail("admin");
-            user.setPassword("admin123");
+            user.setPassword("admin");
             user.setRole("admin");
 
             session.persist(user);
