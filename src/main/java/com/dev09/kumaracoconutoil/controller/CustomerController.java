@@ -6,10 +6,13 @@ import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -171,8 +174,49 @@ public class CustomerController implements Initializable {
 
     //CUSTOMER SEARCH
     @FXML
-    void txtSearchOnAction(ActionEvent event) {
+    void txtSearchOnKeyReleased(KeyEvent event) {
+        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+            performSearchWithAlert();
+        } else {
+            performSearch();
+        }
+    }
+
+    private void performSearch() {
         String searchTerm = txtSearch.getText().toLowerCase();
+        if (searchTerm.isEmpty()) {
+            loadAllCustomers();
+            return;
+        }
+
+        ObservableList<CustomerDto> allCustomers = tblCustomer.getItems();
+        CustomerDto foundCustomer = null;
+
+        for (CustomerDto dto : allCustomers) {
+            if (dto.getCustId().toLowerCase().equals(searchTerm) ||
+                    dto.getName().toLowerCase().contains(searchTerm) ||
+                    dto.getContact().toLowerCase().contains(searchTerm)) {
+                foundCustomer = dto;
+                break;
+            }
+        }
+
+        if (foundCustomer != null) {
+            currentCustomerId = foundCustomer.getCustId();
+            txtName.setText(foundCustomer.getName());
+            txtContact.setText(foundCustomer.getContact());
+            tblCustomer.getSelectionModel().select(foundCustomer);
+            tblCustomer.scrollTo(foundCustomer);
+        }
+    }
+
+    private void performSearchWithAlert() {
+        String searchTerm = txtSearch.getText().toLowerCase();
+        if (searchTerm.isEmpty()) {
+            loadAllCustomers();
+            return;
+        }
+
         ObservableList<CustomerDto> allCustomers = tblCustomer.getItems();
         CustomerDto foundCustomer = null;
 

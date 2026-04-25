@@ -32,7 +32,7 @@
          </children>
       </AnchorPane>
       
-      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onAction="#txtSearchOnAction" prefHeight="35.0" prefWidth="732.0" promptText="Search Customer by ID, Name or Contact and press Enter..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search Customer by ID, Name or Contact..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
       <TableView fx:id="tblCustomer" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
         <columns>

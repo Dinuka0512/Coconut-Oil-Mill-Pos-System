@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyEvent;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -204,8 +205,49 @@ public class ProductController implements Initializable {
     }
 
     @FXML
-    void txtSearchOnAction(ActionEvent event) {
+    void txtSearchOnKeyReleased(KeyEvent event) {
+        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+            performSearchWithAlert();
+        } else {
+            performSearch();
+        }
+    }
+
+    private void performSearch() {
         String searchTerm = txtSearch.getText().toLowerCase();
+        if (searchTerm.isEmpty()) {
+            loadAllProducts();
+            return;
+        }
+
+        ObservableList<ProductDto> allProducts = tblProduct.getItems();
+        ProductDto foundProduct = null;
+
+        for (ProductDto dto : allProducts) {
+            if (dto.getId().toLowerCase().equals(searchTerm) ||
+                    dto.getName().toLowerCase().contains(searchTerm)) {
+                foundProduct = dto;
+                break;
+            }
+        }
+
+        if (foundProduct != null) {
+            currentProductId = foundProduct.getId();
+            txtName.setText(foundProduct.getName());
+            txtPrice.setText(String.valueOf(foundProduct.getPrice()));
+            txtQty.setText(String.valueOf(foundProduct.getQty()));
+            tblProduct.getSelectionModel().select(foundProduct);
+            tblProduct.scrollTo(foundProduct);
+        }
+    }
+
+    private void performSearchWithAlert() {
+        String searchTerm = txtSearch.getText().toLowerCase();
+        if (searchTerm.isEmpty()) {
+            loadAllProducts();
+            return;
+        }
+
         ObservableList<ProductDto> allProducts = tblProduct.getItems();
         ProductDto foundProduct = null;
 
