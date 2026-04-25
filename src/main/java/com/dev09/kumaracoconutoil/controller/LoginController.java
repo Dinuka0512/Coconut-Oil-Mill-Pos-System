@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import org.hibernate.Session;
@@ -22,7 +23,7 @@ public class LoginController implements Initializable {
     private TextField emailField;
 
     @FXML
-    private TextField passwordField;
+    private PasswordField txtPassword;
 
     @FXML
     private AnchorPane body;
@@ -36,12 +37,12 @@ public class LoginController implements Initializable {
             return;
         }
 
-        if(passwordField.getText().isEmpty()){
+        if(txtPassword.getText().isEmpty()){
             new Alert(Alert.AlertType.WARNING, "Required The password.").show();
             return;
         }
 
-        UserExtraDto userExtraDto = userBo.login(emailField.getText(), passwordField.getText());
+        UserExtraDto userExtraDto = userBo.login(emailField.getText(), txtPassword.getText());
         if(userExtraDto == null){
             new Alert(Alert.AlertType.ERROR, "Login service error. Please try again.").show();
             return;

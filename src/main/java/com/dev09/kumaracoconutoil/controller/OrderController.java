@@ -13,10 +13,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -25,6 +28,9 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class OrderController implements Initializable {
+
+    @FXML
+    private AnchorPane body;
 
     @FXML
     private ComboBox<String> cmbCustomerId;
@@ -288,5 +294,21 @@ public class OrderController implements Initializable {
         lblUnitPrice.setText("");
         lblQtyOnHand.setText("");
         txtQty.clear();
+    }
+
+    @FXML
+    void btnUpdate(ActionEvent event) {
+        new Alert(Alert.AlertType.INFORMATION, "Update feature coming soon!").show();
+    }
+
+    @FXML
+    void btnPreviousOrders(ActionEvent event) {
+        try {
+            AnchorPane pane = FXMLLoader.load(getClass().getResource("/view/OrderManage.fxml"));
+            body.getChildren().clear();
+            body.getChildren().add(pane);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
