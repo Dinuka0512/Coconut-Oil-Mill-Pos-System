@@ -31,7 +31,7 @@
       <AnchorPane layoutX="30.0" layoutY="121.0" prefHeight="70.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="15.0" layoutY="10.0" text="Select Customer (Name/Contact)" textFill="#7f8c8d" />
-            <ComboBox fx:id="cmbCustomerId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbCustomerOnAction" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
+            <ComboBox fx:id="cmbCustomerId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
             <Button layoutX="225.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Customer" />
           </children>
       </AnchorPane>
@@ -40,7 +40,7 @@
       <AnchorPane layoutX="30.0" layoutY="204.0" prefHeight="163.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="15.0" layoutY="10.0" text="Select Product (Name)" textFill="#7f8c8d" />
-            <ComboBox fx:id="cmbProductId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbProductOnAction" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
+            <ComboBox fx:id="cmbProductId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
             
             <Button layoutX="226.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Product" />
             
@@ -51,7 +51,7 @@
                </font>
             </Label>
             
-            <Label layoutX="149.0" layoutY="65.0" text="Qty On Hand" textFill="#7f8c8d" />
+            <Label layoutX="149.0" layoutY="65.0" text="Qty On Hand (Kg)" textFill="#7f8c8d" />
             <Label fx:id="lblQtyOnHand" layoutX="149.0" layoutY="77.0" text="0Kg" textFill="#00a118">
                <font>
                   <Font name="System Bold" size="19.0" />
@@ -67,11 +67,11 @@
       
       <TableView fx:id="tblOrderCart" layoutX="407.0" layoutY="31.0" prefHeight="400.0" prefWidth="376.0">
         <columns>
-          <TableColumn fx:id="colDescription" prefWidth="105.99993896484375" text="Product Name" />
-          <TableColumn fx:id="colQty" prefWidth="39.333404541015625" text="Qty " />
-          <TableColumn fx:id="colUnitPrice" prefWidth="68.0" text="Unit Price" />
-          <TableColumn fx:id="colTotal" prefWidth="84.0" text="Total" />
-          <TableColumn fx:id="colAction" maxWidth="100.0" prefWidth="78.6666259765625" text="Action" />
+          <TableColumn fx:id="colDescription" prefWidth="101.3333740234375" text="Product Name" />
+          <TableColumn fx:id="colQty" prefWidth="54.666595458984375" text="Qty(Kg)" />
+          <TableColumn fx:id="colUnitPrice" prefWidth="64.66668701171875" text="Unit Price" />
+          <TableColumn fx:id="colTotal" prefWidth="77.33331298828125" text="Total" />
+          <TableColumn fx:id="colAction" maxWidth="100.0" prefWidth="75.33331298828125" text="Action" />
         </columns>
       </TableView>
       
@@ -98,9 +98,9 @@
                </font>
             </Label>
             <Label layoutX="14.0" layoutY="46.0" text="Amount : " textFill="#7f8c8d" />
-            <Label layoutX="210.0" layoutY="47.0" text="Discount :" textFill="#7f8c8d" />
-            <TextField fx:id="txtAmount" layoutX="69.0" layoutY="43.0" prefHeight="25.0" prefWidth="130.0" />
-            <TextField fx:id="txtDiscount" layoutX="270.0" layoutY="43.0" prefHeight="25.0" prefWidth="77.0" />
+            <Label layoutX="208.0" layoutY="47.0" text="Discount (%) :" textFill="#7f8c8d" />
+            <TextField fx:id="txtAmount" layoutX="69.0" layoutY="43.0" onKeyReleased="#txtAmountOnKeyReleased" prefHeight="25.0" prefWidth="130.0" />
+            <TextField fx:id="txtDiscount" layoutX="284.0" layoutY="43.0" onAction="#txtDiscountOnAction" onKeyReleased="#txtDiscountOnKeyReleased" prefHeight="25.0" prefWidth="63.0" promptText="0" />
             <Label layoutX="14.0" layoutY="69.0" text="Balance : " textFill="#00a118">
                <font>
                   <Font name="System Bold" size="16.0" />

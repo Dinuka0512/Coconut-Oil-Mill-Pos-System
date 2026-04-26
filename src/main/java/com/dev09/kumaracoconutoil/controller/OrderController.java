@@ -74,6 +74,15 @@ public class OrderController implements Initializable {
     @FXML
     private TextField txtQty;
 
+    @FXML
+    private TextField txtDiscount;
+
+    @FXML
+    private TextField txtAmount;
+
+    @FXML
+    private Label lblBalance;
+
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
@@ -98,6 +107,32 @@ public class OrderController implements Initializable {
         setOrderId();
         loadCustomerIds();
         loadProductIds();
+        txtDiscount.setText("0");
+        txtAmount.setText("");
+        
+        txtDiscount.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                validateDiscount();
+            }
+        });
+    }
+    
+    private void validateDiscount() {
+        String text = txtDiscount.getText();
+        if (text != null && !text.isEmpty()) {
+            try {
+                int val = Integer.parseInt(text);
+                if (val > 100) {
+                    txtDiscount.setText("100");
+                } else if (val < 0) {
+                    txtDiscount.setText("0");
+                }
+            } catch (NumberFormatException e) {
+                txtDiscount.setText("0");
+            }
+        } else {
+            txtDiscount.setText("0");
+        }
     }
 
     private void setOrderId() {
@@ -170,17 +205,57 @@ public class OrderController implements Initializable {
     }
 
     @FXML
+    void cmbCustomerOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
+        if (searchText.isEmpty()) {
+            cmbCustomerId.getItems().clear();
+            for (CustomerDto dto : currentCustomers) {
+                cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
+            }
+        } else {
+            cmbCustomerId.getItems().clear();
+            for (CustomerDto dto : currentCustomers) {
+                String display = dto.getName() + " - " + dto.getContact();
+                if (dto.getName().toLowerCase().contains(searchText) ||
+                    dto.getContact().toLowerCase().contains(searchText)) {
+                    cmbCustomerId.getItems().add(display);
+                }
+            }
+            cmbCustomerId.show();
+        }
+    }
+
+    @FXML
     void cmbProductOnAction(ActionEvent event) {
         String selection = cmbProductId.getValue();
         if (selection != null && currentProducts != null) {
             for (ProductDto dto : currentProducts) {
                 if (dto.getName().equals(selection)) {
                     selectedProduct = dto;
-                    lblUnitPrice.setText(String.valueOf(dto.getPrice()));
-                    lblQtyOnHand.setText(String.valueOf(dto.getQty()));
+                    lblUnitPrice.setText("Rs. " + dto.getPrice() + "/=");
+                    lblQtyOnHand.setText(dto.getQty() + " Kg");
                     break;
                 }
             }
+        }
+    }
+
+    @FXML
+    void cmbProductOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        String searchText = cmbProductId.getEditor().getText().toLowerCase();
+        if (searchText.isEmpty()) {
+            cmbProductId.getItems().clear();
+            for (ProductDto dto : currentProducts) {
+                cmbProductId.getItems().add(dto.getName());
+            }
+        } else {
+            cmbProductId.getItems().clear();
+            for (ProductDto dto : currentProducts) {
+                if (dto.getName().toLowerCase().contains(searchText)) {
+                    cmbProductId.getItems().add(dto.getName());
+                }
+            }
+            cmbProductId.show();
         }
     }
 
@@ -192,15 +267,16 @@ public class OrderController implements Initializable {
         }
         String code = selectedProduct.getId();
         String description = selectedProduct.getName();
-        int qty;
+        double qty;
         try {
-            qty = Integer.parseInt(txtQty.getText());
+            qty = Double.parseDouble(txtQty.getText());
         } catch (NumberFormatException ex) {
             new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
             return;
         }
         try {
-            double unitPrice = Double.parseDouble(lblUnitPrice.getText());
+            String priceStr = lblUnitPrice.getText().replace("Rs. ", "").replace("/=", "");
+            double unitPrice = Double.parseDouble(priceStr.trim());
             double total = qty * unitPrice;
             Button btn = new Button("Remove");
 
@@ -246,7 +322,67 @@ public class OrderController implements Initializable {
         for (CartTM tm : obList) {
             netTotal += tm.getTotal();
         }
-        lblNetTotal.setText(String.valueOf(netTotal));
+        
+        double discountPercent = 0.0;
+        try {
+            String discountText = txtDiscount.getText();
+            if (discountText != null && !discountText.isEmpty()) {
+                discountText = discountText.replace("%", "").trim();
+                discountPercent = Double.parseDouble(discountText);
+                if (discountPercent < 0 || discountPercent > 100) {
+                    new Alert(Alert.AlertType.WARNING, "Discount must be between 0% and 100%!").show();
+                    txtDiscount.setText("0%");
+                    discountPercent = 0.0;
+                }
+            }
+        } catch (NumberFormatException e) {
+            discountPercent = 0.0;
+        }
+        
+        double discountAmount = netTotal * (discountPercent / 100.0);
+        double finalTotal = netTotal - discountAmount;
+        lblNetTotal.setText(String.format("%.2f", finalTotal));
+        
+        calculateBalance();
+    }
+
+    private void calculateBalance() {
+        try {
+            double netTotal = Double.parseDouble(lblNetTotal.getText());
+            double amount = 0.0;
+            
+            if (txtAmount.getText() != null && !txtAmount.getText().isEmpty()) {
+                amount = Double.parseDouble(txtAmount.getText());
+            }
+            
+            double balance = amount - netTotal;
+            
+            if (balance < 0) {
+                lblBalance.setText("Insufficient!");
+                lblBalance.setStyle("-fx-text-fill: red;");
+            } else {
+                lblBalance.setText(String.format("%.2f", balance));
+                lblBalance.setStyle("-fx-text-fill: #00a118;");
+            }
+        } catch (NumberFormatException e) {
+            lblBalance.setText("0.00");
+        }
+    }
+
+    @FXML
+    void txtAmountOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        calculateBalance();
+    }
+
+    @FXML
+    void txtDiscountOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        calculateTotal();
+    }
+
+    @FXML
+    void txtDiscountOnAction(ActionEvent event) {
+        validateDiscount();
+        calculateTotal();
     }
 
     @FXML
@@ -257,6 +393,28 @@ public class OrderController implements Initializable {
         }
         if (obList.isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "Cart is empty!").show();
+            return;
+        }
+        
+        try {
+            double netTotal = Double.parseDouble(lblNetTotal.getText());
+            double amount = 0.0;
+            double discount = 0.0;
+            
+            if (txtAmount.getText() != null && !txtAmount.getText().isEmpty()) {
+                amount = Double.parseDouble(txtAmount.getText());
+            }
+            if (txtDiscount.getText() != null && !txtDiscount.getText().isEmpty()) {
+                discount = Double.parseDouble(txtDiscount.getText());
+            }
+            
+            double totalAfterDiscount = netTotal - discount;
+            if (amount < totalAfterDiscount) {
+                new Alert(Alert.AlertType.ERROR, "Insufficient Amount! Total: " + totalAfterDiscount + ", Paid: " + amount).show();
+                return;
+            }
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.WARNING, "Please enter valid amount!").show();
             return;
         }
 

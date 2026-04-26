@@ -20,7 +20,7 @@ public class ProductEntity {
     private String id;
 
     private String name;
-    private int qty;
+    private double qty;
     private double price;
 
     @Column(name = "is_deleted", columnDefinition = "boolean default false")

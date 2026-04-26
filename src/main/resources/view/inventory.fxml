@@ -24,7 +24,7 @@
             <Label layoutX="430.0" layoutY="15.0" text="Unit Price (LKR)" textFill="#7f8c8d" />
             <TextField fx:id="txtPrice" layoutX="430.0" layoutY="35.0" prefHeight="30.0" prefWidth="130.0" promptText="0.00" style="-fx-background-radius: 5;" />
 
-            <Label layoutX="580.0" layoutY="15.0" text="Qty On Hand" textFill="#7f8c8d" />
+            <Label layoutX="580.0" layoutY="15.0" text="Qty On Hand (Kg)" textFill="#7f8c8d" />
             <TextField fx:id="txtQty" layoutX="580.0" layoutY="35.0" prefHeight="30.0" prefWidth="130.0" promptText="0" style="-fx-background-radius: 5;" />
             
             <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
@@ -41,7 +41,7 @@
         <columns>
           <TableColumn fx:id="colName" prefWidth="450.0" text="Product Name" />
           <TableColumn fx:id="colPrice" prefWidth="140.0" text="Unit Price (LKR)" />
-          <TableColumn fx:id="colQty" prefWidth="140.0" text="Qty On Hand" />
+          <TableColumn fx:id="colQty" prefWidth="140.0" text="Qty On Hand (Kg)" />
         </columns>
       </TableView>
    </children>

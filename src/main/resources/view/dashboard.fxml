@@ -163,7 +163,7 @@
                   <TableColumn prefWidth="145.99996948242188" text="Date " />
                 <TableColumn prefWidth="112.66665649414062" text="Order Id" />
                 <TableColumn prefWidth="172.0" text="Customer" />
-                  <TableColumn minWidth="0.0" prefWidth="120.0" text="qty" />
+                  <TableColumn minWidth="0.0" prefWidth="120.0" text="Qty (Kg)" />
                   <TableColumn minWidth="7.3333740234375" prefWidth="186.0" text="Total" />
               </columns>
             </TableView>

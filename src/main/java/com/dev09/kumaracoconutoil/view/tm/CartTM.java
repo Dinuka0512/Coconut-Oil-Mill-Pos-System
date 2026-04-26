@@ -11,7 +11,7 @@ import lombok.*;
 public class CartTM {
     private String code;
     private String description;
-    private int qty;
+    private double qty;
     private double unitPrice;
     private double total;
     private Button btn;

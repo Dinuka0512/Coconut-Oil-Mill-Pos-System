@@ -49,7 +49,7 @@
         <PasswordField fx:id="txtPassword" layoutX="576.0" layoutY="331.0" prefHeight="26.0" prefWidth="266.0" promptText="Password" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="331.0" />
 
         <!-- Login Button -->
-        <Button layoutX="582.4000000000001" layoutY="386.6" mnemonicParsing="false" onAction="#login" prefHeight="38.0" prefWidth="266.0" style="-fx-background-color: #f39c12; -fx-background-radius: 20;" text="LogIn" textFill="WHITE" AnchorPane.rightAnchor="82.39999999999998" AnchorPane.topAnchor="386.6">
+        <Button layoutX="582.4000000000001" layoutY="386.6" mnemonicParsing="false" onAction="#login" prefHeight="38.0" prefWidth="266.0" style="-fx-background-color: #ffc000; -fx-background-radius: 20;" text="LogIn" textFill="WHITE" AnchorPane.rightAnchor="82.39999999999998" AnchorPane.topAnchor="386.6">
             <font>
                 <Font size="15.0" />
             </font>
