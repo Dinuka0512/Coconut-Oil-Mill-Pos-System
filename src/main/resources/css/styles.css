@@ -1,0 +1,17 @@
+/* Bar Chart Colors - Yellow Theme */
+.chart-bar { -fx-bar-fill: #f39c12; }
+.default-color0.chart-bar { -fx-bar-fill: #f39c12; }
+
+/* Line Chart Colors */
+.chart-line { -fx-stroke: #f39c12; -fx-stroke-width: 3; }
+.chart-line-symbol { -fx-background-color: #f39c12; }
+.default-color0.chart-line { -fx-stroke: #f39c12; }
+.default-color0.chart-line-symbol { -fx-background-color: #f39c12; }
+
+/* Chart Background */
+.chart { -fx-background-color: transparent; }
+.chart-plot-background { -fx-background-color: #f8f9fa; }
+
+/* Axis Colors */
+.axis-label { -fx-text-fill: #4c4c4c; }
+.axis-tick-label { -fx-text-fill: #4c4c4c; }
