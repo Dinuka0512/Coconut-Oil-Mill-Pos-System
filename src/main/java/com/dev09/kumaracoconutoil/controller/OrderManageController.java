@@ -15,14 +15,21 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
+import javafx.util.Callback;
 
 public class OrderManageController implements Initializable {
 
     @FXML
     private TextField txtSearch;
+
+    @FXML
+    private DatePicker datePicker;
 
     @FXML
     private TableView<OrderDto> tblOrders;
@@ -52,21 +59,50 @@ public class OrderManageController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         colOrderId.setCellValueFactory(new PropertyValueFactory<>("orderId"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        colCustomer.setCellValueFactory(new PropertyValueFactory<>("customer"));
+        colCustomer.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
         
-        loadOrders();
+        datePicker.setValue(LocalDate.now());
+        datePicker.setEditable(false);
+        datePicker.setShowWeekNumbers(false);
+        datePicker.setDayCellFactory(new Callback<DatePicker, DateCell>() {
+            @Override
+            public DateCell call(DatePicker param) {
+                return new DateCell() {
+                    @Override
+                    public void updateItem(LocalDate item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item.isAfter(LocalDate.now())) {
+                            setDisable(true);
+                            getStyleClass().add("disabled-date");
+                        }
+                    }
+                };
+            }
+        });
+        datePicker.setOnAction(e -> {
+            LocalDate selected = datePicker.getValue();
+            if (selected != null) {
+                loadOrdersByDate(selected);
+            }
+        });
+        
+        loadOrdersByDate(datePicker.getValue());
     }
 
-    private void loadOrders() {
+    private void loadOrdersByDate(LocalDate date) {
         try {
             tblOrders.getItems().clear();
             orderList.clear();
             ArrayList<OrderDto> orders = orderBO.getAllOrders();
             if (orders != null) {
-                orderList.addAll(orders);
-                tblOrders.getItems().addAll(orders);
+                for (OrderDto order : orders) {
+                    if (order.getDate() != null && order.getDate().equals(date)) {
+                        orderList.add(order);
+                        tblOrders.getItems().add(order);
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,26 +114,32 @@ public class OrderManageController implements Initializable {
     void btnSearchOnAction(ActionEvent event) {
         String searchText = txtSearch.getText().trim();
         
-        if (searchText.isEmpty()) {
-            loadOrders();
-            return;
-        }
-        
-        try {
-            tblOrders.getItems().clear();
-            ArrayList<OrderDto> orders = orderBO.getAllOrders();
-            if (orders != null) {
-                for (OrderDto order : orders) {
-                    String custName = (order.getCustomer() != null) ? order.getCustomer().getName() : "";
-                    if (order.getOrderId().toLowerCase().contains(searchText.toLowerCase()) ||
-                        custName.toLowerCase().contains(searchText.toLowerCase())) {
-                        tblOrders.getItems().add(order);
+        if (!searchText.isEmpty()) {
+            try {
+                tblOrders.getItems().clear();
+                orderList.clear();
+                ArrayList<OrderDto> orders = orderBO.getAllOrders();
+                if (orders != null) {
+                    for (OrderDto order : orders) {
+                        if (order.getOrderId() != null && 
+                            order.getOrderId().toLowerCase().contains(searchText.toLowerCase())) {
+                            orderList.add(order);
+                            tblOrders.getItems().add(order);
+                        }
                     }
                 }
+                if (tblOrders.getItems().isEmpty()) {
+                    new Alert(Alert.AlertType.INFORMATION, "No orders found!").show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Error searching: " + e.getMessage()).show();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error searching: " + e.getMessage()).show();
+        } else {
+            LocalDate selectedDate = datePicker.getValue();
+            if (selectedDate != null) {
+                loadOrdersByDate(selectedDate);
+            }
         }
     }
 
@@ -145,7 +187,7 @@ public class OrderManageController implements Initializable {
                 boolean success = orderBO.deleteOrder(selected.getOrderId());
                 if (success) {
                     new Alert(Alert.AlertType.INFORMATION, "Order deleted successfully!").show();
-                    loadOrders();
+                    loadOrdersByDate(datePicker.getValue());
                 } else {
                     new Alert(Alert.AlertType.ERROR, "Failed to delete order!").show();
                 }
@@ -158,16 +200,16 @@ public class OrderManageController implements Initializable {
 
     @FXML
     void btnRefreshOnAction(ActionEvent event) {
-        txtSearch.clear();
-        loadOrders();
-        new Alert(Alert.AlertType.INFORMATION, "Orders refreshed!").show();
+        datePicker.setValue(LocalDate.now());
+        loadOrdersByDate(datePicker.getValue());
+        new Alert(Alert.AlertType.INFORMATION, "Orders refreshed for today!").show();
     }
 
     @FXML
     void btnBackOnAction(ActionEvent event) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/view/dashboard.fxml"));
-            Stage stage = (Stage) txtSearch.getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("/view/pos.fxml"));
+            Stage stage = (Stage) datePicker.getScene().getWindow();
             stage.setScene(new Scene(root));
         } catch (Exception e) {
             e.printStackTrace();

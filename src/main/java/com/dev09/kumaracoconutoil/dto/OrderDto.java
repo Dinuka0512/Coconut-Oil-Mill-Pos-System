@@ -16,6 +16,10 @@ public class OrderDto {
     private LocalDate date;
     private CustomerDto customer;
     private List<OrderProductDetailsDto> orderProducts;
+    private double amountPaid;
+    private double discount;
+    private double tax;
+    private double balance;
 
     public String getCustomerName() {
         return customer != null ? customer.getName() : "";

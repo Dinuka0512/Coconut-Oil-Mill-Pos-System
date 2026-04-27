@@ -15,7 +15,7 @@ public class OrderDAOImpl implements OrderDAO {
     public ArrayList<OrderEntity> getAll() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            Query<OrderEntity> query = session.createQuery("FROM OrderEntity", OrderEntity.class);
+            Query<OrderEntity> query = session.createQuery("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts", OrderEntity.class);
             List<OrderEntity> list = query.list();
             return new ArrayList<>(list);
         } finally {
@@ -28,7 +28,7 @@ public class OrderDAOImpl implements OrderDAO {
         Session session = FactoryConfiguration.getInstance().getSession();
         Transaction transaction = session.beginTransaction();
         try {
-            session.persist(entity);
+            session.merge(entity);
             transaction.commit();
             return true;
         } catch (Exception e) {
@@ -74,13 +74,16 @@ public class OrderDAOImpl implements OrderDAO {
         Session session = FactoryConfiguration.getInstance().getSession();
         Transaction transaction = session.beginTransaction();
         try {
-            OrderEntity entity = session.get(OrderEntity.class, id);
-            if (entity != null) {
-                session.remove(entity);
-                transaction.commit();
-                return true;
-            }
-            return false;
+            session.createNativeQuery("DELETE FROM order_product_details WHERE order_id = :id")
+                  .setParameter("id", id)
+                  .executeUpdate();
+            
+            session.createNativeQuery("DELETE FROM orders WHERE orderId = :id")
+                  .setParameter("id", id)
+                  .executeUpdate();
+            
+            transaction.commit();
+            return true;
         } catch (Exception e) {
             transaction.rollback();
             e.printStackTrace();
@@ -94,12 +97,18 @@ public class OrderDAOImpl implements OrderDAO {
     public String generateNewId() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            String lastId = (String) session.createQuery("SELECT o.orderId FROM OrderEntity o ORDER BY o.orderId DESC").setMaxResults(1).uniqueResult();
+            String sql = "SELECT orderId FROM orders ORDER BY orderId DESC LIMIT 1";
+            String lastId = (String) session.createNativeQuery(sql).uniqueResult();
+            
             if (lastId == null) {
                 return "O001";
             }
-            int number = Integer.parseInt(lastId.substring(1));
-            return String.format("O%03d", ++number);
+            
+            lastId = lastId.replaceAll("[^0-9]", "");
+            int number = Integer.parseInt(lastId);
+            return String.format("O%03d", number + 1);
+        } catch (Exception e) {
+            return "O001";
         } finally {
             session.close();
         }

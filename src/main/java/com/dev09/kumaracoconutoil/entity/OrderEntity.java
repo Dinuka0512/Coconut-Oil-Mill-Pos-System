@@ -15,8 +15,6 @@ import java.util.List;
 @ToString
 @Entity
 @Table(name = "orders")
-@SQLDelete(sql = "UPDATE orders SET is_deleted = true WHERE order_id = ?")
-@SQLRestriction("is_deleted = false")
 public class OrderEntity {
 
     @Id
@@ -24,13 +22,18 @@ public class OrderEntity {
 
     private LocalDate date;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private CustomerEntity customer;
+
+    private double amountPaid;
+    private double discount;
+    private double tax;
+    private double balance;
 
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean isDeleted = false;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderProductDetailsEntity> orderProducts;
 }

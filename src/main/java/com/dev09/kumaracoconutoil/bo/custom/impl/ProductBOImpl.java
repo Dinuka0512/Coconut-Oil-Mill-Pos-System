@@ -86,4 +86,15 @@ public class ProductBOImpl implements ProductBO {
     public ArrayList<ProductEntity> getAllProductsEntity() {
         return productDAO.getAll();
     }
+
+    @Override
+    public boolean updateStock(String productId, double quantity) {
+        ProductEntity entity = productDAO.search(productId);
+        if (entity != null) {
+            double newQty = entity.getQty() - quantity;
+            entity.setQty(newQty);
+            return productDAO.update(entity);
+        }
+        return false;
+    }
 }

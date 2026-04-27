@@ -12,8 +12,6 @@ import org.hibernate.annotations.SQLRestriction;
 @ToString
 @Entity
 @Table(name = "order_product_details")
-@SQLDelete(sql = "UPDATE order_product_details SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted = false")
 public class OrderProductDetailsEntity {
 
     @Id

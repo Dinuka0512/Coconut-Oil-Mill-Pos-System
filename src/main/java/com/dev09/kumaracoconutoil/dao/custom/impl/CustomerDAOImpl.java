@@ -125,7 +125,7 @@ public class CustomerDAOImpl implements CustomerDAO {
     public CustomerEntity search(String id) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            String sql = "SELECT * FROM customer WHERE custId = :id AND is_deleted = false";
+            String sql = "SELECT * FROM customer WHERE custId = :id";
             NativeQuery<CustomerEntity> query = session.createNativeQuery(sql, CustomerEntity.class);
             query.setParameter("id", id);
             return query.uniqueResult();

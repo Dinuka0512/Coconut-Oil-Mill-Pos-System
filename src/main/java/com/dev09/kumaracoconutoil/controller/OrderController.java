@@ -118,7 +118,7 @@ public class OrderController implements Initializable {
         loadProductIds();
         loadTax();
         txtDiscount.setText("0");
-        txtAmount.setText("");
+        txtAmount.setText("-");
         
         txtDiscount.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal) {
@@ -363,7 +363,21 @@ public class OrderController implements Initializable {
         }
         
         double discountAmount = netTotal * (discountPercent / 100.0);
-        double finalTotal = netTotal - discountAmount;
+        double totalAfterDiscount = netTotal - discountAmount;
+        
+        double taxPercent = 0.0;
+        try {
+            String taxText = txtTax.getText();
+            if (taxText != null && !taxText.isEmpty()) {
+                taxPercent = Double.parseDouble(taxText);
+            }
+        } catch (NumberFormatException e) {
+            taxPercent = 0.0;
+        }
+        
+        double taxAmount = totalAfterDiscount * (taxPercent / 100.0);
+        double finalTotal = totalAfterDiscount + taxAmount;
+        
         lblNetTotal.setText(String.format("%.2f", finalTotal));
         
         calculateBalance();
@@ -373,9 +387,14 @@ public class OrderController implements Initializable {
         try {
             double netTotal = Double.parseDouble(lblNetTotal.getText());
             double amount = 0.0;
+            String amountText = txtAmount.getText();
             
-            if (txtAmount.getText() != null && !txtAmount.getText().isEmpty()) {
-                amount = Double.parseDouble(txtAmount.getText());
+            if (amountText != null && !amountText.isEmpty() && !amountText.equals("-")) {
+                amount = Double.parseDouble(amountText);
+            } else {
+                lblBalance.setText("0.00");
+                lblBalance.setStyle("-fx-text-fill: #00a118;");
+                return;
             }
             
             double balance = amount - netTotal;
@@ -419,31 +438,24 @@ public class OrderController implements Initializable {
             return;
         }
         
-        try {
-            double netTotal = Double.parseDouble(lblNetTotal.getText());
-            double amount = 0.0;
-            double discount = 0.0;
-            
-            if (txtAmount.getText() != null && !txtAmount.getText().isEmpty()) {
-                amount = Double.parseDouble(txtAmount.getText());
-            }
-            if (txtDiscount.getText() != null && !txtDiscount.getText().isEmpty()) {
-                discount = Double.parseDouble(txtDiscount.getText());
-            }
-            
-            double totalAfterDiscount = netTotal - discount;
-            if (amount < totalAfterDiscount) {
-                new Alert(Alert.AlertType.ERROR, "Insufficient Amount! Total: " + totalAfterDiscount + ", Paid: " + amount).show();
-                return;
-            }
-        } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Please enter valid amount!").show();
-            return;
-        }
-
         String orderId = lblOrderId.getText();
         LocalDate date = LocalDate.parse(lblDate.getText());
         CustomerDto customerDto = selectedCustomer;
+        
+        double netTotal = 0.0;
+        double discount = 0.0;
+        double tax = 0.0;
+        double balance = 0.0;
+        
+        try {
+            netTotal = Double.parseDouble(lblNetTotal.getText());
+            discount = Double.parseDouble(txtDiscount.getText());
+            tax = Double.parseDouble(txtTax.getText());
+            balance = Double.parseDouble(lblBalance.getText());
+        } catch (NumberFormatException e) {
+        }
+        
+        double amount = netTotal;
 
         ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
         for (CartTM tm : obList) {
@@ -451,7 +463,7 @@ public class OrderController implements Initializable {
             details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
         }
 
-        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details);
+        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, tax, balance);
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {
@@ -502,9 +514,9 @@ public class OrderController implements Initializable {
     @FXML
     void btnPreviousOrders(ActionEvent event) {
         try {
-            AnchorPane pane = FXMLLoader.load(getClass().getResource("/view/OrderManage.fxml"));
+            javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/OrderManage.fxml"));
             body.getChildren().clear();
-            body.getChildren().add(pane);
+            body.getChildren().add(root);
         } catch (IOException e) {
             e.printStackTrace();
         }

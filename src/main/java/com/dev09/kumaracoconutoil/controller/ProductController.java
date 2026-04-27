@@ -29,7 +29,7 @@ public class ProductController implements Initializable {
     private TableColumn<ProductDto, Double> colPrice;
 
     @FXML
-    private TableColumn<ProductDto, Integer> colQty;
+    private TableColumn<ProductDto, Double> colQty;
 
     @FXML
     private TableView<ProductDto> tblProduct;
@@ -131,7 +131,7 @@ public class ProductController implements Initializable {
 
         try {
             double price = Double.parseDouble(priceText);
-            int qty = Integer.parseInt(qtyText);
+            double qty = Double.parseDouble(qtyText);
 
             boolean isSaved = productBO.saveProduct(new ProductDto(id, name, qty, price));
             if (isSaved) {
@@ -155,7 +155,7 @@ public class ProductController implements Initializable {
 
         try {
             double price = Double.parseDouble(priceText);
-            int qty = Integer.parseInt(qtyText);
+            double qty = Double.parseDouble(qtyText);
 
             boolean isUpdated = productBO.updateProduct(new ProductDto(id, name, qty, price));
             if (isUpdated) {
