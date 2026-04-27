@@ -4,10 +4,12 @@ import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.bo.custom.TaxBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.TaxDto;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -52,6 +54,9 @@ public class OrderController implements Initializable {
 
     @FXML
     private TableColumn<CartTM, Button> colAction;
+    
+    @FXML
+    private TextField txtTax;
 
     @FXML
     private Label lblNetTotal;
@@ -75,6 +80,9 @@ public class OrderController implements Initializable {
     private TextField txtQty;
 
     @FXML
+    private Button btnUpdate;
+
+    @FXML
     private TextField txtDiscount;
 
     @FXML
@@ -86,6 +94,7 @@ public class OrderController implements Initializable {
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
+    private TaxBO taxBO = (TaxBO) BOFactory.getInstance().getBo(BOFactory.BOType.TAX);
 
     private ObservableList<CartTM> obList = FXCollections.observableArrayList();
     private java.util.List<CustomerDto> currentCustomers;
@@ -107,6 +116,7 @@ public class OrderController implements Initializable {
         setOrderId();
         loadCustomerIds();
         loadProductIds();
+        loadTax();
         txtDiscount.setText("0");
         txtAmount.setText("");
         
@@ -115,6 +125,19 @@ public class OrderController implements Initializable {
                 validateDiscount();
             }
         });
+    }
+    
+    private void loadTax() {
+        try {
+            TaxDto taxDto = taxBO.searchTax("1");
+            if (taxDto != null) {
+                txtTax.setText(String.valueOf(taxDto.getTax()));
+            } else {
+                txtTax.setText("0");
+            }
+        } catch (Exception e) {
+            txtTax.setText("0");
+        }
     }
     
     private void validateDiscount() {
@@ -455,8 +478,25 @@ public class OrderController implements Initializable {
     }
 
     @FXML
-    void btnUpdate(ActionEvent event) {
-        new Alert(Alert.AlertType.INFORMATION, "Update feature coming soon!").show();
+    void btnUpdateOnAction(ActionEvent event) {
+        if (txtTax.isEditable()) {
+            try {
+                double taxValue = Double.parseDouble(txtTax.getText());
+                TaxDto taxDto = new TaxDto(1, taxValue);
+                taxBO.updateTax(taxDto);
+                loadTax();
+                txtTax.setEditable(false);
+                btnUpdate.setText("Edit");
+                btnUpdate.setStyle("-fx-background-color: #b1b1b1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+                new Alert(Alert.AlertType.INFORMATION, "Tax updated successfully!").show();
+            } catch (Exception e) {
+                new Alert(Alert.AlertType.ERROR, "Invalid tax value!").show();
+            }
+        } else {
+            txtTax.setEditable(true);
+            btnUpdate.setText("Save");
+            btnUpdate.setStyle("-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+        }
     }
 
     @FXML
