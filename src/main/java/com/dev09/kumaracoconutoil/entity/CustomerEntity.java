@@ -1,17 +1,11 @@
 package com.dev09.kumaracoconutoil.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString
 @Entity
 @Table(name = "customer")
 @SQLDelete(sql = "UPDATE customer SET is_deleted = true WHERE cust_id = ?")
@@ -29,4 +23,36 @@ public class CustomerEntity {
 
     @OneToMany(mappedBy = "customer", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<OrderEntity> orders;
+
+    public CustomerEntity() {}
+
+    public CustomerEntity(String custId, String name, String contact, boolean isDeleted) {
+        this.custId = custId;
+        this.name = name;
+        this.contact = contact;
+        this.isDeleted = isDeleted;
+    }
+
+    public CustomerEntity(String custId, String name, String contact, boolean isDeleted, Object orders) {
+        this.custId = custId;
+        this.name = name;
+        this.contact = contact;
+        this.isDeleted = isDeleted;
+    }
+
+    public String getCustId() { return custId; }
+    public void setCustId(String custId) { this.custId = custId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+    public List<OrderEntity> getOrders() { return orders; }
+    public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
+
+    @Override
+    public String toString() {
+        return "CustomerEntity{custId=" + custId + ", name=" + name + ", contact=" + contact + "}";
+    }
 }

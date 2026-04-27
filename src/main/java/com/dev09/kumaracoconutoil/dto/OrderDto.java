@@ -1,16 +1,8 @@
 package com.dev09.kumaracoconutoil.dto;
 
-import lombok.*;
-
 import java.time.LocalDate;
 import java.util.List;
 
-
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString
 public class OrderDto {
     private String orderId;
     private LocalDate date;
@@ -20,6 +12,37 @@ public class OrderDto {
     private double discount;
     private double tax;
     private double balance;
+
+    public OrderDto() {}
+
+    public OrderDto(String orderId, LocalDate date, CustomerDto customer, List<OrderProductDetailsDto> orderProducts,
+                    double amountPaid, double discount, double tax, double balance) {
+        this.orderId = orderId;
+        this.date = date;
+        this.customer = customer;
+        this.orderProducts = orderProducts;
+        this.amountPaid = amountPaid;
+        this.discount = discount;
+        this.tax = tax;
+        this.balance = balance;
+    }
+
+    public String getOrderId() { return orderId; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public CustomerDto getCustomer() { return customer; }
+    public void setCustomer(CustomerDto customer) { this.customer = customer; }
+    public List<OrderProductDetailsDto> getOrderProducts() { return orderProducts; }
+    public void setOrderProducts(List<OrderProductDetailsDto> orderProducts) { this.orderProducts = orderProducts; }
+    public double getAmountPaid() { return amountPaid; }
+    public void setAmountPaid(double amountPaid) { this.amountPaid = amountPaid; }
+    public double getDiscount() { return discount; }
+    public void setDiscount(double discount) { this.discount = discount; }
+    public double getTax() { return tax; }
+    public void setTax(double tax) { this.tax = tax; }
+    public double getBalance() { return balance; }
+    public void setBalance(double balance) { this.balance = balance; }
 
     public String getCustomerName() {
         return customer != null ? customer.getName() : "";
@@ -31,5 +54,11 @@ public class OrderDto {
 
     public double getTotal() {
         return amountPaid;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderDto{orderId=" + orderId + ", date=" + date + ", customer=" + customer + 
+               ", amountPaid=" + amountPaid + ", discount=" + discount + ", tax=" + tax + ", balance=" + balance + "}";
     }
 }

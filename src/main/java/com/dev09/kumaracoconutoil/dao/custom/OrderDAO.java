@@ -6,4 +6,5 @@ import com.dev09.kumaracoconutoil.entity.CustomerEntity;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
 
 public interface OrderDAO extends SuperDAO, CrudDAO<OrderEntity> {
+    OrderEntity searchWithProducts(String orderId);
 }

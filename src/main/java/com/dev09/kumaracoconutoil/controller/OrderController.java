@@ -141,6 +141,52 @@ public class OrderController implements Initializable {
         }
     }
     
+    public void loadOrderForEdit(OrderDto orderDto) {
+        try {
+            lblOrderId.setText(orderDto.getOrderId());
+            lblDate.setText(String.valueOf(orderDto.getDate()));
+            
+            if (orderDto.getCustomer() != null) {
+                cmbCustomerId.getItems().clear();
+                cmbCustomerId.getItems().add(orderDto.getCustomer().getName());
+                cmbCustomerId.getSelectionModel().select(0);
+                selectedCustomer = orderDto.getCustomer();
+            }
+            
+            txtDiscount.setText(String.valueOf(orderDto.getDiscount()));
+            txtTax.setText(String.valueOf(orderDto.getTax()));
+            
+            if (orderDto.getOrderProducts() != null) {
+                for (OrderProductDetailsDto detail : orderDto.getOrderProducts()) {
+                    ProductDto product = detail.getProduct();
+                    if (product != null) {
+                        double qty = detail.getQuantity();
+                        double unitPrice = detail.getUnitPrice();
+                        double total = qty * unitPrice;
+                        
+                        Button btn = new Button("Remove");
+                        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+                        btn.setOnAction(e -> {
+                            ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+                            ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+                            Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
+                            if (result.orElse(no) == yes) {
+                                obList.removeIf(item -> item.getCode().equals(product.getId()));
+                                calculateTotal();
+                            }
+                        });
+                        
+                        obList.add(new CartTM(product.getId(), product.getName(), qty, unitPrice, total, btn));
+                    }
+                }
+                calculateTotal();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();
+        }
+    }
+    
     private void validateDiscount() {
         String text = txtDiscount.getText();
         if (text != null && !text.isEmpty()) {
@@ -188,6 +234,7 @@ public class OrderController implements Initializable {
             javafx.stage.Stage stage = new javafx.stage.Stage();
             stage.setScene(new javafx.scene.Scene(root));
             stage.setTitle("New Customer");
+            stage.setResizable(false);
             stage.showAndWait();
             
             cmbCustomerId.getItems().clear();
@@ -205,6 +252,7 @@ public class OrderController implements Initializable {
             javafx.stage.Stage stage = new javafx.stage.Stage();
             stage.setScene(new javafx.scene.Scene(root));
             stage.setTitle("New Product");
+            stage.setResizable(false);
             stage.showAndWait();
             
             cmbProductId.getItems().clear();
@@ -299,12 +347,21 @@ public class OrderController implements Initializable {
             return;
         }
         
-        if (selectedProduct != null) {
-            double qtyOnHand = selectedProduct.getQty();
-            if (qty > qtyOnHand) {
-                new Alert(Alert.AlertType.WARNING, "Order quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg").show();
-                return;
+        double qtyOnHand = selectedProduct.getQty();
+        
+        double existingQtyInCart = 0;
+        for (int i = 0; i < obList.size(); i++) {
+            if (code.equals(obList.get(i).getCode())) {
+                existingQtyInCart = obList.get(i).getQty();
+                break;
             }
+        }
+        
+        double totalQtyInCart = existingQtyInCart + qty;
+        
+        if (totalQtyInCart > qtyOnHand) {
+            new Alert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg").show();
+            return;
         }
         
         try {
@@ -312,17 +369,20 @@ public class OrderController implements Initializable {
             double unitPrice = Double.parseDouble(priceStr.trim());
             double total = qty * unitPrice;
             Button btn = new Button("Remove");
+            btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
 
-            btn.setOnAction((e) -> {
+            btn.setOnAction(e -> {
                 ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
                 ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
                 Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
 
                 if (result.orElse(no) == yes) {
-                    int index = tblOrderCart.getSelectionModel().getSelectedIndex();
-                    if (index >= 0) {
-                        obList.remove(index);
-                        calculateTotal();
+                    for (int i = 0; i < obList.size(); i++) {
+                        if (obList.get(i).getBtn() == btn) {
+                            obList.remove(i);
+                            calculateTotal();
+                            break;
+                        }
                     }
                 }
             });
@@ -341,7 +401,7 @@ public class OrderController implements Initializable {
                     return;
                 }
             }
-
+            
             obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
             calculateTotal();
             txtQty.clear();

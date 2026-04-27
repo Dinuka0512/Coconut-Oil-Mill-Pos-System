@@ -4,7 +4,6 @@ module com.dev09.kumaracoconutoil {
     requires org.hibernate.orm.core;
     requires jakarta.persistence;
     requires java.naming;
-    requires lombok;
     requires org.apache.pdfbox;
     requires java.desktop;
 

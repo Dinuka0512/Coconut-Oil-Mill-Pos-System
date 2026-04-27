@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
+import com.dev09.kumaracoconutoil.controller.UpdatePosController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -267,13 +268,20 @@ public class OrderManageController implements Initializable {
             return;
         }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/pos.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/updatePos.fxml"));
             Parent root = loader.load();
             
-            OrderController controller = loader.getController();
+            UpdatePosController controller = loader.getController();
+            controller.loadOrderForEdit(order);
             
-            Stage stage = (Stage) tblOrders.getScene().getWindow();
+            Stage stage = new Stage();
             stage.setScene(new Scene(root));
+            stage.setTitle("Update Order - " + order.getOrderId());
+            stage.setResizable(false);
+            stage.setOnHidden(e -> {
+                loadOrdersByDate(datePicker.getValue());
+            });
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();

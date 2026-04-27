@@ -54,7 +54,7 @@ public class OrderBOImpl implements OrderBO {
                     product.setId(detail.getProduct().getId());
                     detailEntity.setProduct(product);
                     
-                    detailEntity.setQuantity((int) detail.getQuantity());
+                    detailEntity.setQuantity(detail.getQuantity());
                     detailEntity.setUnitPrice(detail.getUnitPrice());
                     details.add(detailEntity);
                     
@@ -109,6 +109,16 @@ public class OrderBOImpl implements OrderBO {
                     OrderProductDetailsDto detailDto = new OrderProductDetailsDto();
                     detailDto.setQuantity(op.getQuantity());
                     detailDto.setUnitPrice(op.getUnitPrice());
+                    
+                    if (op.getProduct() != null) {
+                        ProductDto productDto = new ProductDto();
+                        productDto.setId(op.getProduct().getId());
+                        productDto.setName(op.getProduct().getName());
+                        productDto.setQty(op.getProduct().getQty());
+                        productDto.setPrice(op.getProduct().getPrice());
+                        detailDto.setProduct(productDto);
+                    }
+                    
                     dto.getOrderProducts().add(detailDto);
                 }
             } else {
@@ -119,6 +129,51 @@ public class OrderBOImpl implements OrderBO {
         }
         
         return dtos;
+    }
+
+    @Override
+    public boolean updateOrder(OrderDto dto) throws SQLException, ClassNotFoundException {
+        try {
+            OrderEntity entity = orderDAO.searchWithProducts(dto.getOrderId());
+            if (entity == null) return false;
+            
+            com.dev09.kumaracoconutoil.entity.CustomerEntity customer = new com.dev09.kumaracoconutoil.entity.CustomerEntity();
+            customer.setCustId(dto.getCustomer().getCustId());
+            entity.setCustomer(customer);
+            
+            entity.setAmountPaid(dto.getAmountPaid());
+            entity.setDiscount(dto.getDiscount());
+            entity.setTax(dto.getTax());
+            entity.setBalance(dto.getBalance());
+            
+            if (entity.getOrderProducts() != null) {
+                entity.getOrderProducts().clear();
+            }
+            
+            if (dto.getOrderProducts() != null) {
+                ArrayList<com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity> details = new ArrayList<>();
+                for (OrderProductDetailsDto detail : dto.getOrderProducts()) {
+                    com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity detailEntity = 
+                        new com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity();
+                    detailEntity.setOrder(entity);
+                    
+                    com.dev09.kumaracoconutoil.entity.ProductEntity product = 
+                        new com.dev09.kumaracoconutoil.entity.ProductEntity();
+                    product.setId(detail.getProduct().getId());
+                    detailEntity.setProduct(product);
+                    
+                    detailEntity.setQuantity(detail.getQuantity());
+                    detailEntity.setUnitPrice(detail.getUnitPrice());
+                    details.add(detailEntity);
+                }
+                entity.setOrderProducts(details);
+            }
+            
+            return orderDAO.update(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 public interface OrderBO extends SuperBo {
     boolean placeOrder(OrderDto dto) throws SQLException, ClassNotFoundException;
+    boolean updateOrder(OrderDto dto) throws SQLException, ClassNotFoundException;
     String generateNextOrderId() throws SQLException, ClassNotFoundException;
     ArrayList<OrderDto> getAllOrders() throws SQLException, ClassNotFoundException;
     boolean deleteOrder(String orderId) throws SQLException, ClassNotFoundException;
