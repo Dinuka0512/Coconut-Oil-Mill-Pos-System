@@ -117,6 +117,7 @@ public class OrderController implements Initializable {
         loadCustomerIds();
         loadProductIds();
         loadTax();
+        
         txtDiscount.setText("0");
         txtAmount.setText("-");
         
@@ -297,6 +298,15 @@ public class OrderController implements Initializable {
             new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
             return;
         }
+        
+        if (selectedProduct != null) {
+            double qtyOnHand = selectedProduct.getQty();
+            if (qty > qtyOnHand) {
+                new Alert(Alert.AlertType.WARNING, "Order quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg").show();
+                return;
+            }
+        }
+        
         try {
             String priceStr = lblUnitPrice.getText().replace("Rs. ", "").replace("/=", "");
             double unitPrice = Double.parseDouble(priceStr.trim());

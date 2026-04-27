@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.scene.control.DateCell;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.control.DatePicker;
 import javafx.util.Callback;
 
@@ -62,6 +63,28 @@ public class OrderManageController implements Initializable {
         colCustomer.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        
+        colAction.setCellFactory(param -> new TableCell<OrderDto, String>() {
+            private final Button btnEdit = new Button("Edit");
+            
+            {
+                btnEdit.setOnAction(event -> {
+                    OrderDto order = getTableView().getItems().get(getIndex());
+                    btnEditOnAction(order);
+                });
+                btnEdit.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
+            }
+            
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btnEdit);
+                }
+            }
+        });
         
         datePicker.setValue(LocalDate.now());
         datePicker.setEditable(false);
@@ -112,6 +135,15 @@ public class OrderManageController implements Initializable {
 
     @FXML
     void btnSearchOnAction(ActionEvent event) {
+        performSearch();
+    }
+
+    @FXML
+    private void txtSearchOnKeyReleased(KeyEvent event) {
+        performSearch();
+    }
+    
+    private void performSearch() {
         String searchText = txtSearch.getText().trim();
         
         if (!searchText.isEmpty()) {
@@ -121,8 +153,21 @@ public class OrderManageController implements Initializable {
                 ArrayList<OrderDto> orders = orderBO.getAllOrders();
                 if (orders != null) {
                     for (OrderDto order : orders) {
+                        boolean match = false;
+                        
                         if (order.getOrderId() != null && 
                             order.getOrderId().toLowerCase().contains(searchText.toLowerCase())) {
+                            match = true;
+                        }
+                        if (order.getCustomerName() != null && 
+                            order.getCustomerName().toLowerCase().contains(searchText.toLowerCase())) {
+                            match = true;
+                        }
+                        if (String.valueOf(order.getTotal()).contains(searchText)) {
+                            match = true;
+                        }
+                        
+                        if (match) {
                             orderList.add(order);
                             tblOrders.getItems().add(order);
                         }
@@ -213,6 +258,25 @@ public class OrderManageController implements Initializable {
             stage.setScene(new Scene(root));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+    private void btnEditOnAction(OrderDto order) {
+        if (order == null) {
+            new Alert(Alert.AlertType.WARNING, "Please select an order to edit!").show();
+            return;
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/pos.fxml"));
+            Parent root = loader.load();
+            
+            OrderController controller = loader.getController();
+            
+            Stage stage = (Stage) tblOrders.getScene().getWindow();
+            stage.setScene(new Scene(root));
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();
         }
     }
 }

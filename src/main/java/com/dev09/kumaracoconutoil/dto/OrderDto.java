@@ -30,9 +30,6 @@ public class OrderDto {
     }
 
     public double getTotal() {
-        if (orderProducts == null) return 0.0;
-        return orderProducts.stream()
-                .mapToDouble(d -> d.getUnitPrice() * d.getQuantity())
-                .sum();
+        return amountPaid;
     }
 }

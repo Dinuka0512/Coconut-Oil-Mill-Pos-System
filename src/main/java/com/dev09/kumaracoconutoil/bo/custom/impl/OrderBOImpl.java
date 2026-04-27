@@ -105,17 +105,12 @@ public class OrderBOImpl implements OrderBO {
             
             if (entity.getOrderProducts() != null) {
                 dto.setOrderProducts(new ArrayList<>());
-                double total = 0;
                 for (OrderProductDetailsEntity op : entity.getOrderProducts()) {
                     OrderProductDetailsDto detailDto = new OrderProductDetailsDto();
                     detailDto.setQuantity(op.getQuantity());
                     detailDto.setUnitPrice(op.getUnitPrice());
-                    total += op.getQuantity() * op.getUnitPrice();
                     dto.getOrderProducts().add(detailDto);
                 }
-                double taxAmount = total * entity.getTax() / 100;
-                total = total + taxAmount;
-                dto.setAmountPaid(total);
             } else {
                 dto.setOrderProducts(new ArrayList<>());
             }
