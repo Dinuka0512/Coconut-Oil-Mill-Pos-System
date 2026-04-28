@@ -75,37 +75,37 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float x = THERMAL_MARGIN;
             float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
 
-            // Company Header
-            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
+            // Company Header (matches product thermal PDF)
+            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw = getThermalTextWidth(COMPANY_NAME, THERMAL_FONT_10);
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_10); c.showText(COMPANY_NAME); c.endText();
-            y -= 14;
+            float twH = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twH)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            y -= 22;
             c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
             c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
             y -= 8;
 
-            c.setFont(THERMAL_FONT, THERMAL_FONT_9);
+            c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            tw = getThermalTextWidth(COMPANY_ADDRESS, THERMAL_FONT_9);
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_9); c.showText(COMPANY_ADDRESS); c.endText();
+            float twA = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twA)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
             y -= 12;
-            tw = getThermalTextWidth(COMPANY_PHONE, THERMAL_FONT_9);
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_9); c.showText(COMPANY_PHONE); c.endText();
+            float twP = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twP)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
             y -= 15;
 
-            // Title (right side like A4)
-            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
+            // Title (centered, smaller)
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            tw = getThermalTextWidth("CUSTOMER REPORT", THERMAL_FONT_10);
-            c.beginText(); c.newLineAtOffset(x + w - tw, y - THERMAL_FONT_10); c.showText("CUSTOMER REPORT"); c.endText();
-            y -= 20;
+            float tw1 = getThermalTextWidth("CUSTOMER REPORT", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw1)/2, y - THERMAL_FONT_8); c.showText("CUSTOMER REPORT"); c.endText();
+            y -= 16;
 
-            // Total (right side like A4)
-            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_9);
+            // Total (centered, smaller)
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_7);
             String count = "Total: " + customers.size();
-            tw = getThermalTextWidth(count, THERMAL_FONT_9);
-            c.beginText(); c.newLineAtOffset(x + w - tw, y - THERMAL_FONT_9); c.showText(count); c.endText();
+            float tw2 = getThermalTextWidth(count, THERMAL_FONT_7);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw2)/2, y - THERMAL_FONT_7); c.showText(count); c.endText();
             y -= 15;
 
             c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
@@ -150,7 +150,140 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
             y -= 20;
 
+            // Footer (matches product thermal PDF)
+            c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 10;
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            float twT = getThermalTextWidth("Thank you for your business!", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twT)/2, y - THERMAL_FONT_8); c.showText("Thank you for your business!"); c.endText();
+            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
+            float twG = getThermalTextWidth(gen, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twG)/2, y - 20); c.showText(gen); c.endText();
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating A4 customer report", e);
+        }
+    }
+
+    // ================================
+    // 3. PRODUCT REPORT - 80mm (Same Text as A4 Page, Centered)
+    // ================================
+    public static byte[] ProductReportThermal(List<ProductEntity> products) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float h = 2 * THERMAL_MARGIN + 80 + products.size() * 14 + 50;
+            PDPage page = new PDPage(new PDRectangle(THERMAL_WIDTH, Math.max(h, 350)));
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+
+            float y = page.getMediaBox().getHeight() - THERMAL_MARGIN;
+            float x = THERMAL_MARGIN;
+            float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
+
+            // Company Header
+            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            y -= 22;
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 8;
+
+            c.setFont(PDType1Font.HELVETICA, 9);
+            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
+            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
+            y -= 12;
+            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
+            y -= 15;
+
+            // Title (centered)
+            c.setFont(PDType1Font.HELVETICA_BOLD, 8);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            tw = PDType1Font.HELVETICA_BOLD.getStringWidth("PRODUCT REPORT") / 1000f * 8f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText("PRODUCT REPORT"); c.endText();
+            y -= 16;
+
+            // Total (centered)
+            c.setFont(PDType1Font.HELVETICA_BOLD, 7);
+            String count = "Total: " + products.size();
+            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 7f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_7); c.showText(count); c.endText();
+            y -= 15;
+
+            y -= 10;
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 20;
+
+            // Table Header (3 columns: Name, Price, Qty)
+            c.setFont(THERMAL_FONT_BOLD, 8);
+            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            c.addRect(x, y - 16, w, 16); c.fill();
+            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            float col1 = x + 10, col2 = x + w * 0.6f, col3 = x + w * 0.8f;
+            float col1w = w * 0.5f, col2w = w * 0.2f, col3w = w * 0.2f;
+            c.beginText(); c.newLineAtOffset(col1, y - 11); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2 + (col2w - getThermalTextWidth("Price", THERMAL_FONT_8))/2, y - 11); c.showText("Price"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3 + (col3w - getThermalTextWidth("Qty", THERMAL_FONT_8))/2, y - 11); c.showText("Qty"); c.endText();
+            y -= 16;
+
+            // Table Rows (3 columns: Name, Price, Qty)
+            c.setFont(THERMAL_FONT, THERMAL_FONT_9);
+            int idx = 1;
+            int lowStock = 0;
+            for (ProductEntity p : products) {
+                if (y < THERMAL_MARGIN + 60) break;
+                if (p.getQty() < 10) lowStock++;
+                if (idx % 2 == 0) {
+                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
+                    c.addRect(x, y - 14, w, 14); c.fill();
+                }
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String name = truncate(p.getName() != null ? p.getName() : "-", 20);
+                String price = String.format("%.2f", p.getPrice());
+                String qty = String.valueOf(p.getQty());
+                // Left-align Name
+                c.beginText(); c.newLineAtOffset(col1, y - 10); c.showText(name); c.endText();
+                // Center Price
+                float pw = PDType1Font.HELVETICA.getStringWidth(price) / 1000f * 9f;
+                c.beginText(); c.newLineAtOffset(col2 + (col2w - pw)/2, y - 10); c.showText(price); c.endText();
+                // Center Qty
+                float qw = PDType1Font.HELVETICA.getStringWidth(qty) / 1000f * 9f;
+                c.beginText(); c.newLineAtOffset(col3 + (col3w - qw)/2, y - 10); c.showText(qty); c.endText();
+                c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+                c.moveTo(x, y - 14); c.lineTo(x + w, y - 14); c.stroke();
+                y -= 14;
+                idx++;
+            }
+
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 15;
+
+            // Low Stock (centered)
+            c.setFont(PDType1Font.HELVETICA, 9);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String lowStr = String.format("Low Stock Items: %d", lowStock);
+            tw = PDType1Font.HELVETICA.getStringWidth(lowStr) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(lowStr); c.endText();
+            y -= 20;
+
             // Footer
+            c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 10;
+            y -= 1; // Bottom margin
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
             tw = PDType1Font.HELVETICA.getStringWidth("Thank you for your business!") / 1000f * 9f;
@@ -163,12 +296,12 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             document.save(baos);
             return baos.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeException("Error generating thermal customer report", e);
+            throw new RuntimeException("Error generating thermal product report", e);
         }
     }
 
     // ================================
-    // 2. CUSTOMER REPORT - Professional A4
+    // 3. CUSTOMER REPORT - Professional A4
     // ================================
     public static byte[] CustomerReportA4Pro(List<CustomerEntity> customers) {
         try (PDDocument document = new PDDocument();
@@ -182,33 +315,30 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float w = A4_WIDTH - 2 * m;
             float y = A4_HEIGHT - m;
 
-            // Company Header
+            // Company Header (left-aligned)
             c.setFont(PDType1Font.HELVETICA_BOLD, 18);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
-            c.beginText(); c.newLineAtOffset((A4_WIDTH - tw)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            c.beginText(); c.newLineAtOffset(m, y - 18); c.showText(COMPANY_NAME); c.endText();
             y -= 22;
 
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((A4_WIDTH - tw)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
+            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
             y -= 12;
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((A4_WIDTH - tw)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
+            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_PHONE); c.endText();
             y -= 20;
 
             // Title (right side)
             c.setFont(PDType1Font.HELVETICA_BOLD, 26);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth("CUSTOMER REPORT") / 1000f * 26f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y + 25); c.showText("CUSTOMER REPORT"); c.endText();
+            float tw1 = PDType1Font.HELVETICA_BOLD.getStringWidth("CUSTOMER REPORT") / 1000f * 26f;
+            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw1, y + 25); c.showText("CUSTOMER REPORT"); c.endText();
 
             // Total (right side)
             c.setFont(PDType1Font.HELVETICA_BOLD, 10);
             String count = "Total: " + customers.size();
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y + 8); c.showText(count); c.endText();
+            float tw2 = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw2, y + 8); c.showText(count); c.endText();
 
             y -= 10;
             c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
@@ -259,8 +389,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
             c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("Thank you for your business!"); c.endText();
             String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y - 9); c.showText(gen); c.endText();
+            float tw3 = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw3, y - 9); c.showText(gen); c.endText();
 
             c.close();
             document.save(baos);
@@ -270,133 +400,6 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         }
     }
 
-    // ================================
-    // 3. PRODUCT REPORT - 80mm (Same Text as A4 Page, Centered)
-    // ================================
-    public static byte[] ProductReportThermal(List<ProductEntity> products) {
-        try (PDDocument document = new PDDocument();
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
-            float h = 2 * THERMAL_MARGIN + 80 + products.size() * 14 + 50;
-            PDPage page = new PDPage(new PDRectangle(THERMAL_WIDTH, Math.max(h, 350)));
-            document.addPage(page);
-            PDPageContentStream c = new PDPageContentStream(document, page);
-
-            float y = page.getMediaBox().getHeight() - THERMAL_MARGIN;
-            float x = THERMAL_MARGIN;
-            float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
-
-            // Company Header
-            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
-            y -= 22;
-            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
-            y -= 8;
-
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
-            y -= 12;
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
-            y -= 15;
-
-            // Title (centered)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 26);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth("PRODUCT REPORT") / 1000f * 26f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y + 25); c.showText("PRODUCT REPORT"); c.endText();
-
-            // Total (centered)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            String count = "Total: " + products.size();
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y + 8); c.showText(count); c.endText();
-
-            y -= 10;
-            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
-            y -= 20;
-
-            // Table Header
-            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.addRect(x, y - 16, w, 16); c.fill();
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.beginText(); c.newLineAtOffset(x + 10, y - 11); c.showText("ID"); c.endText();
-            c.beginText(); c.newLineAtOffset(x + 100, y - 11); c.showText("Name"); c.endText();
-            c.beginText(); c.newLineAtOffset(x + w * 0.55f, y - 11); c.showText("Price"); c.endText();
-            c.beginText(); c.newLineAtOffset(x + w * 0.8f, y - 11); c.showText("Qty"); c.endText();
-            y -= 16;
-
-            // Table Rows
-            c.setFont(PDType1Font.HELVETICA, 9);
-            int idx = 1;
-            int lowStock = 0;
-            for (ProductEntity p : products) {
-                if (y < THERMAL_MARGIN + 60) break;
-                if (p.getQty() < 10) lowStock++;
-                if (idx % 2 == 0) {
-                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
-                    c.addRect(x, y - 14, w, 14); c.fill();
-                }
-                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                String id = p.getId() != null ? p.getId() : "-";
-                String name = truncate(p.getName() != null ? p.getName() : "-", 12);
-                String price = String.format("%.2f", p.getPrice());
-                String qty = String.valueOf(p.getQty());
-                c.beginText(); c.newLineAtOffset(x + 10, y - 10); c.showText(id); c.endText();
-                c.beginText(); c.newLineAtOffset(x + 100, y - 10); c.showText(name); c.endText();
-                float pw = PDType1Font.HELVETICA.getStringWidth(price) / 1000f * 9f;
-                c.beginText(); c.newLineAtOffset(x + w * 0.55f + (w*0.25f - pw)/2, y - 10); c.showText(price); c.endText();
-                float qw = PDType1Font.HELVETICA.getStringWidth(qty) / 1000f * 9f;
-                c.beginText(); c.newLineAtOffset(x + w * 0.8f + (w*0.2f - qw)/2, y - 10); c.showText(qty); c.endText();
-                c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
-                c.moveTo(x, y - 14); c.lineTo(x + w, y - 14); c.stroke();
-                y -= 14;
-                idx++;
-            }
-
-            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
-            y -= 15;
-
-            // Low Stock (centered)
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            String lowStr = String.format("Low Stock Items: %d", lowStock);
-            tw = PDType1Font.HELVETICA.getStringWidth(lowStr) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(lowStr); c.endText();
-            y -= 20;
-
-            // Footer
-            c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
-            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
-            y -= 10;
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
-            tw = PDType1Font.HELVETICA.getStringWidth("Thank you for your business!") / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText("Thank you for your business!"); c.endText();
-            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 20); c.showText(gen); c.endText();
-
-            c.close();
-            document.save(baos);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Error generating thermal product report", e);
-        }
-    }
-
-    // ================================
-    // 3. CUSTOMER REPORT - Professional A4
     // ================================
     // 4. PRODUCT REPORT - Professional A4
     // ================================
@@ -847,14 +850,12 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
         c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
         float tw = getThermalTextWidth(COMPANY_NAME, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_10); c.showText(COMPANY_NAME); c.endText();
+        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_10); c.showText(COMPANY_NAME); c.endText();
         y -= 18;
         c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        tw = getThermalTextWidth(COMPANY_ADDRESS, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(COMPANY_ADDRESS); c.endText();
+        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_8); c.showText(COMPANY_ADDRESS); c.endText();
         y -= 12;
-        tw = getThermalTextWidth(COMPANY_PHONE, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(COMPANY_PHONE); c.endText();
+        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_8); c.showText(COMPANY_PHONE); c.endText();
         y -= 10;
         y -= 5; drawA4Separator(c, x, y); y -= 5;
         return y;

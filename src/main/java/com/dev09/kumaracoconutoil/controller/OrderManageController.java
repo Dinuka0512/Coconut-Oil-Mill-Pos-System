@@ -229,7 +229,7 @@ public class OrderManageController implements Initializable {
                 if (result.get() == smallBtn) {
                     pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
                 } else {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4(order, details);
                 }
                 
                 File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
