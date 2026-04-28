@@ -3,6 +3,8 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
+import com.dev09.kumaracoconutoil.entity.OrderEntity;
+import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 import com.dev09.kumaracoconutoil.controller.UpdatePosController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.scene.control.DateCell;
@@ -201,13 +204,37 @@ public class OrderManageController implements Initializable {
 
     private void viewBill(String orderId) {
         try {
-            byte[] pdfBytes = orderBO.generateOrderBill(orderId);
-            if (pdfBytes != null) {
+            OrderEntity order = orderBO.getOrderById(orderId);
+            if (order == null) {
+                new Alert(Alert.AlertType.WARNING, "Order not found!").show();
+                return;
+            }
+            
+            List<OrderProductDetailsEntity> details = order.getOrderProducts();
+            if (details == null) details = new ArrayList<>();
+            
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Select PDF Format");
+            alert.setHeaderText("Choose PDF format for Order " + orderId);
+            alert.setContentText("Select the PDF format you want to generate:");
+
+            ButtonType smallBtn = new ButtonType("Small (80mm)", ButtonBar.ButtonData.YES);
+            ButtonType a4Btn = new ButtonType("A4 Page", ButtonBar.ButtonData.NO);
+            ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(smallBtn, a4Btn, cancelBtn);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() != cancelBtn) {
+                byte[] pdfBytes;
+                if (result.get() == smallBtn) {
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
+                } else {
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
+                }
+                
                 File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
                 java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
                 java.awt.Desktop.getDesktop().open(tempFile);
-            } else {
-                new Alert(Alert.AlertType.WARNING, "Order not found!").show();
             }
         } catch (Exception e) {
             e.printStackTrace();

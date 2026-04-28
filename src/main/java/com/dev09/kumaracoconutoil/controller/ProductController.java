@@ -10,6 +10,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.input.KeyEvent;
 
 import java.net.URL;
@@ -19,6 +22,7 @@ import java.util.ResourceBundle;
 import java.io.File;
 import java.nio.file.Files;
 import java.awt.Desktop;
+import javafx.scene.control.ChoiceDialog;
 
 public class ProductController implements Initializable {
 
@@ -87,16 +91,38 @@ public class ProductController implements Initializable {
 
     @FXML
     void exportAllItems(ActionEvent event) {
-        try {
-            var products = productBO.getAllProductsEntity();
-            byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.AllProductReport(products);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Select Format");
+        alert.setHeaderText("How do you need to print?");
+        alert.setContentText("Choose an option:");
 
-            File tempFile = File.createTempFile("ProductReport", ".pdf");
-            Files.write(tempFile.toPath(), bytes);
-            Desktop.getDesktop().open(tempFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error generating report: " + e.getMessage()).show();
+        ButtonType btn80mm = new ButtonType("Small (80mm)");
+        ButtonType btnA4 = new ButtonType("A4 Page");
+        ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(btn80mm, btnA4, btnCancel);
+
+        var result = alert.showAndWait();
+        if (result.isPresent()) {
+            try {
+                var products = productBO.getAllProductsEntity();
+                byte[] bytes;
+                String fileName;
+                if (result.get() == btn80mm) {
+                    bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportThermal(products);
+                    fileName = "ProductReport_80mm";
+                } else if (result.get() == btnA4) {
+                    bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportA4Pro(products);
+                    fileName = "ProductReport_A4";
+                } else {
+                    return;
+                }
+                File tempFile = File.createTempFile(fileName, ".pdf");
+                Files.write(tempFile.toPath(), bytes);
+                Desktop.getDesktop().open(tempFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Error generating report: " + e.getMessage()).show();
+            }
         }
     }
 

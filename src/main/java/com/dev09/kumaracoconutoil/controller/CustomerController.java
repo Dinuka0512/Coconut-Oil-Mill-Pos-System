@@ -20,6 +20,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
+import java.awt.Desktop;
 
 public class CustomerController implements Initializable {
 
@@ -242,11 +246,33 @@ public class CustomerController implements Initializable {
 
     @FXML
     void exportCustomer(ActionEvent event) throws IOException {
-        var customers = customerBO.getAllCustomersEntity();
-        byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.AllCustomerReport(customers);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Select Format");
+        alert.setHeaderText("How do you need to print?");
+        alert.setContentText("Choose an option:");
 
-        File tempFile = File.createTempFile("CustomerReport", ".pdf");
-        java.nio.file.Files.write(tempFile.toPath(), bytes);
-        java.awt.Desktop.getDesktop().open(tempFile);
+        ButtonType btn80mm = new ButtonType("Small (80mm)");
+        ButtonType btnA4 = new ButtonType("A4 Page");
+        ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(btn80mm, btnA4, btnCancel);
+
+        var result = alert.showAndWait();
+        if (result.isPresent()) {
+            var customers = customerBO.getAllCustomersEntity();
+            byte[] bytes;
+            String fileName;
+            if (result.get() == btn80mm) {
+                bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportThermal(customers);
+                fileName = "CustomerReport_80mm";
+            } else if (result.get() == btnA4) {
+                bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportA4Pro(customers);
+                fileName = "CustomerReport_A4";
+            } else {
+                return;
+            }
+            File tempFile = File.createTempFile(fileName, ".pdf");
+            java.nio.file.Files.write(tempFile.toPath(), bytes);
+            java.awt.Desktop.getDesktop().open(tempFile);
+        }
     }
 }
