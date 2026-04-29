@@ -22,6 +22,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -100,6 +103,8 @@ public class UpdatePosController implements Initializable {
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
     private ArrayList<ProductDto> currentProducts;
+    private Timeline productResetTimer;
+    private Timeline customerResetTimer;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -154,6 +159,7 @@ public class UpdatePosController implements Initializable {
             for (CustomerDto dto : currentCustomers) {
                 cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
             }
+            if (customerResetTimer != null) customerResetTimer.stop();
         } else {
             cmbCustomerId.getItems().clear();
             for (CustomerDto dto : currentCustomers) {
@@ -164,6 +170,19 @@ public class UpdatePosController implements Initializable {
                 }
             }
             cmbCustomerId.show();
+
+            if (customerResetTimer != null) customerResetTimer.stop();
+            customerResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+                if (cmbCustomerId.getItems().isEmpty()) {
+                    cmbCustomerId.getEditor().setText("");
+                    cmbCustomerId.getItems().clear();
+                    for (CustomerDto dto : currentCustomers) {
+                        cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
+                    }
+                }
+            }));
+            customerResetTimer.setCycleCount(1);
+            customerResetTimer.play();
         }
     }
 
@@ -190,6 +209,7 @@ public class UpdatePosController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 cmbProductId.getItems().add(dto.getName());
             }
+            if (productResetTimer != null) productResetTimer.stop();
         } else {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
@@ -198,6 +218,19 @@ public class UpdatePosController implements Initializable {
                 }
             }
             cmbProductId.show();
+
+            if (productResetTimer != null) productResetTimer.stop();
+            productResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+                if (cmbProductId.getItems().isEmpty()) {
+                    cmbProductId.getEditor().setText("");
+                    cmbProductId.getItems().clear();
+                    for (ProductDto dto : currentProducts) {
+                        cmbProductId.getItems().add(dto.getName());
+                    }
+                }
+            }));
+            productResetTimer.setCycleCount(1);
+            productResetTimer.play();
         }
     }
 
@@ -249,6 +282,24 @@ public class UpdatePosController implements Initializable {
                 if (result.orElse(no) == yes) {
                     for (int i = 0; i < obList.size(); i++) {
                         if (obList.get(i).getBtn() == btn) {
+                            // Add removed qty back to product stock
+                            String prodCode = obList.get(i).getCode();
+                            double removedQty = obList.get(i).getQty();
+                            try {
+                                ProductDto prod = productBO.searchProduct(prodCode);
+                                if (prod != null) {
+                                    prod.setQty(prod.getQty() + removedQty);
+                                    productBO.updateProduct(prod);
+                                    // Update local list too
+                                    for (ProductDto p : currentProducts) {
+                                        if (p.getId().equals(prodCode)) {
+                                            p.setQty(prod.getQty());
+                                            break;
+                                        }
+                                    }
+                                }
+                            } catch (Exception ex) { ex.printStackTrace(); }
+
                             obList.remove(i);
                             calculateTotal();
                             break;
@@ -351,6 +402,30 @@ public class UpdatePosController implements Initializable {
                             ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
                             Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
                             if (result.orElse(no) == yes) {
+                                // Add removed qty back to product stock
+                                double removedQty = product.getId() != null ? 0 : 0;
+                                CartTM removedItem = null;
+                                for (CartTM item : obList) {
+                                    if (item.getCode().equals(product.getId())) {
+                                        removedItem = item;
+                                        break;
+                                    }
+                                }
+                                if (removedItem != null) {
+                                    try {
+                                        ProductDto prod = productBO.searchProduct(removedItem.getCode());
+                                        if (prod != null) {
+                                            prod.setQty(prod.getQty() + removedItem.getQty());
+                                            productBO.updateProduct(prod);
+                                            for (ProductDto p : currentProducts) {
+                                                if (p.getId().equals(removedItem.getCode())) {
+                                                    p.setQty(prod.getQty());
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception ex) { ex.printStackTrace(); }
+                                }
                                 obList.removeIf(item -> item.getCode().equals(product.getId()));
                                 calculateTotal();
                             }

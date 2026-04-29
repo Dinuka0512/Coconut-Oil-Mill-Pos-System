@@ -20,6 +20,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -287,6 +290,7 @@ public class OrderController implements Initializable {
             for (CustomerDto dto : currentCustomers) {
                 cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
             }
+            if (custResetTimer != null) custResetTimer.stop();
         } else {
             cmbCustomerId.getItems().clear();
             for (CustomerDto dto : currentCustomers) {
@@ -297,6 +301,19 @@ public class OrderController implements Initializable {
                 }
             }
             cmbCustomerId.show();
+
+            if (custResetTimer != null) custResetTimer.stop();
+            custResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+                if (cmbCustomerId.getItems().isEmpty()) {
+                    cmbCustomerId.getEditor().setText("");
+                    cmbCustomerId.getItems().clear();
+                    for (CustomerDto dto : currentCustomers) {
+                        cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
+                    }
+                }
+            }));
+            custResetTimer.setCycleCount(1);
+            custResetTimer.play();
         }
     }
 
@@ -315,6 +332,9 @@ public class OrderController implements Initializable {
         }
     }
 
+    private Timeline resetTimer;
+    private Timeline custResetTimer;
+
     @FXML
     void cmbProductOnKeyReleased(javafx.scene.input.KeyEvent event) {
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
@@ -323,6 +343,7 @@ public class OrderController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 cmbProductId.getItems().add(dto.getName());
             }
+            if (resetTimer != null) resetTimer.stop();
         } else {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
@@ -331,6 +352,19 @@ public class OrderController implements Initializable {
                 }
             }
             cmbProductId.show();
+
+            if (resetTimer != null) resetTimer.stop();
+            resetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+                if (cmbProductId.getItems().isEmpty()) {
+                    cmbProductId.getEditor().setText("");
+                    cmbProductId.getItems().clear();
+                    for (ProductDto dto : currentProducts) {
+                        cmbProductId.getItems().add(dto.getName());
+                    }
+                }
+            }));
+            resetTimer.setCycleCount(1);
+            resetTimer.play();
         }
     }
 

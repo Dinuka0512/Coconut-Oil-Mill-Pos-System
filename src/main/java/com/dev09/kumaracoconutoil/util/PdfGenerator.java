@@ -26,7 +26,7 @@ public class PdfGenerator {
     private static final String COMPANY_NAME = "DILSHAN OIL MILL";
     private static final String COMPANY_TAGLINE = "Your Trusted Partner in Coconut Products";
     private static final String COMPANY_ADDRESS = "309/a 5 Baddegoda Rd, Bandaragama 12530";
-    private static final String COMPANY_PHONE = "Tel: 077-6518819 | 012-3456789";
+    private static final String COMPANY_PHONE = "Tel: 077-6518819 | 076-1045449";
     private static final String DEVELOPED_BY = "Developed by Dev09Solutions.com";
 
 // Colors
