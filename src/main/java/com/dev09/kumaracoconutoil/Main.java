@@ -4,6 +4,7 @@ import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.hibernate.Session;
 
@@ -15,6 +16,7 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/login.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Dilshan Oil Mill");
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/asets/logo.png")));
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
