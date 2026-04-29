@@ -204,7 +204,7 @@ public class OrderManageController implements Initializable {
 
     private void viewBill(String orderId) {
         try {
-            OrderEntity order = orderBO.getOrderById(orderId);
+            OrderEntity order = orderBO.getOrderWithProducts(orderId);
             if (order == null) {
                 new Alert(Alert.AlertType.WARNING, "Order not found!").show();
                 return;
@@ -214,12 +214,12 @@ public class OrderManageController implements Initializable {
             if (details == null) details = new ArrayList<>();
             
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Select PDF Format");
-            alert.setHeaderText("Choose PDF format for Order " + orderId);
+            alert.setTitle("Print Bill");
+            alert.setHeaderText("How do you want to print this bill?");
             alert.setContentText("Select the PDF format you want to generate:");
 
-            ButtonType smallBtn = new ButtonType("Small (80mm)", ButtonBar.ButtonData.YES);
-            ButtonType a4Btn = new ButtonType("A4 Page", ButtonBar.ButtonData.NO);
+            ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
+            ButtonType a4Btn = new ButtonType("Bill A4", ButtonBar.ButtonData.NO);
             ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(smallBtn, a4Btn, cancelBtn);
 
@@ -229,7 +229,7 @@ public class OrderManageController implements Initializable {
                 if (result.get() == smallBtn) {
                     pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
                 } else {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4(order, details);
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
                 }
                 
                 File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");

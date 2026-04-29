@@ -579,6 +579,17 @@ public class OrderController implements Initializable {
                 calculateTotal();
                 setOrderId();
                 clearProductFields();
+
+                // Reload POS page
+                try {
+                    javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/pos.fxml"));
+                    javafx.scene.Scene scene = new javafx.scene.Scene(root);
+                    javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+                    stage.setScene(scene);
+                    stage.centerOnScreen();
+                } catch (Exception reloadEx) {
+                    reloadEx.printStackTrace();
+                }
             } else {
                 new Alert(Alert.AlertType.ERROR, "Order Placement Failed!").show();
             }

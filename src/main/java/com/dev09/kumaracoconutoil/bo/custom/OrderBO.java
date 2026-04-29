@@ -16,4 +16,5 @@ public interface OrderBO extends SuperBo {
     byte[] generateOrderBill80mm(String orderId) throws SQLException, ClassNotFoundException;
     byte[] generateOrderBillA4(String orderId) throws SQLException, ClassNotFoundException;
     OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException;
+    OrderEntity getOrderWithProducts(String orderId) throws SQLException, ClassNotFoundException;
 }

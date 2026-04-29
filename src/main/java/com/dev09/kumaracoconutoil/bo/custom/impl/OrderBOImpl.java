@@ -209,4 +209,9 @@ public class OrderBOImpl implements OrderBO {
     public OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException {
         return orderDAO.search(orderId);
     }
+
+    @Override
+    public OrderEntity getOrderWithProducts(String orderId) throws SQLException, ClassNotFoundException {
+        return orderDAO.searchWithProducts(orderId);
+    }
 }
