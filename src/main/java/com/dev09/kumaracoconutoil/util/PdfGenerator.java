@@ -52,7 +52,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     private static final String SEPARATOR = "------------------------------------------------";
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
-    private static final DateTimeFormatter BILL_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    private static final DateTimeFormatter BILL_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     // A4 Thermal-Style Bill Constants
     private static final float A4_BILL_WIDTH_MM = 100f; // Content width like thermal but on A4
@@ -115,6 +115,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             // Table Header
             c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
             c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
             c.setNonStrokingColor(0.2f, 0.2f, 0.4f);
             c.addRect(x, y - 14, w, 14); c.fill();
             c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
@@ -171,6 +172,136 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     }
 
     // ================================
+    // 2. CUSTOMER REPORT - A4 (Professional Style)
+    // ================================
+    public static byte[] CustomerReportA4Pro(List<CustomerEntity> customers) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float m = 40f;
+            float w = A4_WIDTH - 2 * m;
+            float rowH = 18;
+            float col1 = m + 10, col2 = m + 120, col3 = m + 380;
+            float[] vLines = {m, m + 90, m + 360, A4_WIDTH - m};
+            float threshold = 150;
+
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+            float y = A4_HEIGHT - m;
+            drawReportHeader(c, "CUSTOMER REPORT", y);
+            y -= 85;
+
+            // Draw table header
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.fill();
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.stroke();
+            for (float vl : vLines) {
+                c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+            }
+            c.setNonStrokingColor(1f, 1f, 1f);
+            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+            y -= rowH;
+
+            // Table Rows
+            c.setFont(PDType1Font.HELVETICA, 9);
+            int idx = 1;
+            int pageNum = 1;
+            for (CustomerEntity customer : customers) {
+                if (y < threshold + rowH) {
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+                    drawFooter(c, pageNum);
+                    c.close();
+
+                    page = new PDPage(PDRectangle.A4);
+                    document.addPage(page);
+                    c = new PDPageContentStream(document, page);
+                    y = A4_HEIGHT - m;
+                    drawReportHeader(c, "CUSTOMER REPORT", y);
+                    y -= 85;
+
+                    c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+                    c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.stroke();
+                    for (float vl : vLines) {
+                        c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                    }
+                    c.setNonStrokingColor(1f, 1f, 1f);
+                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+                    y -= rowH;
+                    pageNum++;
+                }
+
+                if (idx % 2 == 0) {
+                    c.setNonStrokingColor(0.95f, 0.95f, 0.98f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                }
+
+                c.setLineWidth(0.3f);
+                c.setStrokingColor(0.7f, 0.7f, 0.7f);
+                c.addRect(m, y - rowH, w, rowH);
+                c.stroke();
+                for (float vl : vLines) {
+                    c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                }
+
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String id = customer.getCustId() != null ? customer.getCustId() : "-";
+                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(id); c.endText();
+
+                String nm = customer.getName() != null ? customer.getName() : "-";
+                c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(nm.length() > 30 ? nm.substring(0, 27) + "..." : nm); c.endText();
+
+                String contact = customer.getContact() != null ? customer.getContact() : "-";
+                c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText(contact); c.endText();
+
+                y -= rowH;
+                idx++;
+            }
+
+            // Bottom border
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+            y -= 25;
+
+            // Summary (right aligned)
+            float sumX = A4_WIDTH - m - 220;
+            float sumW = 220;
+            c.setFont(PDType1Font.HELVETICA, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String totalStr = String.format("Total Customers: %d", customers.size());
+            float tw2 = PDType1Font.HELVETICA.getStringWidth(totalStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totalStr); c.endText();
+
+            drawFooter(c, pageNum);
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating A4 customer report", e);
+        }
+    }
+
+    // ================================
     // 3. PRODUCT REPORT - 80mm (Same Text as A4 Page, Centered)
     // ================================
     public static byte[] ProductReportThermal(List<ProductEntity> products) {
@@ -189,8 +320,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             // Company Header
             c.setFont(PDType1Font.HELVETICA_BOLD, 18);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            float tw1 = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw1)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
             y -= 22;
             c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
             c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
@@ -198,25 +329,25 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
 
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
+            float tw2 = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw2)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
             y -= 12;
-            tw = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
+            float tw3 = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw3)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
             y -= 15;
 
             // Title (centered)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 8);
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth("PRODUCT REPORT") / 1000f * 8f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText("PRODUCT REPORT"); c.endText();
+            float tw4 = PDType1Font.HELVETICA_BOLD.getStringWidth("PRODUCT REPORT") / 1000f * 8f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw4)/2, y - THERMAL_FONT_8); c.showText("PRODUCT REPORT"); c.endText();
             y -= 16;
-
+            
             // Total (centered)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 7);
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_7);
             String count = "Total: " + products.size();
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 7f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_7); c.showText(count); c.endText();
+            float tw5 = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 7f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw5)/2, y - THERMAL_FONT_7); c.showText(count); c.endText();
             y -= 15;
 
             y -= 10;
@@ -275,8 +406,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
             String lowStr = String.format("Low Stock Items: %d", lowStock);
-            tw = PDType1Font.HELVETICA.getStringWidth(lowStr) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText(lowStr); c.endText();
+            float tw6 = PDType1Font.HELVETICA.getStringWidth(lowStr) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw6)/2, y - 9); c.showText(lowStr); c.endText();
             y -= 20;
 
             // Footer
@@ -286,228 +417,12 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             y -= 1; // Bottom margin
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
-            tw = PDType1Font.HELVETICA.getStringWidth("Thank you for your business!") / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 9); c.showText("Thank you for your business!"); c.endText();
+            float tw7 = getThermalTextWidth("Thank you for your business!", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw7)/2, y - THERMAL_FONT_8); c.showText("Thank you for your business!"); c.endText();
+            y -= 20;
             String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - 20); c.showText(gen); c.endText();
-
-            c.close();
-            document.save(baos);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Error generating thermal product report", e);
-        }
-    }
-
-    // ================================
-    // 3. CUSTOMER REPORT - Professional A4
-    // ================================
-    public static byte[] CustomerReportA4Pro(List<CustomerEntity> customers) {
-        try (PDDocument document = new PDDocument();
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            PDPageContentStream c = new PDPageContentStream(document, page);
-
-            float m = 40f;
-            float w = A4_WIDTH - 2 * m;
-            float y = A4_HEIGHT - m;
-
-            // Company Header (left-aligned)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 18); c.showText(COMPANY_NAME); c.endText();
-            y -= 22;
-
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
-            y -= 12;
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_PHONE); c.endText();
-            y -= 20;
-
-            // Title (right side)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 26);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw1 = PDType1Font.HELVETICA_BOLD.getStringWidth("CUSTOMER REPORT") / 1000f * 26f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw1, y + 25); c.showText("CUSTOMER REPORT"); c.endText();
-
-            // Total (right side)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            String count = "Total: " + customers.size();
-            float tw2 = PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw2, y + 8); c.showText(count); c.endText();
-
-            y -= 10;
-            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
-
-            // Table Header
-            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.addRect(m, y - 16, w, 16); c.fill();
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.beginText(); c.newLineAtOffset(m + 10, y - 11); c.showText("ID"); c.endText();
-            c.beginText(); c.newLineAtOffset(m + 100, y - 11); c.showText("Name"); c.endText();
-            c.beginText(); c.newLineAtOffset(m + w - 80, y - 11); c.showText("Contact"); c.endText();
-            y -= 16;
-
-            // Table Rows
-            c.setFont(PDType1Font.HELVETICA, 9);
-            int idx = 1;
-            for (CustomerEntity customer : customers) {
-                if (y < 150) break;
-                if (idx % 2 == 0) {
-                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
-                    c.addRect(m, y - 14, w, 14); c.fill();
-                }
-                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                String id = customer.getCustId() != null ? customer.getCustId() : "-";
-                String name = truncate(customer.getName() != null ? customer.getName() : "-", 35);
-                String contact = customer.getContact() != null ? customer.getContact() : "-";
-                c.beginText(); c.newLineAtOffset(m + 10, y - 10); c.showText(id); c.endText();
-                c.beginText(); c.newLineAtOffset(m + 100, y - 10); c.showText(name); c.endText();
-                float cw = PDType1Font.HELVETICA.getStringWidth(contact) / 1000f * 9f;
-                c.beginText(); c.newLineAtOffset(m + w - 5 - cw, y - 10); c.showText(contact); c.endText();
-                c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
-                c.moveTo(m, y - 14); c.lineTo(A4_WIDTH - m, y - 14); c.stroke();
-                y -= 14;
-                idx++;
-            }
-
-            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
-
-            // Footer
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("Thank you for your business!"); c.endText();
-            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            float tw3 = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw3, y - 9); c.showText(gen); c.endText();
-
-            c.close();
-            document.save(baos);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException("Error generating A4 customer report", e);
-        }
-    }
-
-    // ================================
-    // 4. PRODUCT REPORT - Professional A4
-    // ================================
-    public static byte[] ProductReportA4Pro(List<ProductEntity> products) {
-        try (PDDocument document = new PDDocument();
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            PDPageContentStream c = new PDPageContentStream(document, page);
-
-            float m = 40f;
-            float w = A4_WIDTH - 2 * m;
-            float y = A4_HEIGHT - m;
-
-            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 18); c.showText(COMPANY_NAME); c.endText();
-            y -= 22;
-
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
-            y -= 12;
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_PHONE); c.endText();
-            y -= 20;
-
-            c.setFont(PDType1Font.HELVETICA_BOLD, 26);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            String title = "PRODUCT REPORT";
-            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(title) / 1000f * 26f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y + 25); c.showText(title); c.endText();
-
-            String count = "Total: " + products.size();
-            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - PDType1Font.HELVETICA_BOLD.getStringWidth(count) / 1000f * 10f, y + 8); c.showText(count); c.endText();
-
-            y -= 10;
-            c.setLineWidth(1f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
-
-            float col1 = m + 10, col2 = m + 100, col3 = m + 350, col4 = m + 430;
-            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.setLineWidth(0f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.addRect(m, y - 16, w, 16);
-            c.fill();
-
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.beginText(); c.newLineAtOffset(col1, y - 11); c.showText("ID"); c.endText();
-            c.beginText(); c.newLineAtOffset(col2, y - 11); c.showText("Name"); c.endText();
-            c.beginText(); c.newLineAtOffset(col3, y - 11); c.showText("Price"); c.endText();
-            c.beginText(); c.newLineAtOffset(col4, y - 11); c.showText("Stock"); c.endText();
-            y -= 16;
-
-            c.setFont(PDType1Font.HELVETICA, 9);
-            int idx = 1;
-            int lowStock = 0;
-            for (ProductEntity p : products) {
-                if (y < 150) break;
-                if (p.getQty() < 10) lowStock++;
-                if (idx % 2 == 0) {
-                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
-                    c.addRect(m, y - 14, w, 14);
-                    c.fill();
-                }
-                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                String id = p.getId() != null ? p.getId() : "-";
-                String name = truncate(p.getName() != null ? p.getName() : "-", 35);
-                String price = String.format("%.2f", p.getPrice());
-                String qty = String.valueOf(p.getQty());
-                c.beginText(); c.newLineAtOffset(col1, y - 10); c.showText(id); c.endText();
-                c.beginText(); c.newLineAtOffset(col2, y - 10); c.showText(name); c.endText();
-                c.beginText(); c.newLineAtOffset(col3 + 50, y - 10); c.showText(price); c.endText();
-                c.beginText(); c.newLineAtOffset(col4 + 30, y - 10); c.showText(qty); c.endText();
-                c.setLineWidth(0.3f);
-                c.setStrokingColor(0.8f, 0.8f, 0.8f);
-                c.moveTo(m, y - 14); c.lineTo(A4_WIDTH - m, y - 14); c.stroke();
-                y -= 14;
-                idx++;
-            }
-
-            c.setLineWidth(1f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
-
-            c.setFont(PDType1Font.HELVETICA, 10);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            String sum = String.format("Low Stock Items: %d", lowStock);
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - PDType1Font.HELVETICA.getStringWidth(sum) / 1000f * 10f, y - 10); c.showText(sum); c.endText();
-
-            y -= 30;
-            c.setLineWidth(0.5f);
-            c.setStrokingColor(0.8f, 0.8f, 0.8f);
-            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 15;
-
-            c.setFont(PDType1Font.HELVETICA, 9);
-            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("Thank you for your business!"); c.endText();
-            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y - 9); c.showText(gen); c.endText();
+            float tw8 = getThermalTextWidth(gen, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw8)/2, y - 9); c.showText(gen); c.endText();
 
             c.close();
             document.save(baos);
@@ -520,6 +435,49 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     // ================================
     // Helper Methods
     // ================================
+
+    private static void drawFooter(PDPageContentStream c, int pageNum) throws IOException {
+        float footerY = 40f;
+        c.setLineWidth(1f);
+        c.setStrokingColor(0.8f, 0.8f, 0.8f);
+        c.moveTo(40, footerY); c.lineTo(A4_WIDTH - 40, footerY); c.stroke();
+        c.setFont(PDType1Font.HELVETICA, 9);
+        c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+        c.beginText(); c.newLineAtOffset(40, footerY - 12); c.showText("Thank you for using our system!"); c.endText();
+        String pg = String.format("Page %d", pageNum);
+        float pgW = PDType1Font.HELVETICA.getStringWidth(pg) / 1000f * 9f;
+        c.beginText(); c.newLineAtOffset(A4_WIDTH - 40 - pgW, footerY - 12); c.showText(pg); c.endText();
+    }
+
+    private static void drawReportHeader(PDPageContentStream c, String reportTitle, float startY) throws IOException {
+        c.setFont(PDType1Font.HELVETICA_BOLD, 16);
+        c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+        c.beginText(); c.newLineAtOffset(40, startY - 16); c.showText(COMPANY_NAME); c.endText();
+
+        c.setFont(PDType1Font.HELVETICA, 9);
+        c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
+        c.beginText(); c.newLineAtOffset(40, startY - 30); c.showText(COMPANY_ADDRESS); c.endText();
+        c.beginText(); c.newLineAtOffset(40, startY - 42); c.showText(COMPANY_PHONE); c.endText();
+
+        float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(reportTitle) / 1000f * 28f;
+        c.setFont(PDType1Font.HELVETICA_BOLD, 28);
+        c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+        c.beginText(); c.newLineAtOffset(A4_WIDTH - 40 - tw, startY - 28); c.showText(reportTitle); c.endText();
+
+        c.setLineWidth(2f);
+        c.setStrokingColor(0.1f, 0.1f, 0.3f);
+        c.moveTo(40, startY - 65); c.lineTo(A4_WIDTH - 40, startY - 65); c.stroke();
+    }
+
+    private static PDPageContentStream newPageWithFooter(PDDocument document, PDPageContentStream prevC, String reportTitle, int pageNum) throws IOException {
+        prevC.close();
+        drawFooter(prevC, pageNum);
+        PDPage newPage = new PDPage(PDRectangle.A4);
+        document.addPage(newPage);
+        PDPageContentStream c = new PDPageContentStream(document, newPage);
+        drawReportHeader(c, reportTitle, A4_HEIGHT - 40);
+        return c;
+    }
 
     private static void drawCompanyHeader(PDPageContentStream content, float y) throws IOException {
         content.setNonStrokingColor(COLOR_DARK[0], COLOR_DARK[1], COLOR_DARK[2]);
@@ -621,7 +579,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     }
 
     // ================================
-    // 3. THERMAL ORDER BILL (80mm width for POS thermal printer)
+    // 3. THERMAL ORDER BILL (80mm width - Professional Real-World Style)
     // ================================
     public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details) {
         try (PDDocument document = new PDDocument();
@@ -630,18 +588,34 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float pageHeight = calculateThermalHeight(details);
             PDPage page = new PDPage(new PDRectangle(THERMAL_WIDTH, pageHeight));
             document.addPage(page);
-            PDPageContentStream content = new PDPageContentStream(document, page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
 
             float y = pageHeight - THERMAL_MARGIN;
-            y = drawThermalHeader(content, y);
-            y = drawThermalTitle(content, y);
-            y = drawThermalDetails(content, y, order);
-            y = drawThermalTable(content, y, details);
-            y = drawThermalSummary(content, y, details);
-            y = drawThermalPayment(content, y, details);
-            drawThermalFooter(content, y);
+            float x = THERMAL_MARGIN;
+            float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
 
-            content.close();
+            // Header with box
+            y = drawThermalHeaderPro(c, x, w, y);
+
+            // Invoice title
+            y = drawThermalTitlePro(c, x, w, y);
+
+            // Bill details
+            y = drawThermalDetailsPro(c, x, w, y, order);
+
+            // Items table with borders
+            y = drawThermalTablePro(c, x, w, y, details);
+
+            // Summary with lines (now passes order to use actual tax)
+            y = drawThermalSummaryPro(c, x, w, y, order, details);
+
+            // Payment info
+            y = drawThermalPaymentPro(c, x, w, y, order, details);
+
+            // Footer
+            drawThermalFooterPro(c, x, w, y);
+
+            c.close();
             document.save(baos);
             return baos.toByteArray();
         } catch (IOException e) {
@@ -651,163 +625,440 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
 
     private static float calculateThermalHeight(List<OrderProductDetailsEntity> details) {
         float h = 2 * THERMAL_MARGIN;
-        h += 18 + 12 + 10 + 10; // Header: name + address + phone + divider
-        h += 20; // Title
-        h += 10 + 12 + 12 + 12 + 10; // Details + divider
-        h += 12 + 4 + details.size() * 12 + 4; // Table
-        h += 12 + 12 + 5 + 15 + 5; // Summary
-        h += 12 + 12 + 5; // Payment
-        h += 5 + 12 + 20 + 25; // Footer
-        return Math.max(h, 300);
+        h += 35; // Header with box
+        h += 25; // Title
+        h += 45; // Details
+        h += 20 + details.size() * 16; // Table with borders
+        h += 70; // Summary with lines
+        h += 40; // Payment
+        h += 50; // Footer with signature
+        return Math.max(h, 350);
     }
 
-    private static float drawThermalHeader(PDPageContentStream c, float y) throws IOException {
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float tw = getThermalTextWidth(COMPANY_NAME, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_10); c.showText(COMPANY_NAME); c.endText();
-        y -= 18;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        tw = getThermalTextWidth(COMPANY_ADDRESS, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(COMPANY_ADDRESS); c.endText();
+    private static float drawThermalHeaderPro(PDPageContentStream c, float x, float w, float y) throws IOException {
+        // Company name - bold and centered (larger font)
+        c.setFont(THERMAL_FONT_BOLD, 14);
+        c.setNonStrokingColor(0f, 0f, 0f);
+        float tw = getThermalTextWidth(COMPANY_NAME, 14);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 14); c.showText(COMPANY_NAME); c.endText();
+        y -= 22;
+
+        // Tagline
+        c.setFont(THERMAL_FONT, 7);
+        tw = getThermalTextWidth(COMPANY_TAGLINE, 7);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 7); c.showText(COMPANY_TAGLINE); c.endText();
         y -= 12;
-        tw = getThermalTextWidth(COMPANY_PHONE, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(COMPANY_PHONE); c.endText();
+
+        // Address
+        c.setFont(THERMAL_FONT, 7);
+        tw = getThermalTextWidth(COMPANY_ADDRESS, 7);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 7); c.showText(COMPANY_ADDRESS); c.endText();
         y -= 10;
-        y -= 5; drawSeparator(c, y); y -= 5;
+
+        // Phone
+        tw = getThermalTextWidth(COMPANY_PHONE, 7);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 7); c.showText(COMPANY_PHONE); c.endText();
+        y -= 15;
+
+        // Separator line
+        c.setLineWidth(0.5f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 10;
+
         return y;
     }
 
-    private static float drawThermalTitle(PDPageContentStream c, float y) throws IOException {
-        String t = "INVOICE / CASH MEMO";
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        float tw = getThermalTextWidth(t, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_10); c.showText(t); c.endText();
+    private static float drawThermalTitlePro(PDPageContentStream c, float x, float w, float y) throws IOException {
+        // Title with background
+        c.setFont(THERMAL_FONT_BOLD, 11);
+        String title = "INVOICE / CASH MEMO";
+        float tw = getThermalTextWidth(title, 11);
+        float titleX = x + (w - tw)/2;
+
+        // Draw background rectangle
+        c.setNonStrokingColor(0.95f, 0.95f, 0.95f);
+        c.addRect(x, y - 16, w, 16);
+        c.fill();
+
+        // Draw title text
+        c.setNonStrokingColor(0f, 0f, 0f);
+        c.beginText(); c.newLineAtOffset(titleX, y - 11); c.showText(title); c.endText();
         y -= 20;
+
+        // Line under title
+        c.setLineWidth(0.5f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 8;
+
         return y;
     }
 
-    private static float drawThermalDetails(PDPageContentStream c, float y, OrderEntity order) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        y -= 10;
-        float rx = THERMAL_WIDTH - THERMAL_MARGIN;
-        String cust = order.getCustomer() != null ? order.getCustomer().getName() : "-";
-        String custText = "Customer: " + cust;
-        float tw = getThermalTextWidth(custText, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(THERMAL_MARGIN, y - THERMAL_FONT_9); c.showText("Bill No: " + order.getOrderId()); c.endText();
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(custText); c.endText(); y -= 12;
+    private static float drawThermalDetailsPro(PDPageContentStream c, float x, float w, float y, OrderEntity order) throws IOException {
+        c.setFont(THERMAL_FONT, 8);
+        c.setNonStrokingColor(0f, 0f, 0f);
+
+        // Left side: Bill info
+        c.beginText(); c.newLineAtOffset(x, y - 8); c.showText("Bill No: " + order.getOrderId()); c.endText();
+        y -= 12;
+
         String dateStr = order.getDate() != null ? order.getDate().format(BILL_DATE_FORMAT) : "-";
-        String contactText = "";
-        if (order.getCustomer() != null && order.getCustomer().getContact() != null) {
-            contactText = "Contact: " + order.getCustomer().getContact();
-            tw = getThermalTextWidth(contactText, THERMAL_FONT_9);
-        }
-        c.beginText(); c.newLineAtOffset(THERMAL_MARGIN, y - THERMAL_FONT_9); c.showText("Date: " + dateStr); c.endText();
-        if (!contactText.isEmpty()) {
-            c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(contactText); c.endText();
-        }
+        c.beginText(); c.newLineAtOffset(x, y - 8); c.showText("Date: " + dateStr); c.endText();
         y -= 12;
-        y -= 5; drawSeparator(c, y); y -= 5;
+
+        // Right side: Customer info
+        float rightX = x + w * 0.5f;
+        y += 24; // Go back up to align with left side
+
+        String custName = order.getCustomer() != null ? order.getCustomer().getName() : "-";
+        String custText = "Customer: " + custName;
+        float tw = getThermalTextWidth(custText, 8);
+        c.beginText(); c.newLineAtOffset(x + w - tw, y - 8); c.showText(custText); c.endText();
+        y -= 12;
+
+        if (order.getCustomer() != null && order.getCustomer().getContact() != null) {
+            String contactText = "Contact: " + order.getCustomer().getContact();
+            tw = getThermalTextWidth(contactText, 8);
+            c.beginText(); c.newLineAtOffset(x + w - tw, y - 8); c.showText(contactText); c.endText();
+        }
+        y -= 16;
+
+        // Separator
+        c.setLineWidth(0.5f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 8;
+
         return y;
     }
 
-    private static float drawThermalTable(PDPageContentStream c, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float colItem = THERMAL_MARGIN, colQty = THERMAL_WIDTH * 0.5f, colRate = THERMAL_WIDTH * 0.7f, colAmt = THERMAL_WIDTH * 0.85f;
-        c.beginText(); c.newLineAtOffset(colItem, y - THERMAL_FONT_8); c.showText("Item"); c.endText();
-        c.beginText(); c.newLineAtOffset(colQty, y - THERMAL_FONT_8); c.showText("Qty"); c.endText();
-        c.beginText(); c.newLineAtOffset(colRate, y - THERMAL_FONT_8); c.showText("Rate"); c.endText();
-        c.beginText(); c.newLineAtOffset(colAmt, y - THERMAL_FONT_8); c.showText("Amount"); c.endText();
-        y -= 12;
-        drawSeparator(c, y); y -= 4;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+    private static float drawThermalTablePro(PDPageContentStream c, float x, float w, float y, List<OrderProductDetailsEntity> details) throws IOException {
+        // Table header with background
+        c.setFont(THERMAL_FONT_BOLD, 8);
+        c.setNonStrokingColor(0f, 0f, 0f);
+        c.setLineWidth(0.5f);
+
+        // Header background
+        c.setNonStrokingColor(0.85f, 0.85f, 0.85f);
+        c.addRect(x, y - 14, w, 14);
+        c.fill();
+
+        // Header border
+        c.setStrokingColor(0f, 0f, 0f);
+        c.addRect(x, y - 14, w, 14);
+        c.stroke();
+
+        // Header text
+        c.setNonStrokingColor(0f, 0f, 0f);
+        float colItem = x + 2, colQty = x + w * 0.5f, colRate = x + w * 0.7f, colAmt = x + w * 0.85f;
+
+        c.beginText(); c.newLineAtOffset(colItem, y - 10); c.showText("#"); c.endText();
+        c.beginText(); c.newLineAtOffset(colItem + 15, y - 10); c.showText("Item"); c.endText();
+        c.beginText(); c.newLineAtOffset(colQty + 5, y - 10); c.showText("Qty"); c.endText();
+        c.beginText(); c.newLineAtOffset(colRate + 5, y - 10); c.showText("Rate"); c.endText();
+        c.beginText(); c.newLineAtOffset(colAmt + 5, y - 10); c.showText("Amt"); c.endText();
+        y -= 14;
+
+        // Table rows
+        c.setFont(THERMAL_FONT, 7);
+        int idx = 1;
         for (OrderProductDetailsEntity d : details) {
-            if (y < THERMAL_MARGIN + 50) break;
-            String nm = d.getProduct() != null ? truncate(d.getProduct().getName(), 15) : "-";
+            if (y < THERMAL_MARGIN + 60) break;
+
+            // Alternating row background
+            if (idx % 2 == 0) {
+                c.setNonStrokingColor(0.97f, 0.97f, 0.97f);
+                c.addRect(x, y - 14, w, 14);
+                c.fill();
+            }
+
+            // Row border
+            c.setLineWidth(0.2f);
+            c.setStrokingColor(0.7f, 0.7f, 0.7f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+
+            String nm = d.getProduct() != null ? truncate(d.getProduct().getName(), 12) : "-";
             String qty = String.valueOf(d.getQuantity());
             String rate = String.format("%.2f", d.getUnitPrice());
             String amt = String.format("%.2f", d.getQuantity() * d.getUnitPrice());
-            c.beginText(); c.newLineAtOffset(colItem, y - THERMAL_FONT_8); c.showText(nm); c.endText();
-            float qw = getThermalTextWidth(qty, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colQty + (THERMAL_WIDTH*0.2f - qw)/2, y - THERMAL_FONT_8); c.showText(qty); c.endText();
-            float rw = getThermalTextWidth(rate, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colRate + (THERMAL_WIDTH*0.15f - rw)/2, y - THERMAL_FONT_8); c.showText(rate); c.endText();
-            float aw = getThermalTextWidth(amt, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colAmt + (THERMAL_WIDTH*0.15f - aw)/2, y - THERMAL_FONT_8); c.showText(amt); c.endText();
-            y -= 12;
+
+            c.setNonStrokingColor(0f, 0f, 0f);
+            c.beginText(); c.newLineAtOffset(colItem, y - 10); c.showText(String.valueOf(idx)); c.endText();
+            c.beginText(); c.newLineAtOffset(colItem + 15, y - 10); c.showText(nm); c.endText();
+            c.beginText(); c.newLineAtOffset(colQty + 10, y - 10); c.showText(qty); c.endText();
+            c.beginText(); c.newLineAtOffset(colRate + 8, y - 10); c.showText(rate); c.endText();
+            c.beginText(); c.newLineAtOffset(colAmt + 8, y - 10); c.showText(amt); c.endText();
+
+            y -= 14;
+            idx++;
         }
-        y -= 4; drawSeparator(c, y); y -= 4;
-        return y;
-    }
 
-    private static float drawThermalSummary(PDPageContentStream c, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        double sub = 0; for (OrderProductDetailsEntity d : details) sub += d.getQuantity() * d.getUnitPrice();
-        double tax = sub * 0.05, net = sub + tax;
-        float rx = THERMAL_WIDTH - THERMAL_MARGIN;
-        String s1 = String.format("Sub Total: %.2f", sub);
-        float tw = getThermalTextWidth(s1, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s1); c.endText(); y -= 12;
-        String s2 = String.format("Tax (5%%): %.2f", tax);
-        tw = getThermalTextWidth(s2, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s2); c.endText(); y -= 12;
-        y -= 5; drawSeparator(c, y); y -= 5;
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        String s3 = String.format("NET TOTAL: %.2f", net);
-        tw = getThermalTextWidth(s3, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_10); c.showText(s3); c.endText(); y -= 15;
-        y -= 5; drawSeparator(c, y); y -= 5;
-        return y;
-    }
-
-    private static float drawThermalPayment(PDPageContentStream c, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        double sub = 0; for (OrderProductDetailsEntity d : details) sub += d.getQuantity() * d.getUnitPrice();
-        double tax = sub * 0.05, net = sub + tax;
-        float rx = THERMAL_WIDTH - THERMAL_MARGIN;
-        String s1 = String.format("Paid: %.2f", net);
-        float tw = getThermalTextWidth(s1, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s1); c.endText(); y -= 12;
-        String s2 = "Balance: 0.00";
-        tw = getThermalTextWidth(s2, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s2); c.endText(); y -= 12;
-        y -= 5; drawSeparator(c, y); y -= 5;
-        return y;
-    }
-
-    private static float drawThermalFooter(PDPageContentStream c, float y) throws IOException {
-        y -= 5; drawSeparator(c, y); y -= 5;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        String dt = LocalDateTime.now().format(DATE_FORMAT);
-        float tw = getThermalTextWidth(dt, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(dt); c.endText();
-        y -= 12;
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_9);
-        String ty = "Thank You! Visit Again";
-        tw = getThermalTextWidth(ty, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_9); c.showText(ty); c.endText();
-        y -= 20;
+        // Bottom border
         c.setLineWidth(0.5f);
-        float sw = 60f, ss = (THERMAL_WIDTH - sw)/2;
-        c.moveTo(ss, y); c.lineTo(ss + sw, y); c.stroke();
-        y -= 12;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        String sig = "Signature";
-        tw = getThermalTextWidth(sig, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(sig); c.endText();
+        c.setStrokingColor(0f, 0f, 0f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 8;
+
         return y;
     }
 
-    private static void drawSeparator(PDPageContentStream c, float y) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float tw = getThermalTextWidth(SEPARATOR, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(SEPARATOR); c.endText();
+    // ================================
+    // 4. PRODUCT REPORT - A4 (Professional Style)
+    // ================================
+    public static byte[] ProductReportA4Pro(List<ProductEntity> products) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float m = 40f;
+            float w = A4_WIDTH - 2 * m;
+            float rowH = 18;
+            float col1 = m + 10, col2 = m + 100, col3 = m + 380, col4 = m + 480;
+            float[] vLines = {m, m + 80, m + 360, m + 470, A4_WIDTH - m};
+            float threshold = 150;
+
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+            float y = A4_HEIGHT - m;
+            drawReportHeader(c, "PRODUCT REPORT", y);
+            y -= 85;
+
+            // Draw table header
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.fill();
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.stroke();
+            for (float vl : vLines) {
+                c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+            }
+            c.setNonStrokingColor(1f, 1f, 1f);
+            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Price (LKR)"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Qty"); c.endText();
+            y -= rowH;
+
+            // Table Rows
+            c.setFont(PDType1Font.HELVETICA, 9);
+            int idx = 1;
+            int pageNum = 1;
+            for (ProductEntity p : products) {
+                if (y < threshold + rowH) {
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+                    drawFooter(c, pageNum);
+                    c.close();
+
+                    page = new PDPage(PDRectangle.A4);
+                    document.addPage(page);
+                    c = new PDPageContentStream(document, page);
+                    y = A4_HEIGHT - m;
+                    drawReportHeader(c, "PRODUCT REPORT", y);
+                    y -= 85;
+
+                    c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+                    c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.stroke();
+                    for (float vl : vLines) {
+                        c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                    }
+                    c.setNonStrokingColor(1f, 1f, 1f);
+                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Price (LKR)"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Qty"); c.endText();
+                    y -= rowH;
+                    pageNum++;
+                }
+
+                if (idx % 2 == 0) {
+                    c.setNonStrokingColor(0.95f, 0.95f, 0.98f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                }
+
+                c.setLineWidth(0.3f);
+                c.setStrokingColor(0.7f, 0.7f, 0.7f);
+                c.addRect(m, y - rowH, w, rowH);
+                c.stroke();
+                for (float vl : vLines) {
+                    c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                }
+
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(p.getId()); c.endText();
+
+                String nm = p.getName() != null ? p.getName() : "-";
+                c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(nm.length() > 30 ? nm.substring(0, 27) + "..." : nm); c.endText();
+
+                String price = String.format("%.2f", p.getPrice());
+                c.beginText(); c.newLineAtOffset(col3 + 30, y - 12); c.showText(price); c.endText();
+
+                String qty = String.valueOf(p.getQty());
+                c.beginText(); c.newLineAtOffset(col4 + 20, y - 12); c.showText(qty); c.endText();
+
+                y -= rowH;
+                idx++;
+            }
+
+            // Bottom border
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+            y -= 25;
+
+            // Summary
+            float sumX = A4_WIDTH - m - 220;
+            float sumW = 220;
+            c.setFont(PDType1Font.HELVETICA, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String totalStr = String.format("Total Products: %d", products.size());
+            float tw2 = PDType1Font.HELVETICA.getStringWidth(totalStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totalStr); c.endText();
+
+            drawFooter(c, pageNum);
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating A4 product report", e);
+        }
+    }
+
+    private static float drawThermalSummaryPro(PDPageContentStream c, float x, float w, float y, OrderEntity order, List<OrderProductDetailsEntity> details) throws IOException {
+        double sub = 0;
+        for (OrderProductDetailsEntity d : details) sub += d.getQuantity() * d.getUnitPrice();
+        double discountPercent = order.getDiscount(); // Get discount PERCENTAGE from order (e.g., 2.0 for 2%)
+        double discount = sub * discountPercent / 100.0; // Calculate discount amount: subTotal * percent / 100
+        double totalAfterDiscount = sub - discount;
+        double taxRate = order.getTaxRate(); // Get tax RATE from order (e.g., 0.5 for 0.5%)
+        double tax = totalAfterDiscount * taxRate / 100.0; // Calculate tax amount: discounted * rate / 100
+        double net = totalAfterDiscount + tax;
+
+        c.setFont(THERMAL_FONT, 8);
+        c.setNonStrokingColor(0f, 0f, 0f);
+
+        // Subtotal with right margin
+        String s1 = String.format("Sub Total: LKR %.2f", sub);
+        float tw = getThermalTextWidth(s1, 8);
+        c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText(s1); c.endText();
+        y -= 12;
+
+        // Discount with right margin (show percentage and amount)
+        String sDiscount = String.format("Discount (%.0f%%): LKR %.2f", discountPercent, discount);
+        tw = getThermalTextWidth(sDiscount, 8);
+        c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText(sDiscount); c.endText();
+        y -= 12;
+
+        // Tax with right margin (use saved tax rate from order - show exact value)
+        String s2 = String.format("Tax (%.1f%%): LKR %.2f", taxRate, tax);
+        tw = getThermalTextWidth(s2, 8);
+        c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText(s2); c.endText();
+        y -= 12;
+
+        // Line separator
+        c.setLineWidth(0.5f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 8;
+
+        // Total - bold with background and right margin
+        c.setFont(THERMAL_FONT_BOLD, 10);
+        String s3 = String.format("TOTAL: LKR %.2f", net);
+        tw = getThermalTextWidth(s3, 10);
+
+        // Total background
+        c.setNonStrokingColor(0.9f, 0.9f, 0.9f);
+        c.addRect(x, y - 14, w, 14);
+        c.fill();
+
+        // Total border
+        c.setLineWidth(0.5f);
+        c.setStrokingColor(0f, 0f, 0f);
+        c.addRect(x, y - 14, w, 14);
+        c.stroke();
+
+        // Total text with right margin
+        c.setNonStrokingColor(0f, 0f, 0f);
+        c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 10); c.showText(s3); c.endText();
+        y -= 18;
+
+        return y;
+    }
+
+    private static float drawThermalPaymentPro(PDPageContentStream c, float x, float w, float y, OrderEntity order, List<OrderProductDetailsEntity> details) throws IOException {
+        c.setFont(THERMAL_FONT, 8);
+        c.setNonStrokingColor(0f, 0f, 0f);
+
+        // Payment info box (border around payment section)
+        c.setLineWidth(0.5f);
+        c.setStrokingColor(0f, 0f, 0f);
+        c.addRect(x, y - 34, w, 34);
+        c.stroke();
+
+        // Payment method (left) and Paid amount (right) on same line
+        c.beginText(); c.newLineAtOffset(x + 5, y - 12); c.showText("PAYMENT: CASH"); c.endText();
+
+        double paid = order.getAmountPaid(); // Use actual paid amount from order
+        String s1 = String.format("Paid: LKR %.2f", paid);
+        float tw = getThermalTextWidth(s1, 8);
+        c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 12); c.showText(s1); c.endText();
+        y -= 14;
+
+        // Balance on next line (LEFT aligned)
+        double balance = order.getBalance(); // Use actual balance from order
+        String s2 = String.format("Balance: LKR %.2f", balance);
+        c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(s2); c.endText();
+        y -= 20;
+
+        return y;
+    }
+
+    private static float drawThermalFooterPro(PDPageContentStream c, float x, float w, float y) throws IOException {
+        // Separator
+        c.setLineWidth(0.5f);
+        c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+        y -= 10;
+
+        // Date and time
+        c.setFont(THERMAL_FONT, 7);
+        c.setNonStrokingColor(0.4f, 0.4f, 0.4f);
+        String dt = LocalDateTime.now().format(DATE_FORMAT);
+        float tw = getThermalTextWidth(dt, 7);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 7); c.showText(dt); c.endText();
+        y -= 12;
+
+        // Thank you message
+        c.setFont(THERMAL_FONT_BOLD, 9);
+        c.setNonStrokingColor(0f, 0f, 0f);
+        String ty = "*** Thank You! Visit Again ***";
+        tw = getThermalTextWidth(ty, 9);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 9); c.showText(ty); c.endText();
+        y -= 15;
+
+        // Signature line
+        c.setLineWidth(0.3f);
+        c.setStrokingColor(0f, 0f, 0f);
+        float lineW = 50f;
+        float lineX = x + (w - lineW)/2;
+        c.moveTo(lineX, y); c.lineTo(lineX + lineW, y); c.stroke();
+        y -= 10;
+
+        c.setFont(THERMAL_FONT, 6);
+        c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+        String sig = "Authorized Signature";
+        tw = getThermalTextWidth(sig, 6);
+        c.beginText(); c.newLineAtOffset(x + (w - tw)/2, y - 6); c.showText(sig); c.endText();
+
+        return y;
     }
 
     private static float getThermalTextWidth(String text, float fontSize) throws IOException {
@@ -816,7 +1067,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     }
 
     // ================================
-    // 4. A4 THERMAL-STYLE ORDER BILL (same layout as 80mm, centered on A4)
+    // 4. A4 THERMAL-STYLE ORDER BILL (same layout as 80mm, centered on A4 - Improved)
     // ================================
     public static byte[] generateOrderBillA4(OrderEntity order, List<OrderProductDetailsEntity> details) {
         try (PDDocument document = new PDDocument();
@@ -825,168 +1076,26 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float pageHeight = calculateThermalHeight(details) + 50;
             PDPage page = new PDPage(new PDRectangle(A4_WIDTH, pageHeight));
             document.addPage(page);
-            PDPageContentStream content = new PDPageContentStream(document, page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
 
             float xOffset = A4_BILL_MARGIN;
             float y = pageHeight - 25 * MM_TO_POINTS;
 
-            y = drawA4ThermalHeader(content, xOffset, y);
-            y = drawA4ThermalTitle(content, xOffset, y);
-            y = drawA4ThermalDetails(content, xOffset, y, order);
-            y = drawA4ThermalTable(content, xOffset, y, details);
-            y = drawA4ThermalSummary(content, xOffset, y, details);
-            y = drawA4ThermalPayment(content, xOffset, y, details);
-            drawA4ThermalFooter(content, xOffset, y);
+            // Use the same improved thermal functions but with A4 centering
+            y = drawThermalHeaderPro(c, xOffset, A4_BILL_WIDTH, y);
+            y = drawThermalTitlePro(c, xOffset, A4_BILL_WIDTH, y);
+            y = drawThermalDetailsPro(c, xOffset, A4_BILL_WIDTH, y, order);
+            y = drawThermalTablePro(c, xOffset, A4_BILL_WIDTH, y, details);
+            y = drawThermalSummaryPro(c, xOffset, A4_BILL_WIDTH, y, order, details);
+            y = drawThermalPaymentPro(c, xOffset, A4_BILL_WIDTH, y, order, details);
+            drawThermalFooterPro(c, xOffset, A4_BILL_WIDTH, y);
 
-            content.close();
+            c.close();
             document.save(baos);
             return baos.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException("Error generating A4 thermal-style order bill", e);
         }
-    }
-
-    private static float drawA4ThermalHeader(PDPageContentStream c, float x, float y) throws IOException {
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float tw = getThermalTextWidth(COMPANY_NAME, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_10); c.showText(COMPANY_NAME); c.endText();
-        y -= 18;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_8); c.showText(COMPANY_ADDRESS); c.endText();
-        y -= 12;
-        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_8); c.showText(COMPANY_PHONE); c.endText();
-        y -= 10;
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        return y;
-    }
-
-    private static float drawA4ThermalTitle(PDPageContentStream c, float x, float y) throws IOException {
-        String t = "INVOICE / CASH MEMO";
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        float tw = getThermalTextWidth(t, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_10); c.showText(t); c.endText();
-        y -= 20;
-        return y;
-    }
-
-    private static float drawA4ThermalDetails(PDPageContentStream c, float x, float y, OrderEntity order) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        y -= 10;
-        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_9); c.showText("Bill No: " + order.getOrderId()); c.endText();
-        String cust = order.getCustomer() != null ? order.getCustomer().getName() : "-";
-        String custText = "Customer: " + cust;
-        float tw = getThermalTextWidth(custText, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(x + A4_BILL_WIDTH - THERMAL_MARGIN - tw, y - THERMAL_FONT_9); c.showText(custText); c.endText(); y -= 12;
-        String dateStr = order.getDate() != null ? order.getDate().format(BILL_DATE_FORMAT) : "-";
-        c.beginText(); c.newLineAtOffset(x + THERMAL_MARGIN, y - THERMAL_FONT_9); c.showText("Date: " + dateStr); c.endText();
-        if (order.getCustomer() != null && order.getCustomer().getContact() != null) {
-            String contactText = "Contact: " + order.getCustomer().getContact();
-            tw = getThermalTextWidth(contactText, THERMAL_FONT_9);
-            c.beginText(); c.newLineAtOffset(x + A4_BILL_WIDTH - THERMAL_MARGIN - tw, y - THERMAL_FONT_9); c.showText(contactText); c.endText();
-        }
-        y -= 12;
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        return y;
-    }
-
-    private static float drawA4ThermalTable(PDPageContentStream c, float x, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float colItem = x + THERMAL_MARGIN, colQty = x + A4_BILL_WIDTH * 0.5f, colRate = x + A4_BILL_WIDTH * 0.7f, colAmt = x + A4_BILL_WIDTH * 0.85f;
-        c.beginText(); c.newLineAtOffset(colItem, y - THERMAL_FONT_8); c.showText("Item"); c.endText();
-        c.beginText(); c.newLineAtOffset(colQty, y - THERMAL_FONT_8); c.showText("Qty"); c.endText();
-        c.beginText(); c.newLineAtOffset(colRate, y - THERMAL_FONT_8); c.showText("Rate"); c.endText();
-        c.beginText(); c.newLineAtOffset(colAmt, y - THERMAL_FONT_8); c.showText("Amount"); c.endText();
-        y -= 12;
-        drawA4Separator(c, x, y); y -= 4;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        for (OrderProductDetailsEntity d : details) {
-            if (y < 100) break;
-            String nm = d.getProduct() != null ? truncate(d.getProduct().getName(), 15) : "-";
-            String qty = String.valueOf(d.getQuantity());
-            String rate = String.format("%.2f", d.getUnitPrice());
-            String amt = String.format("%.2f", d.getQuantity() * d.getUnitPrice());
-            c.beginText(); c.newLineAtOffset(colItem, y - THERMAL_FONT_8); c.showText(nm); c.endText();
-            float qw = getThermalTextWidth(qty, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colQty + (A4_BILL_WIDTH*0.2f - qw)/2, y - THERMAL_FONT_8); c.showText(qty); c.endText();
-            float rw = getThermalTextWidth(rate, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colRate + (A4_BILL_WIDTH*0.15f - rw)/2, y - THERMAL_FONT_8); c.showText(rate); c.endText();
-            float aw = getThermalTextWidth(amt, THERMAL_FONT_8);
-            c.beginText(); c.newLineAtOffset(colAmt + (A4_BILL_WIDTH*0.15f - aw)/2, y - THERMAL_FONT_8); c.showText(amt); c.endText();
-            y -= 12;
-        }
-        y -= 4; drawA4Separator(c, x, y); y -= 4;
-        return y;
-    }
-
-    private static float drawA4ThermalSummary(PDPageContentStream c, float x, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        double sub = 0; for (OrderProductDetailsEntity d : details) sub += d.getQuantity() * d.getUnitPrice();
-        double tax = sub * 0.05, net = sub + tax;
-        float rx = x + A4_BILL_WIDTH - THERMAL_MARGIN;
-        String s1 = String.format("Sub Total: %.2f", sub);
-        float tw = getThermalTextWidth(s1, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s1); c.endText(); y -= 12;
-        String s2 = String.format("Tax (5%%): %.2f", tax);
-        tw = getThermalTextWidth(s2, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s2); c.endText(); y -= 12;
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_10);
-        String s3 = String.format("NET TOTAL: %.2f", net);
-        tw = getThermalTextWidth(s3, THERMAL_FONT_10);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_10); c.showText(s3); c.endText(); y -= 15;
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        return y;
-    }
-
-    private static float drawA4ThermalPayment(PDPageContentStream c, float x, float y, List<OrderProductDetailsEntity> details) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_9);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        double sub = 0; for (OrderProductDetailsEntity d : details) sub += d.getQuantity() * d.getUnitPrice();
-        double tax = sub * 0.05, net = sub + tax;
-        float rx = x + A4_BILL_WIDTH - THERMAL_MARGIN;
-        String s1 = String.format("Paid: %.2f", net);
-        float tw = getThermalTextWidth(s1, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s1); c.endText(); y -= 12;
-        String s2 = "Balance: 0.00";
-        tw = getThermalTextWidth(s2, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(rx - tw, y - THERMAL_FONT_9); c.showText(s2); c.endText(); y -= 12;
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        return y;
-    }
-
-    private static float drawA4ThermalFooter(PDPageContentStream c, float x, float y) throws IOException {
-        y -= 5; drawA4Separator(c, x, y); y -= 5;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        String dt = LocalDateTime.now().format(DATE_FORMAT);
-        float tw = getThermalTextWidth(dt, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(dt); c.endText();
-        y -= 12;
-        c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_9);
-        String ty = "Thank You! Visit Again";
-        tw = getThermalTextWidth(ty, THERMAL_FONT_9);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_9); c.showText(ty); c.endText();
-        y -= 20;
-        c.setLineWidth(0.5f);
-        float sw = 60f, ss = x + (A4_BILL_WIDTH - sw)/2;
-        c.moveTo(ss, y); c.lineTo(ss + sw, y); c.stroke();
-        y -= 12;
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        String sig = "Signature";
-        tw = getThermalTextWidth(sig, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(sig); c.endText();
-        return y;
-    }
-
-    private static void drawA4Separator(PDPageContentStream c, float x, float y) throws IOException {
-        c.setFont(THERMAL_FONT, THERMAL_FONT_8);
-        c.setNonStrokingColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
-        float tw = getThermalTextWidth(SEPARATOR, THERMAL_FONT_8);
-        c.beginText(); c.newLineAtOffset(x + (A4_BILL_WIDTH - tw)/2, y - THERMAL_FONT_8); c.showText(SEPARATOR); c.endText();
     }
 
     // ================================
@@ -1000,152 +1109,225 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             document.addPage(page);
             PDPageContentStream c = new PDPageContentStream(document, page);
 
-            float m = 40f; // margin
+            float m = 40f;
             float w = A4_WIDTH - 2 * m;
             float y = A4_HEIGHT - m;
 
-            // Header
-            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
+            // LEFT SIDE: Company info (Dilshan Oil Mill, Address, Contact)
+            c.setFont(PDType1Font.HELVETICA_BOLD, 14);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 18); c.showText(COMPANY_NAME); c.endText();
-            y -= 22;
+            c.beginText(); c.newLineAtOffset(m, y - 14); c.showText(COMPANY_NAME); c.endText();
 
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_ADDRESS); c.endText(); y -= 12;
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText(COMPANY_PHONE); c.endText();
-            y -= 20;
+            c.beginText(); c.newLineAtOffset(m, y - 26); c.showText(COMPANY_ADDRESS); c.endText();
+            c.beginText(); c.newLineAtOffset(m, y - 37); c.showText(COMPANY_PHONE); c.endText();
 
-            // INVOICE title (right)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 26);
+            // RIGHT SIDE: INVOICE
+            c.setFont(PDType1Font.HELVETICA_BOLD, 28);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
             String title = "INVOICE";
-            float tw = PDType1Font.HELVETICA_BOLD.getStringWidth(title) / 1000f * 26f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y + 25); c.showText(title); c.endText();
+            float titleW = PDType1Font.HELVETICA_BOLD.getStringWidth(title) / 1000f * 28f;
+            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - titleW, y - 28); c.showText(title); c.endText();
 
-            // Invoice details (right)
-            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            String invNo = "Invoice #: " + order.getOrderId();
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(invNo) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y + 8); c.showText(invNo); c.endText();
-            String dateStr = order.getDate() != null ? order.getDate().format(BILL_DATE_FORMAT) : "-";
-            String invDate = "Date: " + dateStr;
-            c.beginText(); c.newLineAtOffset(A4_WIDTH - m - PDType1Font.HELVETICA_BOLD.getStringWidth(invDate) / 1000f * 10f, y - 4); c.showText(invDate); c.endText();
+            y -= 45;
 
-            y -= 10;
-
-            // Divider
-            c.setLineWidth(1f);
+            // Divider line
+            c.setLineWidth(2f);
             c.setStrokingColor(0.1f, 0.1f, 0.3f);
             c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
+            y -= 25;
 
-            // Bill To
-            c.setFont(PDType1Font.HELVETICA_BOLD, 11);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.beginText(); c.newLineAtOffset(m, y - 11); c.showText("BILL TO:"); c.endText();
-            y -= 18;
-
+            // LEFT SIDE: Order ID & Date
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("ORDER ID"); c.endText();
             c.setFont(PDType1Font.HELVETICA, 10);
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            c.beginText(); c.newLineAtOffset(m, y - 23); c.showText(order.getOrderId()); c.endText();
+
+            String orderDate = order.getDate().format(BILL_DATE_FORMAT);
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            c.beginText(); c.newLineAtOffset(m, y - 40); c.showText("DATE"); c.endText();
+            c.setFont(PDType1Font.HELVETICA, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            c.beginText(); c.newLineAtOffset(m, y - 54); c.showText(orderDate); c.endText();
+
+            // RIGHT SIDE: Bill To with customer info box
+            float billBoxW = 240f;
+            float billBoxH = 65f;
+            float billBoxX = A4_WIDTH - m - billBoxW;
+            float billBoxY = y - 5;
+
+            // Box background & border
+            c.setNonStrokingColor(0.96f, 0.96f, 0.98f);
+            c.addRect(billBoxX, billBoxY - billBoxH, billBoxW, billBoxH);
+            c.fill();
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.7f, 0.7f, 0.7f);
+            c.addRect(billBoxX, billBoxY - billBoxH, billBoxW, billBoxH);
+            c.stroke();
+
+            // Bill To label
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.4f, 0.4f, 0.4f);
+            c.beginText(); c.newLineAtOffset(billBoxX + 10, billBoxY - 14); c.showText("BILL TO"); c.endText();
+
+            // Customer details
+            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
             String custName = order.getCustomer() != null ? order.getCustomer().getName() : "-";
-            c.beginText(); c.newLineAtOffset(m, y - 10); c.showText(custName); c.endText(); y -= 14;
+            c.beginText(); c.newLineAtOffset(billBoxX + 10, billBoxY - 30); c.showText(custName); c.endText();
+
             if (order.getCustomer() != null && order.getCustomer().getContact() != null) {
-                c.beginText(); c.newLineAtOffset(m, y - 10); c.showText("Contact: " + order.getCustomer().getContact()); c.endText(); y -= 14;
+                c.setFont(PDType1Font.HELVETICA, 9);
+                c.beginText(); c.newLineAtOffset(billBoxX + 10, billBoxY - 44); c.showText("Contact: " + order.getCustomer().getContact()); c.endText();
             }
 
-            y -= 10;
+            y -= 75;
 
-            // Table Header
+            // Table with proper borders
             float tableY = y;
+            float rowH = 18;
+
+            // Table header with dark background
             c.setFont(PDType1Font.HELVETICA_BOLD, 9);
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            c.setLineWidth(0f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            c.addRect(m, tableY - 16, w, 16);
+            c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+            c.addRect(m, tableY - rowH, w, rowH);
             c.fill();
 
-            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            float col1 = m + 10, col2 = m + 50, col3 = m + 280, col4 = m + 330, col5 = m + 380, col6 = m + 440;
-            c.beginText(); c.newLineAtOffset(col1, tableY - 11); c.showText("#"); c.endText();
-            c.beginText(); c.newLineAtOffset(col2, tableY - 11); c.showText("Description"); c.endText();
-            c.beginText(); c.newLineAtOffset(col3, tableY - 11); c.showText("Qty"); c.endText();
-            c.beginText(); c.newLineAtOffset(col4, tableY - 11); c.showText("Rate"); c.endText();
-            c.beginText(); c.newLineAtOffset(col5, tableY - 11); c.showText("Tax"); c.endText();
-            c.beginText(); c.newLineAtOffset(col6, tableY - 11); c.showText("Amount"); c.endText();
+            // Header border
+            c.setLineWidth(1f);
+            c.setStrokingColor(0f, 0f, 0f);
+            c.addRect(m, tableY - rowH, w, rowH);
+            c.stroke();
 
-            y = tableY - 16;
+            // Header text
+            c.setNonStrokingColor(1f, 1f, 1f);
+            float col1 = m + 10, col2 = m + 50, col3 = m + 280, col4 = m + 340, col5 = m + 430;
+            c.beginText(); c.newLineAtOffset(col1, tableY - 12); c.showText("#"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, tableY - 12); c.showText("Description"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3 + 10, tableY - 12); c.showText("Qty"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4 + 15, tableY - 12); c.showText("Rate (LKR)"); c.endText();
+            c.beginText(); c.newLineAtOffset(col5 + 20, tableY - 12); c.showText("Amount (LKR)"); c.endText();
+
+            y = tableY - rowH;
 
             // Table Rows
             c.setFont(PDType1Font.HELVETICA, 9);
             int idx = 1;
             double grandTotal = 0;
             for (OrderProductDetailsEntity d : details) {
-                if (y < 150) break;
+                if (y < 200) break;
                 double lineTotal = d.getQuantity() * d.getUnitPrice();
                 grandTotal += lineTotal;
 
-                // Alternating background
+                // Alternating row background
                 if (idx % 2 == 0) {
-                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
-                    c.addRect(m, y - 14, w, 14);
+                    c.setNonStrokingColor(0.95f, 0.95f, 0.98f);
+                    c.addRect(m, y - rowH, w, rowH);
                     c.fill();
                 }
 
-                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                String nm = d.getProduct() != null ? d.getProduct().getName() : "-";
-                c.beginText(); c.newLineAtOffset(col1, y - 10); c.showText(String.valueOf(idx)); c.endText();
-                c.beginText(); c.newLineAtOffset(col2, y - 10); c.showText(truncate(nm, 30)); c.endText();
-                c.beginText(); c.newLineAtOffset(col3 + 15, y - 10); c.showText(String.valueOf(d.getQuantity())); c.endText();
-                String rate = String.format("%.2f", d.getUnitPrice());
-                c.beginText(); c.newLineAtOffset(col4 + 30, y - 10); c.showText(rate); c.endText();
-                c.beginText(); c.newLineAtOffset(col5 + 20, y - 10); c.showText("5%"); c.endText();
-                String amt = String.format("%.2f", lineTotal);
-                c.beginText(); c.newLineAtOffset(col6 + 40, y - 10); c.showText(amt); c.endText();
-
                 // Row border
                 c.setLineWidth(0.3f);
-                c.setStrokingColor(0.8f, 0.8f, 0.8f);
-                c.moveTo(m, y - 14); c.lineTo(A4_WIDTH - m, y - 14); c.stroke();
+                c.setStrokingColor(0.7f, 0.7f, 0.7f);
+                c.addRect(m, y - rowH, w, rowH);
+                c.stroke();
 
-                y -= 14;
+                // Row text
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String nm = d.getProduct() != null ? d.getProduct().getName() : "-";
+                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(String.valueOf(idx)); c.endText();
+                c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(truncate(nm, 30)); c.endText();
+                c.beginText(); c.newLineAtOffset(col3 + 15, y - 12); c.showText(String.valueOf(d.getQuantity())); c.endText();
+                String rate = String.format("%.2f", d.getUnitPrice());
+                c.beginText(); c.newLineAtOffset(col4 + 20, y - 12); c.showText(rate); c.endText();
+                String amt = String.format("%.2f", lineTotal);
+                c.beginText(); c.newLineAtOffset(col5 + 25, y - 12); c.showText(amt); c.endText();
+
+                y -= rowH;
                 idx++;
             }
 
             // Bottom border
             c.setLineWidth(1f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.setStrokingColor(0.15f, 0.15f, 0.4f);
             c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
-            y -= 20;
+            y -= 15;
 
-            // Summary (right)
-            float sumX = A4_WIDTH - m - 200;
+            // Payment info box (LEFT side)
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.7f, 0.7f, 0.7f);
+            c.addRect(m, y - 30, 200, 30);
+            c.stroke();
+
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            c.beginText(); c.newLineAtOffset(m + 10, y - 15); c.showText("PAYMENT METHOD: CASH"); c.endText();
+
+            // Summary section (RIGHT aligned)
+            float sumX = A4_WIDTH - m - 220;
+            float sumW = 220;
+
             c.setFont(PDType1Font.HELVETICA, 10);
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            String subStr = String.format("Sub Total: %,.2f", grandTotal);
-            tw = PDType1Font.HELVETICA.getStringWidth(subStr) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset(sumX + 200 - tw, y - 10); c.showText(subStr); c.endText(); y -= 16;
-            double tax = grandTotal * 0.05;
-            String taxStr = String.format("Tax (5%%): %,.2f", tax);
-            tw = PDType1Font.HELVETICA.getStringWidth(taxStr) / 1000f * 10f;
-            c.beginText(); c.newLineAtOffset(sumX + 200 - tw, y - 10); c.showText(taxStr); c.endText(); y -= 16;
 
-            c.setLineWidth(0.5f);
-            c.setStrokingColor(0.1f, 0.1f, 0.3f);
-            c.moveTo(sumX, y + 6); c.lineTo(sumX + 200, y + 6); c.stroke();
-            y -= 10;
-
-            c.setFont(PDType1Font.HELVETICA_BOLD, 12);
-            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            String totalStr = String.format("TOTAL: %,.2f", grandTotal + tax);
-            tw = PDType1Font.HELVETICA_BOLD.getStringWidth(totalStr) / 1000f * 12f;
-            c.beginText(); c.newLineAtOffset(sumX + 200 - tw, y - 12); c.showText(totalStr); c.endText();
+            // Subtotal
+            String subStr = String.format("Sub Total: LKR %,.2f", grandTotal);
+            float tw1 = PDType1Font.HELVETICA.getStringWidth(subStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw1, y - 10); c.showText(subStr); c.endText();
             y -= 30;
 
-            // Footer
+            // Discount (calculate amount from percentage)
+            double discountPercent = order.getDiscount(); // Get discount PERCENTAGE (e.g., 2.0 for 2%)
+            double discount = grandTotal * discountPercent / 100.0; // Calculate: subTotal * percent / 100
+            String discountStr = String.format("Discount (%.0f%%): LKR %,.2f", discountPercent, discount);
+            float tw2 = PDType1Font.HELVETICA.getStringWidth(discountStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(discountStr); c.endText();
+            y -= 18;
+
+            // Tax - calculate amount from rate on discounted amount
+            double totalAfterDiscount = grandTotal - discount;
+            double taxRate = order.getTaxRate(); // Get tax RATE (e.g., 0.5)
+            double tax = totalAfterDiscount * taxRate / 100.0; // Calculate TAX on discounted amount
+            String taxStr = String.format("Tax (%.1f%%): LKR %,.2f", taxRate, tax);
+            float tw3 = PDType1Font.HELVETICA.getStringWidth(taxStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw3, y - 10); c.showText(taxStr); c.endText();
+            y -= 35;
+
+            // Separator
+            c.setLineWidth(1f);
+            c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(sumX, y + 8); c.lineTo(sumX + sumW, y + 8); c.stroke();
+            y -= 12;
+
+            // Total with background
+            c.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            double net = totalAfterDiscount + tax; // totalAfterDiscount already calculated
+            String totalStr = String.format("TOTAL: LKR %,.2f", net);
+            float tw4 = PDType1Font.HELVETICA_BOLD.getStringWidth(totalStr) / 1000f * 12f;
+
+            // Total background
+            c.setNonStrokingColor(0.9f, 0.95f, 1f);
+            c.addRect(sumX, y - 18, sumW, 18);
+            c.fill();
+
+            // Total border
             c.setLineWidth(0.5f);
+            c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.addRect(sumX, y - 18, sumW, 18);
+            c.stroke();
+
+            // Total text
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw4 - 5, y - 13); c.showText(totalStr); c.endText();
+            y -= 50;
+
+            // Footer
+            c.setLineWidth(1f);
             c.setStrokingColor(0.8f, 0.8f, 0.8f);
             c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
             y -= 15;
@@ -1153,9 +1335,24 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.setFont(PDType1Font.HELVETICA, 9);
             c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
             c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("Thank you for your business!"); c.endText();
+
             String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
-            tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
+            float tw = PDType1Font.HELVETICA.getStringWidth(gen) / 1000f * 9f;
             c.beginText(); c.newLineAtOffset(A4_WIDTH - m - tw, y - 9); c.showText(gen); c.endText();
+
+            // Signature line
+            y -= 30;
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0f, 0f, 0f);
+            float sigLineW = 150f;
+            float sigX = A4_WIDTH - m - sigLineW;
+            c.moveTo(sigX, y); c.lineTo(sigX + sigLineW, y); c.stroke();
+            y -= 12;
+            c.setFont(PDType1Font.HELVETICA, 8);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            String sig = "Authorized Signature";
+            float tw6 = PDType1Font.HELVETICA.getStringWidth(sig) / 1000f * 8f;
+            c.beginText(); c.newLineAtOffset(sigX + (sigLineW - tw6)/2, y - 8); c.showText(sig); c.endText();
 
             c.close();
             document.save(baos);

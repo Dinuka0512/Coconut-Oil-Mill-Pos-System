@@ -13,6 +13,7 @@ public interface OrderBO extends SuperBo {
     String generateNextOrderId() throws SQLException, ClassNotFoundException;
     ArrayList<OrderDto> getAllOrders() throws SQLException, ClassNotFoundException;
     boolean deleteOrder(String orderId) throws SQLException, ClassNotFoundException;
-    byte[] generateOrderBill(String orderId) throws SQLException, ClassNotFoundException;
+    byte[] generateOrderBill80mm(String orderId) throws SQLException, ClassNotFoundException;
+    byte[] generateOrderBillA4(String orderId) throws SQLException, ClassNotFoundException;
     OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException;
 }

@@ -21,8 +21,11 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -507,24 +510,26 @@ public class OrderController implements Initializable {
             new Alert(Alert.AlertType.WARNING, "Cart is empty!").show();
             return;
         }
-        
+
         String orderId = lblOrderId.getText();
         LocalDate date = LocalDate.parse(lblDate.getText());
         CustomerDto customerDto = selectedCustomer;
-        
+
         double netTotal = 0.0;
         double discount = 0.0;
-        double tax = 0.0;
+        double taxRate = 0.0;
+        double taxAmount = 0.0;
         double balance = 0.0;
-        
+
         try {
             netTotal = Double.parseDouble(lblNetTotal.getText());
             discount = Double.parseDouble(txtDiscount.getText());
-            tax = Double.parseDouble(txtTax.getText());
+            taxRate = Double.parseDouble(txtTax.getText()); // This is the TAX RATE (e.g., 8.0)
+            taxAmount = netTotal * (taxRate / 100.0); // Calculate TAX AMOUNT correctly
             balance = Double.parseDouble(lblBalance.getText());
         } catch (NumberFormatException e) {
         }
-        
+
         double amount = netTotal;
 
         ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
@@ -533,11 +538,43 @@ public class OrderController implements Initializable {
             details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
         }
 
-        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, tax, balance);
+        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, taxAmount, taxRate, balance);
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {
                 new Alert(Alert.AlertType.INFORMATION, "Order Placed Successfully!").show();
+                
+                // Ask user how to print the bill
+                Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                printAlert.setTitle("Print Bill");
+                printAlert.setHeaderText("How do you need to print the bill?");
+                printAlert.setContentText("Choose the print format:");
+                
+                ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
+                ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
+                printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
+                
+                Optional<ButtonType> result = printAlert.showAndWait();
+                if (result.isPresent()) {
+                    try {
+                        byte[] pdfBytes;
+                        if (result.get() == smallBtn) {
+                            pdfBytes = orderBO.generateOrderBill80mm(orderId);
+                        } else {
+                            pdfBytes = orderBO.generateOrderBillA4(orderId);
+                        }
+                        
+                        if (pdfBytes != null) {
+                            File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                            Files.write(tempFile.toPath(), pdfBytes);
+                            Desktop.getDesktop().open(tempFile);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        new Alert(Alert.AlertType.ERROR, "Error generating bill: " + ex.getMessage()).show();
+                    }
+                }
+
                 obList.clear();
                 calculateTotal();
                 setOrderId();

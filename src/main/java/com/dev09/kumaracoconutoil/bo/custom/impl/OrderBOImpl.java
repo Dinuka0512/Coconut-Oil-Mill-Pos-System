@@ -36,6 +36,7 @@ public class OrderBOImpl implements OrderBO {
             entity.setAmountPaid(dto.getAmountPaid());
             entity.setDiscount(dto.getDiscount());
             entity.setTax(dto.getTax());
+            entity.setTaxRate(dto.getTaxRate()); // Save tax rate
             entity.setBalance(dto.getBalance());
             
             com.dev09.kumaracoconutoil.entity.CustomerEntity customer = new com.dev09.kumaracoconutoil.entity.CustomerEntity();
@@ -101,6 +102,7 @@ public class OrderBOImpl implements OrderBO {
             dto.setAmountPaid(entity.getAmountPaid());
             dto.setDiscount(entity.getDiscount());
             dto.setTax(entity.getTax());
+            dto.setTaxRate(entity.getTaxRate());
             dto.setBalance(entity.getBalance());
             
             if (entity.getOrderProducts() != null) {
@@ -182,14 +184,25 @@ public class OrderBOImpl implements OrderBO {
     }
 
     @Override
-    public byte[] generateOrderBill(String orderId) throws SQLException, ClassNotFoundException {
-        OrderEntity order = orderDAO.search(orderId);
+    public byte[] generateOrderBill80mm(String orderId) throws SQLException, ClassNotFoundException {
+        OrderEntity order = orderDAO.searchWithProducts(orderId);
         if (order == null) return null;
 
         List<OrderProductDetailsEntity> details = order.getOrderProducts();
         if (details == null) details = new ArrayList<>();
 
         return PdfGenerator.generateOrderBill(order, details);
+    }
+
+    @Override
+    public byte[] generateOrderBillA4(String orderId) throws SQLException, ClassNotFoundException {
+        OrderEntity order = orderDAO.searchWithProducts(orderId);
+        if (order == null) return null;
+
+        List<OrderProductDetailsEntity> details = order.getOrderProducts();
+        if (details == null) details = new ArrayList<>();
+
+        return PdfGenerator.generateOrderBillA4Pro(order, details);
     }
 
     @Override
