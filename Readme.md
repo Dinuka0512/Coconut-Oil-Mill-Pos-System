@@ -1,0 +1,16 @@
+jpackage `
+--type msi `
+--name "Dilshan oil mill" `
+--app-version "1.0" `
+--input "out/artifacts/KumaraCoconutOil_jar" `
+--main-jar "KumaraCoconutOil.jar" `
+--main-class "com.dev09.kumaracoconutoil.Main" `
+--runtime-image "runtime" `
+--icon "src/main/resources/asets/logo.ico" `
+--description "POS System - Developed by Dev09Solutions.com" `
+--vendor "Dev09Solutions.com" `
+--copyright "2026 Dev09Solutions.com" `
+--win-per-user-install `
+--win-shortcut-prompt `
+--win-menu `
+--win-menu-group "Dilshan Oil Mill"

@@ -41,6 +41,9 @@ public class OrderController implements Initializable {
     private AnchorPane body;
 
     @FXML
+    private AnchorPane posContent;
+
+    @FXML
     private ComboBox<String> cmbCustomerId;
 
     @FXML
@@ -107,9 +110,13 @@ public class OrderController implements Initializable {
     private java.util.List<ProductDto> currentProducts;
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
+    private boolean isContentLoading = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (isContentLoading) return;
+        isContentLoading = true;
+        loadPosContent();
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
@@ -132,6 +139,21 @@ public class OrderController implements Initializable {
                 validateDiscount();
             }
         });
+    }
+
+    private void loadPosContent() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/pos_content.fxml"));
+            loader.setController(this);
+            isContentLoading = true;
+            javafx.scene.Parent root = loader.load();
+            posContent.getChildren().clear();
+            posContent.getChildren().add(root);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            isContentLoading = false;
+        }
     }
     
     private void loadTax() {
@@ -609,21 +631,7 @@ public class OrderController implements Initializable {
                     }
                 }
 
-                obList.clear();
-                calculateTotal();
-                setOrderId();
-                clearProductFields();
-
-                // Reload POS page
-                try {
-                    javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/pos.fxml"));
-                    javafx.scene.Scene scene = new javafx.scene.Scene(root);
-                    javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(scene);
-                    stage.centerOnScreen();
-                } catch (Exception reloadEx) {
-                    reloadEx.printStackTrace();
-                }
+                loadPosContent();
             } else {
                 new Alert(Alert.AlertType.ERROR, "Order Placement Failed!").show();
             }

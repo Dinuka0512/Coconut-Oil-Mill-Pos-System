@@ -97,25 +97,23 @@ public class CustomerDAOImpl implements CustomerDAO {
     public String generateNewId() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            // Fetch all IDs (including soft-deleted) to get the highest numeric suffix
             String sql = "SELECT custId FROM customer ORDER BY custId DESC LIMIT 1";
             NativeQuery<String> query = session.createNativeQuery(sql, String.class);
             String lastId = query.uniqueResult();
 
             if (lastId == null || lastId.isEmpty()) {
-                return "C001";
+                return "CUST001";
             }
 
-            // Extract numeric part safely
             String numericPart = lastId.replaceAll("[^0-9]", "");
             if (numericPart.isEmpty()) {
-                return "C001";
+                return "CUST001";
             }
 
             int number = Integer.parseInt(numericPart);
-            return String.format("C%03d", number + 1);
+            return String.format("CUST%03d", number + 1);
         } catch (NumberFormatException e) {
-            return "C001";
+            return "CUST001";
         } finally {
             session.close();
         }

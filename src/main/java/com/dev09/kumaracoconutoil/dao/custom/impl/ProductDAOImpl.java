@@ -97,24 +97,23 @@ public class ProductDAOImpl implements ProductDAO {
     public String generateNewId() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            // Fetch all IDs (including soft-deleted) to get the highest numeric suffix
             String sql = "SELECT id FROM product ORDER BY id DESC LIMIT 1";
             NativeQuery<String> query = session.createNativeQuery(sql, String.class);
             String lastId = query.uniqueResult();
 
             if (lastId == null || lastId.isEmpty()) {
-                return "P001";
+                return "PROD001";
             }
 
             String numericPart = lastId.replaceAll("[^0-9]", "");
             if (numericPart.isEmpty()) {
-                return "P001";
+                return "PROD001";
             }
 
             int number = Integer.parseInt(numericPart);
-            return String.format("P%03d", number + 1);
+            return String.format("PROD%03d", number + 1);
         } catch (NumberFormatException e) {
-            return "P001";
+            return "PROD001";
         } finally {
             session.close();
         }

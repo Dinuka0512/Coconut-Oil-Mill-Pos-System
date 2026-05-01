@@ -105,6 +105,8 @@ public class UpdatePosController implements Initializable {
     private ArrayList<ProductDto> currentProducts;
     private Timeline productResetTimer;
     private Timeline customerResetTimer;
+    private OrderDto originalOrderDto;
+    private java.util.Map<String, Double> removedQtyMap = new java.util.HashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -282,24 +284,9 @@ public class UpdatePosController implements Initializable {
                 if (result.orElse(no) == yes) {
                     for (int i = 0; i < obList.size(); i++) {
                         if (obList.get(i).getBtn() == btn) {
-                            // Add removed qty back to product stock
                             String prodCode = obList.get(i).getCode();
                             double removedQty = obList.get(i).getQty();
-                            try {
-                                ProductDto prod = productBO.searchProduct(prodCode);
-                                if (prod != null) {
-                                    prod.setQty(prod.getQty() + removedQty);
-                                    productBO.updateProduct(prod);
-                                    // Update local list too
-                                    for (ProductDto p : currentProducts) {
-                                        if (p.getId().equals(prodCode)) {
-                                            p.setQty(prod.getQty());
-                                            break;
-                                        }
-                                    }
-                                }
-                            } catch (Exception ex) { ex.printStackTrace(); }
-
+                            removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
                             obList.remove(i);
                             calculateTotal();
                             break;
@@ -369,6 +356,8 @@ public class UpdatePosController implements Initializable {
     }
 
     public void loadOrderForEdit(OrderDto orderDto) {
+        this.originalOrderDto = orderDto;
+        this.removedQtyMap.clear();
         try {
             obList.clear();
             lblOrderId.setText(orderDto.getOrderId());
@@ -402,31 +391,16 @@ public class UpdatePosController implements Initializable {
                             ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
                             Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
                             if (result.orElse(no) == yes) {
-                                // Add removed qty back to product stock
-                                double removedQty = product.getId() != null ? 0 : 0;
-                                CartTM removedItem = null;
+                                String prodCode = product.getId();
+                                double removedQty = 0;
                                 for (CartTM item : obList) {
-                                    if (item.getCode().equals(product.getId())) {
-                                        removedItem = item;
+                                    if (item.getCode().equals(prodCode)) {
+                                        removedQty = item.getQty();
                                         break;
                                     }
                                 }
-                                if (removedItem != null) {
-                                    try {
-                                        ProductDto prod = productBO.searchProduct(removedItem.getCode());
-                                        if (prod != null) {
-                                            prod.setQty(prod.getQty() + removedItem.getQty());
-                                            productBO.updateProduct(prod);
-                                            for (ProductDto p : currentProducts) {
-                                                if (p.getId().equals(removedItem.getCode())) {
-                                                    p.setQty(prod.getQty());
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    } catch (Exception ex) { ex.printStackTrace(); }
-                                }
-                                obList.removeIf(item -> item.getCode().equals(product.getId()));
+                                removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
+                                obList.removeIf(item -> item.getCode().equals(prodCode));
                                 calculateTotal();
                             }
                         });
@@ -570,6 +544,41 @@ public class UpdatePosController implements Initializable {
             if (balance < 0) {
                 new Alert(Alert.AlertType.WARNING, "Amount paid must be at least the total amount!").show();
                 return;
+            }
+
+            java.util.Map<String, Double> originalCartQty = new java.util.HashMap<>();
+            if (originalOrderDto != null && originalOrderDto.getOrderProducts() != null) {
+                for (OrderProductDetailsDto detail : originalOrderDto.getOrderProducts()) {
+                    if (detail.getProduct() != null) {
+                        originalCartQty.put(detail.getProduct().getId(), detail.getQuantity());
+                    }
+                }
+            }
+
+            java.util.Map<String, Double> newCartQty = new java.util.HashMap<>();
+            for (CartTM tm : obList) {
+                newCartQty.put(tm.getCode(), tm.getQty());
+            }
+
+            for (String prodId : originalCartQty.keySet()) {
+                double originalQty = originalCartQty.get(prodId);
+                double currentQty = newCartQty.getOrDefault(prodId, 0.0);
+                double difference = originalQty - currentQty;
+                if (difference > 0) {
+                    ProductDto prod = productBO.searchProduct(prodId);
+                    if (prod != null) {
+                        prod.setQty(prod.getQty() + difference);
+                        productBO.updateProduct(prod);
+                    }
+                } else if (difference < 0) {
+                    productBO.updateStock(prodId, Math.abs(difference));
+                }
+            }
+
+            for (String prodId : newCartQty.keySet()) {
+                if (!originalCartQty.containsKey(prodId)) {
+                    productBO.updateStock(prodId, newCartQty.get(prodId));
+                }
             }
             
             ArrayList<OrderProductDetailsDto> orderProducts = new ArrayList<>();
