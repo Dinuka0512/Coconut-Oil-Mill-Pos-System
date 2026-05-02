@@ -77,6 +77,9 @@ public class OrderManageController implements Initializable {
                     btnEditOnAction(order);
                 });
                 btnEdit.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
+                if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+                    btnEdit.setVisible(false);
+                }
             }
             
             @Override
@@ -244,6 +247,10 @@ public class OrderManageController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "Only admins can delete invoices!").show();
+            return;
+        }
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
             new Alert(Alert.AlertType.WARNING, "Please select an invoice from the table!").show();
@@ -291,7 +298,11 @@ public class OrderManageController implements Initializable {
     
     private void btnEditOnAction(OrderDto order) {
         if (order == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an order to edit!").show();
+            new Alert(Alert.AlertType.WARNING, "Please select an invoice to edit!").show();
+            return;
+        }
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "Only admins can edit invoices!").show();
             return;
         }
         try {

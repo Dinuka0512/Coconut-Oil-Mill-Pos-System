@@ -82,8 +82,13 @@ public class ProductController implements Initializable {
                 txtPrice.setText(String.valueOf(newValue.getPrice()));
                 txtQty.setText(String.valueOf(newValue.getQty()));
 
-                btnDelete.setDisable(false);
-                btnUpdate.setDisable(false);
+                if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+                    btnDelete.setDisable(true);
+                    btnUpdate.setDisable(true);
+                } else {
+                    btnDelete.setDisable(false);
+                    btnUpdate.setDisable(false);
+                }
                 btnSave.setDisable(true);
             }
         });
@@ -174,6 +179,10 @@ public class ProductController implements Initializable {
 
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "Only admins can update inventory!").show();
+            return;
+        }
         String id = currentProductId;
         String name = txtName.getText();
         String priceText = txtPrice.getText();
@@ -198,6 +207,10 @@ public class ProductController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "Only admins can delete inventory!").show();
+            return;
+        }
         // Confirmation dialog
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete Product");

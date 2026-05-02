@@ -487,6 +487,10 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void btnUpdateOrderOnAction(ActionEvent event) {
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "Only admins can update invoices!").show();
+            return;
+        }
         if (selectedCustomer == null) {
             new Alert(Alert.AlertType.WARNING, "Please select a customer!").show();
             return;
