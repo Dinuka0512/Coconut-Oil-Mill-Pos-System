@@ -165,7 +165,7 @@ public class ProductController implements Initializable {
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to save product!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to save inventory!").show();
             }
         } catch (NumberFormatException e) {
             new Alert(Alert.AlertType.ERROR, "Invalid input for price or quantity!").show();
@@ -189,7 +189,7 @@ public class ProductController implements Initializable {
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to update product!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to update inventory!").show();
             }
         } catch (NumberFormatException e) {
             new Alert(Alert.AlertType.ERROR, "Invalid input for price or quantity!").show();
@@ -201,7 +201,7 @@ public class ProductController implements Initializable {
         // Confirmation dialog
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete Product");
-        confirmAlert.setHeaderText("Are you sure you want to delete this product?");
+        confirmAlert.setHeaderText("Are you sure you want to delete this inventory item?");
         confirmAlert.setContentText("Product: " + txtName.getText() + " (" + currentProductId + ")");
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
@@ -212,7 +212,7 @@ public class ProductController implements Initializable {
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to delete product!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to delete inventory!").show();
             }
         }
     }
@@ -293,7 +293,7 @@ public class ProductController implements Initializable {
             tblProduct.getSelectionModel().select(foundProduct);
             tblProduct.scrollTo(foundProduct);
         } else {
-            new Alert(Alert.AlertType.WARNING, "Product not found!").show();
+            new Alert(Alert.AlertType.WARNING, "Inventory not found!").show();
         }
     }
 }

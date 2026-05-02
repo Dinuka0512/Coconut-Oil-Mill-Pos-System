@@ -239,7 +239,7 @@ public class UpdatePosController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select a product first!").show();
+            new Alert(Alert.AlertType.WARNING, "Please select an inventory first!").show();
             return;
         }
         String code = selectedProduct.getId();
@@ -469,7 +469,7 @@ public class UpdatePosController implements Initializable {
             Parent root = FXMLLoader.load(getClass().getResource("/view/inventory.fxml"));
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
-            stage.setTitle("New Product");
+            stage.setTitle("New Inventory");
             stage.setResizable(false);
             stage.showAndWait();
             
@@ -493,7 +493,7 @@ public class UpdatePosController implements Initializable {
         }
         
         if (obList.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Please add products to the cart!").show();
+            new Alert(Alert.AlertType.WARNING, "Please add inventory items to the cart!").show();
             return;
         }
         
@@ -606,12 +606,12 @@ public class UpdatePosController implements Initializable {
             
             boolean success = orderBO.updateOrder(orderDto);
             if (success) {
-                new Alert(Alert.AlertType.INFORMATION, "Order updated successfully!").show();
+                new Alert(Alert.AlertType.INFORMATION, "Invoice updated successfully!").show();
                 
                 Stage stage = (Stage) body.getScene().getWindow();
                 stage.close();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to update order!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to update invoice!").show();
             }
         } catch (Exception e) {
             e.printStackTrace();

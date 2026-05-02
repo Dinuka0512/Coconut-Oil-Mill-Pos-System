@@ -296,7 +296,11 @@ public class DashboardController implements Initializable {
     @FXML
     void goToSettings(ActionEvent event) {
         SettingsController.dashboardTemp(body);
-        subNavigateTo("/view/settings.fxml");
+        if (userData != null && "admin".equals(userData.getRole())) {
+            subNavigateTo("/view/adminSettings.fxml");
+        } else {
+            subNavigateTo("/view/settings.fxml");
+        }
     }
 
     @FXML

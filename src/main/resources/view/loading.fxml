@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane prefHeight="609.0" prefWidth="924.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.LoadingController">
+   <children>
+      <VBox spacing="3.0" alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ImageView fx:id="imgLogo" fitHeight="100.0" fitWidth="100.0" preserveRatio="true" />
+            <Label text="Dilshan Oil Mill" style="-fx-text-fill: #2c3e50; -fx-font-size: 24px; -fx-font-weight: bold;" />
+            <Label text="POS System" style="-fx-text-fill: #7f8c8d; -fx-font-size: 16px;" />
+            <Rectangle fx:id="lineLoader" fill="#ffc000" height="2.0" width="0" />
+            <Label fx:id="lblStatus" text="Initializing..." style="-fx-text-fill: #95a5a6; -fx-font-size: 14px;" />
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>

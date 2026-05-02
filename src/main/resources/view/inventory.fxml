@@ -18,8 +18,8 @@
       
       <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
-            <Label layoutX="20.0" layoutY="15.0" text="Product Name" textFill="#7f8c8d" />
-            <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" prefHeight="30.0" prefWidth="390.0" promptText="Enter Product Name" style="-fx-background-radius: 5;" />
+             <Label layoutX="20.0" layoutY="15.0" text="Inventory Name" textFill="#7f8c8d" />
+             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" prefHeight="30.0" prefWidth="390.0" promptText="Enter Inventory Name" style="-fx-background-radius: 5;" />
             
             <Label layoutX="430.0" layoutY="15.0" text="Unit Price (LKR)" textFill="#7f8c8d" />
             <TextField fx:id="txtPrice" layoutX="430.0" layoutY="35.0" prefHeight="30.0" prefWidth="130.0" promptText="0.00" style="-fx-background-radius: 5;" />
@@ -35,11 +35,11 @@
          </children>
       </AnchorPane>
       
-      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search Product by ID or Name..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+       <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search Inventory by ID or Name..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
       <TableView fx:id="tblProduct" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
         <columns>
-          <TableColumn fx:id="colName" prefWidth="450.0" text="Product Name" />
+           <TableColumn fx:id="colName" prefWidth="450.0" text="Inventory Name" />
           <TableColumn fx:id="colPrice" prefWidth="140.0" text="Unit Price (LKR)" />
           <TableColumn fx:id="colQty" prefWidth="140.0" text="Qty On Hand (Kg)" />
         </columns>

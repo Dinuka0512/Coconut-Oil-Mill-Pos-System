@@ -128,7 +128,6 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.setFont(THERMAL_FONT, THERMAL_FONT_8);
             int idx = 1;
             for (CustomerEntity customer : customers) {
-                if (y < THERMAL_MARGIN + 60) break;
                 if (idx % 2 == 0) {
                     c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
                     c.addRect(x, y - 12, w, 12); c.fill();
@@ -339,8 +338,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             // Title (centered)
             c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
-            float tw4 = PDType1Font.HELVETICA_BOLD.getStringWidth("PRODUCT REPORT") / 1000f * 8f;
-            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw4)/2, y - THERMAL_FONT_8); c.showText("PRODUCT REPORT"); c.endText();
+            float tw4 = PDType1Font.HELVETICA_BOLD.getStringWidth("INVENTORY REPORT") / 1000f * 8f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw4)/2, y - THERMAL_FONT_8); c.showText("INVENTORY REPORT"); c.endText();
             y -= 16;
             
             // Total (centered)
@@ -374,7 +373,6 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             int idx = 1;
             int lowStock = 0;
             for (ProductEntity p : products) {
-                if (y < THERMAL_MARGIN + 60) break;
                 if (p.getQty() < 10) lowStock++;
                 if (idx % 2 == 0) {
                     c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
@@ -761,7 +759,6 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         c.setFont(THERMAL_FONT, 7);
         int idx = 1;
         for (OrderProductDetailsEntity d : details) {
-            if (y < THERMAL_MARGIN + 60) break;
 
             // Alternating row background
             if (idx % 2 == 0) {
@@ -856,7 +853,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                     document.addPage(page);
                     c = new PDPageContentStream(document, page);
                     y = A4_HEIGHT - m;
-                    drawReportHeader(c, "PRODUCT REPORT", y);
+            drawReportHeader(c, "INVENTORY REPORT", y);
                     y -= 85;
 
                     c.setFont(PDType1Font.HELVETICA_BOLD, 9);
@@ -920,7 +917,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float sumW = 220;
             c.setFont(PDType1Font.HELVETICA, 10);
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            String totalStr = String.format("Total Products: %d", products.size());
+            String totalStr = String.format("Total Inventory: %d", products.size());
             float tw2 = PDType1Font.HELVETICA.getStringWidth(totalStr) / 1000f * 10f;
             c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totalStr); c.endText();
 
@@ -1146,7 +1143,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             // Order ID & Date (LEFT)
             c.setFont(PDType1Font.HELVETICA_BOLD, 9);
             c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
-            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("ORDER ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(m, y - 9); c.showText("INVOICE ID"); c.endText();
             c.setFont(PDType1Font.HELVETICA, 10);
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
             c.beginText(); c.newLineAtOffset(m, y - 23); c.showText(order.getOrderId()); c.endText();

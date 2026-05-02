@@ -178,7 +178,7 @@ public class OrderManageController implements Initializable {
                     }
                 }
                 if (tblOrders.getItems().isEmpty()) {
-                    new Alert(Alert.AlertType.INFORMATION, "No orders found!").show();
+                    new Alert(Alert.AlertType.INFORMATION, "No invoices found!").show();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -196,7 +196,7 @@ public class OrderManageController implements Initializable {
     void btnViewBillOnAction(ActionEvent event) {
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an order from the table!").show();
+            new Alert(Alert.AlertType.WARNING, "Please select an invoice from the table!").show();
             return;
         }
         viewBill(selected.getOrderId());
@@ -206,7 +206,7 @@ public class OrderManageController implements Initializable {
         try {
             OrderEntity order = orderBO.getOrderWithProducts(orderId);
             if (order == null) {
-                new Alert(Alert.AlertType.WARNING, "Order not found!").show();
+                new Alert(Alert.AlertType.WARNING, "Invoice not found!").show();
                 return;
             }
             
@@ -246,23 +246,23 @@ public class OrderManageController implements Initializable {
     void btnDeleteOnAction(ActionEvent event) {
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an order from the table!").show();
+            new Alert(Alert.AlertType.WARNING, "Please select an invoice from the table!").show();
             return;
         }
         
         ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
         Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, 
-            "Are you sure you want to delete order " + selected.getOrderId() + "?", yes, no).showAndWait();
+            "Are you sure you want to delete invoice " + selected.getOrderId() + "?", yes, no).showAndWait();
         
         if (result.orElse(no) == yes) {
             try {
                 boolean success = orderBO.deleteOrder(selected.getOrderId());
                 if (success) {
-                    new Alert(Alert.AlertType.INFORMATION, "Order deleted successfully!").show();
+                    new Alert(Alert.AlertType.INFORMATION, "Invoice deleted successfully!").show();
                     loadOrdersByDate(datePicker.getValue());
                 } else {
-                    new Alert(Alert.AlertType.ERROR, "Failed to delete order!").show();
+                    new Alert(Alert.AlertType.ERROR, "Failed to delete invoice!").show();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -303,7 +303,7 @@ public class OrderManageController implements Initializable {
             
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
-            stage.setTitle("Update Order - " + order.getOrderId());
+            stage.setTitle("Update Invoice - " + order.getOrderId());
             stage.setResizable(false);
             stage.setOnHidden(e -> {
                 loadOrdersByDate(datePicker.getValue());

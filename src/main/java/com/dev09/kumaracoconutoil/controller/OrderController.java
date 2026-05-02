@@ -279,7 +279,7 @@ public class OrderController implements Initializable {
             javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/inventory.fxml"));
             javafx.stage.Stage stage = new javafx.stage.Stage();
             stage.setScene(new javafx.scene.Scene(root));
-            stage.setTitle("New Product");
+            stage.setTitle("New Inventory");
             stage.setResizable(false);
             stage.showAndWait();
             
@@ -393,7 +393,7 @@ public class OrderController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select a product first!").show();
+            new Alert(Alert.AlertType.WARNING, "Please select an inventory first!").show();
             return;
         }
         String code = selectedProduct.getId();
@@ -598,7 +598,7 @@ public class OrderController implements Initializable {
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {
-                new Alert(Alert.AlertType.INFORMATION, "Order Placed Successfully!").show();
+                new Alert(Alert.AlertType.INFORMATION, "Invoice Placed Successfully!").show();
                 
                 // Ask user how to print the bill
                 Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -631,9 +631,9 @@ public class OrderController implements Initializable {
                     }
                 }
 
-                loadPosContent();
+                resetPosForm();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Order Placement Failed!").show();
+                new Alert(Alert.AlertType.ERROR, "Invoice Placement Failed!").show();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -647,6 +647,32 @@ public class OrderController implements Initializable {
         lblUnitPrice.setText("");
         lblQtyOnHand.setText("");
         txtQty.clear();
+    }
+
+    private void resetPosForm() {
+        obList.clear();
+        tblOrderCart.refresh();
+        
+        setOrderId();
+        lblDate.setText(String.valueOf(LocalDate.now()));
+        
+        cmbCustomerId.getItems().clear();
+        cmbCustomerId.getSelectionModel().clearSelection();
+        loadCustomerIds();
+        selectedCustomer = null;
+        
+        cmbProductId.getItems().clear();
+        cmbProductId.getSelectionModel().clearSelection();
+        loadProductIds();
+        selectedProduct = null;
+        clearProductFields();
+        
+        loadTax();
+        
+        txtDiscount.setText("0");
+        txtAmount.setText("-");
+        lblBalance.setText("0.00");
+        lblNetTotal.setText("0.00");
     }
 
     @FXML

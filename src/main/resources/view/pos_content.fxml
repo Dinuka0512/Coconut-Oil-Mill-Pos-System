@@ -17,7 +17,7 @@
          </font>
       </Label>
       
-      <Label layoutX="30.0" layoutY="73.0" text="Order ID:" textFill="#7f8c8d" />
+       <Label layoutX="30.0" layoutY="73.0" text="Invoice ID:" textFill="#7f8c8d" />
       <Label fx:id="lblOrderId" layoutX="93.0" layoutY="73.0" text="O001" textFill="#00a118">
          <font>
             <Font name="System Bold" size="13.0" />
@@ -36,13 +36,13 @@
           </children>
       </AnchorPane>
       
-      <!-- Product Section -->
-      <AnchorPane layoutX="30.0" layoutY="204.0" prefHeight="163.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
-         <children>
-            <Label layoutX="15.0" layoutY="10.0" text="Select Product (Name)" textFill="#7f8c8d" />
+       <!-- Inventory Section -->
+       <AnchorPane layoutX="30.0" layoutY="204.0" prefHeight="163.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+          <children>
+             <Label layoutX="15.0" layoutY="10.0" text="Select Inventory (Name)" textFill="#7f8c8d" />
             <ComboBox fx:id="cmbProductId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
             
-            <Button layoutX="226.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Product" />
+             <Button layoutX="226.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Inventory" />
             
             <Label layoutX="15.0" layoutY="65.0" text="Unit Price" textFill="#7f8c8d" />
             <Label fx:id="lblUnitPrice" layoutX="15.0" layoutY="77.0" text="0.00" textFill="#00a118">
@@ -58,7 +58,7 @@
                </font>
             </Label>
             
-            <Label layoutX="269.0" layoutY="64.0" text="Order Qty Kg" textFill="#7f8c8d" />
+             <Label layoutX="269.0" layoutY="64.0" text="Invoice Qty Kg" textFill="#7f8c8d" />
             <TextField fx:id="txtQty" layoutX="253.0" layoutY="80.0" prefHeight="25.0" prefWidth="99.0" />
             
             <Button layoutX="14.0" layoutY="117.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="30.0" prefWidth="344.0" style="-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="WHITE" />
@@ -67,7 +67,7 @@
       
       <TableView fx:id="tblOrderCart" layoutX="407.0" layoutY="31.0" prefHeight="400.0" prefWidth="376.0">
         <columns>
-          <TableColumn fx:id="colDescription" prefWidth="101.3333740234375" text="Product Name" />
+           <TableColumn fx:id="colDescription" prefWidth="101.3333740234375" text="Inventory Name" />
           <TableColumn fx:id="colQty" prefWidth="54.666595458984375" text="Qty(Kg)" />
           <TableColumn fx:id="colUnitPrice" prefWidth="64.66668701171875" text="Unit Price" />
           <TableColumn fx:id="colTotal" prefWidth="77.33331298828125" text="Total" />
@@ -75,7 +75,7 @@
         </columns>
       </TableView>
       
-      <Button layoutX="566.0" layoutY="440.0" mnemonicParsing="false" onAction="#btnPlaceOrderOnAction" prefHeight="40.0" prefWidth="215.0" style="-fx-background-color: #00a118; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 5;" text="PLACE ORDER" />
+       <Button layoutX="566.0" layoutY="440.0" mnemonicParsing="false" onAction="#btnPlaceOrderOnAction" prefHeight="40.0" prefWidth="215.0" style="-fx-background-color: #00a118; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 5;" text="PLACE INVOICE" />
       <AnchorPane layoutX="170.0" layoutY="65.0" prefHeight="45.0" prefWidth="227.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
             <children>
                <Label layoutX="14.0" layoutY="14.0" text="Tax :" textFill="#7f8c8d" />
@@ -83,7 +83,7 @@
                <TextField fx:id="txtTax" editable="false" layoutX="48.0" layoutY="10.0" prefHeight="25.0" prefWidth="77.0" />
             </children>
          </AnchorPane>
-      <Button layoutX="407.0" layoutY="440.0" mnemonicParsing="false" onAction="#btnPreviousOrders" prefHeight="40.0" prefWidth="152.0" style="-fx-background-color: #b1b1b1; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 5;" text="Previous Orders" />
+       <Button layoutX="407.0" layoutY="440.0" mnemonicParsing="false" onAction="#btnPreviousOrders" prefHeight="40.0" prefWidth="152.0" style="-fx-background-color: #b1b1b1; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 5;" text="Previous Invoices" />
       <AnchorPane layoutX="30.0" layoutY="377.0" prefHeight="103.0" prefWidth="368.0" style="-fx-background-color: #efefef; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             

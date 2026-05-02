@@ -1,28 +1,17 @@
 package com.dev09.kumaracoconutoil;
 
-import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
-import org.hibernate.Session;
+import java.lang.reflect.Method;
 
-import java.io.IOException;
-
-public class Main extends Application {
-    @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/login.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Dilshan Oil Mill");
-        stage.getIcons().add(new Image(getClass().getResourceAsStream("/asets/logo.png")));
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.show();
-    }
-
+public class Main {
     public static void main(String[] args) {
-        launch();
+        try {
+            // Use reflection to avoid direct JavaFX dependency at compile time
+            Class<?> appClass = Class.forName("com.dev09.kumaracoconutoil.AppLauncher");
+            Method mainMethod = appClass.getMethod("main", String[].class);
+            mainMethod.invoke(null, (Object) args);
+        } catch (Exception e) {
+            System.err.println("Failed to launch application: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

@@ -11,7 +11,7 @@
 
 <AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.OrderManageController">
    <children>
-      <Label layoutX="32.0" layoutY="21.0" text="Order Management" textFill="#2c3e50">
+       <Label layoutX="32.0" layoutY="21.0" text="Invoice Management" textFill="#2c3e50">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
@@ -19,8 +19,8 @@
       
       <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="100.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
-            <Label layoutX="25.0" layoutY="26.0" text="Search Order : " textFill="#7f8c8d" />
-            <TextField fx:id="txtSearch" layoutX="25.0" layoutY="43.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="30.0" prefWidth="200.0" promptText="Enter Order ID" style="-fx-background-radius: 5;" />
+             <Label layoutX="25.0" layoutY="26.0" text="Search Invoice : " textFill="#7f8c8d" />
+             <TextField fx:id="txtSearch" layoutX="25.0" layoutY="43.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="30.0" prefWidth="200.0" promptText="Enter Invoice ID" style="-fx-background-radius: 5;" />
             
              <Button fx:id="btnSearch" layoutX="231.0" layoutY="43.0" mnemonicParsing="false" onAction="#btnSearchOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Search" />
               <Button fx:id="btnViewBill" layoutX="316.0" layoutY="43.0" mnemonicParsing="false" onAction="#btnViewBillOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="View Bill" />
@@ -33,7 +33,7 @@
       
       <TableView fx:id="tblOrders" layoutX="32.0" layoutY="179.0" prefHeight="306.0" prefWidth="732.0" style="-fx-background-radius: 10;">
          <columns>
-            <TableColumn fx:id="colOrderId" prefWidth="100.0" text="Order ID" />
+             <TableColumn fx:id="colOrderId" prefWidth="100.0" text="Invoice ID" />
             <TableColumn fx:id="colDate" prefWidth="120.0" text="Date" />
             <TableColumn fx:id="colCustomer" prefWidth="150.0" text="Customer" />
             <TableColumn fx:id="colContact" prefWidth="110.0" text="Contact" />

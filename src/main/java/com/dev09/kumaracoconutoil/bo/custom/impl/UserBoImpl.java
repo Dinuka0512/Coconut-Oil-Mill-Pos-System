@@ -7,6 +7,8 @@ import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.dto.extra.UserExtraDto;
 import com.dev09.kumaracoconutoil.entity.UserEntity;
 
+import java.util.ArrayList;
+
 public class UserBoImpl implements UserBo {
     private UserDAO userDao = (UserDAO) DAOFactory.getInstance().getDAO(DAOFactory.DAOType.USER);
 
@@ -29,5 +31,36 @@ public class UserBoImpl implements UserBo {
         entity.setPassword(userDto.getPassword());
         entity.setRole(userDto.getRole());
         return userDao.updateUser(entity);
+    }
+
+    @Override
+    public ArrayList<UserDto> getAllUsers() {
+        return userDao.getAllUsersDto();
+    }
+
+    @Override
+    public boolean saveUser(UserDto userDto) {
+        UserEntity entity = new UserEntity();
+        entity.setId(userDto.getId());
+        entity.setName(userDto.getName());
+        entity.setEmail(userDto.getEmail());
+        entity.setPassword(userDto.getPassword());
+        entity.setRole(userDto.getRole());
+        return userDao.saveUser(entity);
+    }
+
+    @Override
+    public boolean deleteUser(String id) {
+        return userDao.deleteUser(id);
+    }
+
+    @Override
+    public String generateNewUserId() {
+        return userDao.generateNewUserId();
+    }
+
+    @Override
+    public boolean isEmailExist(String email, String excludeUserId) {
+        return userDao.isEmailExist(email, excludeUserId);
     }
 }
