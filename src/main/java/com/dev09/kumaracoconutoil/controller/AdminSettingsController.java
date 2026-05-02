@@ -33,6 +33,7 @@ public class AdminSettingsController implements Initializable {
     @FXML private TableColumn<UserDto, String> colId;
     @FXML private TableColumn<UserDto, String> colName;
     @FXML private TableColumn<UserDto, String> colEmail;
+    @FXML private TableColumn<UserDto, String> colPassword;
     @FXML private TableColumn<UserDto, String> colRole;
 
     private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
@@ -45,6 +46,7 @@ public class AdminSettingsController implements Initializable {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colPassword.setCellValueFactory(new PropertyValueFactory<>("password"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
 
         pageReset();
@@ -104,6 +106,16 @@ public class AdminSettingsController implements Initializable {
             return;
         }
 
+        if (userBo.isNameExist(name, null)) {
+            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            return;
+        }
+
+        if (password.length() < 5) {
+            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
+            return;
+        }
+
         UserDto newUser = new UserDto(currentUserId, name, email, password, role);
         boolean success = userBo.saveUser(newUser);
         if (success) {
@@ -127,13 +139,25 @@ public class AdminSettingsController implements Initializable {
             return;
         }
 
-        if (!Validation.isValidEmail(email)) {
-            new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
-            return;
+        if (!"U001".equals(currentUserId)) {
+            if (!Validation.isValidEmail(email)) {
+                new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
+                return;
+            }
         }
 
         if (userBo.isEmailExist(email, currentUserId)) {
             new Alert(Alert.AlertType.WARNING, "Email already exists!").show();
+            return;
+        }
+
+        if (userBo.isNameExist(name, currentUserId)) {
+            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            return;
+        }
+
+        if (password.length() < 5) {
+            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
             return;
         }
 
@@ -150,6 +174,11 @@ public class AdminSettingsController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
+        if ("U001".equals(currentUserId)) {
+            new Alert(Alert.AlertType.WARNING, "Cannot delete the main admin account!").show();
+            return;
+        }
+
         if (DashboardController.userData != null && DashboardController.userData.getId().equals(currentUserId)) {
             new Alert(Alert.AlertType.WARNING, "You cannot delete your own account!").show();
             return;

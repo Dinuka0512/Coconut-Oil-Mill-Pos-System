@@ -20,7 +20,7 @@ import java.util.ResourceBundle;
 
 public class LoginController implements Initializable {
     @FXML
-    private TextField emailField;
+    private TextField txtUsername;
 
     @FXML
     private PasswordField txtPassword;
@@ -32,8 +32,8 @@ public class LoginController implements Initializable {
 
     @FXML
     void login(ActionEvent event) {
-        if(emailField.getText().isEmpty()){
-            new Alert(Alert.AlertType.WARNING, "Required The email.").show();
+        if(txtUsername.getText().isEmpty()){
+            new Alert(Alert.AlertType.WARNING, "Required The username.").show();
             return;
         }
 
@@ -42,7 +42,7 @@ public class LoginController implements Initializable {
             return;
         }
 
-        UserExtraDto userExtraDto = userBo.login(emailField.getText(), txtPassword.getText());
+        UserExtraDto userExtraDto = userBo.loginByName(txtUsername.getText(), txtPassword.getText());
         if(userExtraDto == null){
             new Alert(Alert.AlertType.ERROR, "Login service error. Please try again.").show();
             return;

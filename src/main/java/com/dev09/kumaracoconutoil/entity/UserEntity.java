@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 public class UserEntity {
     @Id
     private String id;
+    @Column(unique = true)
     private String name;
     @Column(unique = true)
     private String email;

@@ -16,4 +16,6 @@ public interface UserBo extends SuperBo {
     boolean deleteUser(String id);
     String generateNewUserId();
     boolean isEmailExist(String email, String excludeUserId);
+    boolean isNameExist(String name, String excludeUserId);
+    UserExtraDto loginByName(String name, String password);
 }

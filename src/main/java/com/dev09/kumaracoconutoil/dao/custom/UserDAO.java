@@ -17,4 +17,6 @@ public interface UserDAO extends SuperDAO, CrudDAO<UserEntity> {
     boolean deleteUser(String id);
     String generateNewUserId();
     boolean isEmailExist(String email, String excludeUserId);
+    boolean isNameExist(String name, String excludeUserId);
+    UserExtraDto loginByName(String name, String password);
 }

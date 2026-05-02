@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
+import com.dev09.kumaracoconutoil.util.Validation;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -60,6 +61,28 @@ public class SettingsController {
 
         if (!currentUser.getPassword().equals(currentPasswordInput)) {
             new Alert(Alert.AlertType.ERROR, "Current password is incorrect!").show();
+            return;
+        }
+
+        if (!"U001".equals(currentUser.getId())) {
+            if (!Validation.isValidEmail(newEmail)) {
+                new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
+                return;
+            }
+        }
+
+        if (userBo.isEmailExist(newEmail, currentUser.getId())) {
+            new Alert(Alert.AlertType.WARNING, "Email already exists!").show();
+            return;
+        }
+
+        if (userBo.isNameExist(newName, currentUser.getId())) {
+            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            return;
+        }
+
+        if (!newPassword.isEmpty() && newPassword.length() < 5) {
+            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
             return;
         }
 

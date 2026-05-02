@@ -63,4 +63,14 @@ public class UserBoImpl implements UserBo {
     public boolean isEmailExist(String email, String excludeUserId) {
         return userDao.isEmailExist(email, excludeUserId);
     }
+
+    @Override
+    public boolean isNameExist(String name, String excludeUserId) {
+        return userDao.isNameExist(name, excludeUserId);
+    }
+
+    @Override
+    public UserExtraDto loginByName(String name, String password) {
+        return userDao.loginByName(name, password);
+    }
 }

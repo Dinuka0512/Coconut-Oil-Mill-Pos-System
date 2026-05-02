@@ -28,18 +28,18 @@
             </font>
         </Label>
 
-        <!-- Email Label -->
-        <Label layoutX="575.0" layoutY="243.0" text="Email" AnchorPane.rightAnchor="315.4" AnchorPane.topAnchor="243.0">
+        <!-- Username Label -->
+        <Label layoutX="584.3333333333334" layoutY="243.33333333333334" text="Username" AnchorPane.rightAnchor="284.33333333333326" AnchorPane.topAnchor="243.33333333333334">
             <font>
                 <Font size="14.0" />
             </font>
         </Label>
 
-        <!-- Email Field (styled) -->
-        <TextField fx:id="emailField" layoutX="576.0" layoutY="263.0" prefHeight="26.0" prefWidth="266.0" promptText="Email" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="263.0" />
+        <!-- Username Field (styled) -->
+        <TextField fx:id="txtUsername" layoutX="576.0" layoutY="263.0" prefHeight="26.0" prefWidth="266.0" promptText="Username" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="263.0" />
 
         <!-- Password Label -->
-        <Label layoutX="575.2" layoutY="312.6" text="Password" AnchorPane.rightAnchor="290.4" AnchorPane.topAnchor="312.6">
+        <Label layoutX="584.3333333333334" layoutY="312.6666666666667" text="Password" AnchorPane.rightAnchor="288.33333333333326" AnchorPane.topAnchor="312.6666666666667">
             <font>
                 <Font size="14.0" />
             </font>

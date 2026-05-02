@@ -206,6 +206,62 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    @Override
+    public boolean isNameExist(String name, String excludeUserId) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            String hql = "SELECT COUNT(u) FROM UserEntity u WHERE u.name = :name";
+            if (excludeUserId != null && !excludeUserId.isEmpty()) {
+                hql += " AND u.id != :excludeId";
+            }
+            var query = session.createQuery(hql, Long.class).setParameter("name", name);
+            if (excludeUserId != null && !excludeUserId.isEmpty()) {
+                query.setParameter("excludeId", excludeUserId);
+            }
+            return query.uniqueResult() > 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public UserExtraDto loginByName(String name, String password) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            session.beginTransaction();
+
+            UserEntity user = (UserEntity) session
+                    .createQuery("FROM UserEntity u WHERE u.name = :name")
+                    .setParameter("name", name)
+                    .uniqueResult();
+
+            session.getTransaction().commit();
+
+            if (user == null) {
+                return new UserExtraDto(null, false, "User not found!");
+            }
+
+            if (!user.getPassword().equals(password)) {
+                return new UserExtraDto(null, false, "Password is wrong!");
+            }
+
+            UserDto dto = new UserDto(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPassword(),
+                    user.getRole()
+            );
+            return new UserExtraDto(dto, true, "Login successful!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new UserExtraDto(null, false, "Error occurred");
+        } finally {
+            session.close();
+        }
+    }
+
     // ------------ Unused CRUD methods ----------
     @Override public ArrayList<UserEntity> getAll() { return null; }
     @Override public boolean save(UserEntity dto) { return false; }
