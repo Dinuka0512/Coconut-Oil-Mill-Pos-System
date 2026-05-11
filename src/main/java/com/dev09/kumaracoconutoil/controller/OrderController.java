@@ -77,7 +77,7 @@ public class OrderController implements Initializable {
     private Label lblQtyOnHand;
 
     @FXML
-    private Label lblUnitPrice;
+    private TextField txtUnitPrice;
 
     @FXML
     private Label lblDate;
@@ -243,8 +243,14 @@ public class OrderController implements Initializable {
 
     private void loadCustomerIds() {
         currentCustomers = customerBO.getAllCustomers();
+        int index = 0;
         for (CustomerDto dto : currentCustomers) {
             cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
+            if ("CUST001".equals(dto.getCustId())) {
+                selectedCustomer = dto;
+                cmbCustomerId.getSelectionModel().select(index);
+            }
+            index++;
         }
     }
 
@@ -346,7 +352,7 @@ public class OrderController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 if (dto.getName().equals(selection)) {
                     selectedProduct = dto;
-                    lblUnitPrice.setText("Rs. " + dto.getPrice() + "/=");
+                    txtUnitPrice.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     break;
                 }
@@ -424,7 +430,7 @@ public class OrderController implements Initializable {
         }
         
         try {
-            String priceStr = lblUnitPrice.getText().replace("Rs. ", "").replace("/=", "");
+            String priceStr = txtUnitPrice.getText();
             double unitPrice = Double.parseDouble(priceStr.trim());
             double total = qty * unitPrice;
             Button btn = new Button("Remove");
@@ -644,7 +650,7 @@ public class OrderController implements Initializable {
     private void clearProductFields() {
         cmbProductId.getSelectionModel().clearSelection();
         selectedProduct = null;
-        lblUnitPrice.setText("");
+        txtUnitPrice.clear();
         lblQtyOnHand.setText("");
         txtQty.clear();
     }

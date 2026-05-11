@@ -19,10 +19,13 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javafx.scene.control.DateCell;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.control.DatePicker;
@@ -59,6 +62,7 @@ public class OrderManageController implements Initializable {
 
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ArrayList<OrderDto> orderList = new ArrayList<>();
+    private final Set<LocalDate> orderDates = new HashSet<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -96,29 +100,44 @@ public class OrderManageController implements Initializable {
         datePicker.setValue(LocalDate.now());
         datePicker.setEditable(false);
         datePicker.setShowWeekNumbers(false);
-        datePicker.setDayCellFactory(new Callback<DatePicker, DateCell>() {
-            @Override
-            public DateCell call(DatePicker param) {
-                return new DateCell() {
-                    @Override
-                    public void updateItem(LocalDate item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item.isAfter(LocalDate.now())) {
-                            setDisable(true);
-                            getStyleClass().add("disabled-date");
-                        }
-                    }
-                };
-            }
-        });
+        loadOrderDatesForMonth(YearMonth.from(LocalDate.now()));
+        datePicker.setDayCellFactory(createDayCellFactory());
         datePicker.setOnAction(e -> {
             LocalDate selected = datePicker.getValue();
             if (selected != null) {
+                loadOrderDatesForMonth(YearMonth.from(selected));
                 loadOrdersByDate(selected);
             }
         });
         
         loadOrdersByDate(datePicker.getValue());
+    }
+
+    private Callback<DatePicker, DateCell> createDayCellFactory() {
+        return param -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) return;
+
+                if (orderDates.contains(item)) {
+                    setStyle("-fx-background-color: #a8e6cf;");
+                }
+                if (item.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    getStyleClass().add("disabled-date");
+                }
+            }
+        };
+    }
+
+    private void loadOrderDatesForMonth(YearMonth ym) {
+        try {
+            orderDates.clear();
+            orderDates.addAll(orderBO.getOrderDatesByMonth(ym.getYear(), ym.getMonthValue()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadOrdersByDate(LocalDate date) {
@@ -267,6 +286,7 @@ public class OrderManageController implements Initializable {
                 boolean success = orderBO.deleteOrder(selected.getOrderId());
                 if (success) {
                     new Alert(Alert.AlertType.INFORMATION, "Invoice deleted successfully!").show();
+                    loadOrderDatesForMonth(YearMonth.from(datePicker.getValue()));
                     loadOrdersByDate(datePicker.getValue());
                 } else {
                     new Alert(Alert.AlertType.ERROR, "Failed to delete invoice!").show();
@@ -281,6 +301,7 @@ public class OrderManageController implements Initializable {
     @FXML
     void btnRefreshOnAction(ActionEvent event) {
         datePicker.setValue(LocalDate.now());
+        loadOrderDatesForMonth(YearMonth.now());
         loadOrdersByDate(datePicker.getValue());
         new Alert(Alert.AlertType.INFORMATION, "Orders refreshed for today!").show();
     }
@@ -317,6 +338,7 @@ public class OrderManageController implements Initializable {
             stage.setTitle("Update Invoice - " + order.getOrderId());
             stage.setResizable(false);
             stage.setOnHidden(e -> {
+                loadOrderDatesForMonth(YearMonth.from(datePicker.getValue()));
                 loadOrdersByDate(datePicker.getValue());
             });
             stage.show();

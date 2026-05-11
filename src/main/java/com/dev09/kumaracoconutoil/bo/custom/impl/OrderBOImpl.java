@@ -18,6 +18,7 @@ import com.dev09.kumaracoconutoil.entity.ProductEntity;
 import com.dev09.kumaracoconutoil.util.PdfGenerator;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -208,6 +209,11 @@ public class OrderBOImpl implements OrderBO {
     @Override
     public OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException {
         return orderDAO.search(orderId);
+    }
+
+    @Override
+    public List<LocalDate> getOrderDatesByMonth(int year, int month) throws SQLException, ClassNotFoundException {
+        return orderDAO.getOrderDatesByMonth(year, month);
     }
 
     @Override

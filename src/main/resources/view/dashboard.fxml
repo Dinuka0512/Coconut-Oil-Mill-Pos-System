@@ -12,7 +12,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-<?import java.lang.String?>
 
 <AnchorPane fx:id="body" prefHeight="616.0" prefWidth="873.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DashboardController">
     <children>
@@ -62,6 +61,12 @@
                   <Image url="@../asets/order.png" />
                </image>
             </ImageView>
+            <Label layoutX="52.0" layoutY="246.0" text="Quotation" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="245.0">
+               <image>
+                  <Image url="@../asets/print.png" />
+               </image>
+            </ImageView>
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="26.0">
                <image>
                   <Image url="@../asets/home.png" />
@@ -90,6 +95,7 @@
             <Button layoutX="10.0" layoutY="126.0" mnemonicParsing="false" onAction="#goToInventory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
             <Button layoutX="10.0" layoutY="181.0" mnemonicParsing="false" onAction="#goToOrder" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
             <Button layoutX="10.0" layoutY="71.0" mnemonicParsing="false" onAction="#goToCustomer" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="236.0" mnemonicParsing="false" onAction="#goToQuotation" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
       <AnchorPane fx:id="bodyContent" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0">
          <children>
@@ -220,7 +226,7 @@
                    <Font name="System Bold" size="14.0" />
                </font>
             </Label>
-            <BarChart fx:id="barChart" layoutX="11.0" layoutY="122.0" prefHeight="204.0" prefWidth="400.0" animated="false">
+            <BarChart fx:id="barChart" animated="false" layoutX="11.0" layoutY="122.0" prefHeight="204.0" prefWidth="400.0">
               <xAxis>
                 <CategoryAxis side="BOTTOM" />
               </xAxis>
@@ -235,7 +241,7 @@
                    <Font name="System Bold" size="14.0" />
                </font>
             </Label>
-            <LineChart fx:id="lineChart" layoutX="401.0" layoutY="122.0" prefHeight="204.0" prefWidth="370.0" animated="false">
+            <LineChart fx:id="lineChart" animated="false" layoutX="401.0" layoutY="122.0" prefHeight="204.0" prefWidth="370.0">
               <xAxis>
                 <CategoryAxis side="BOTTOM" />
               </xAxis>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="517.0" prefWidth="796.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="31.0" layoutY="26.0" text="Quotation" textFill="#2c3e50">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      
+       <Label layoutX="30.0" layoutY="73.0" text="Quotation ID:" textFill="#7f8c8d" />
+      <Label fx:id="lblQuotationId" layoutX="117.0" layoutY="73.0" text="QT-001" textFill="#00a118">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Label>
+      
+      <Label layoutX="30.0" layoutY="93.0" text="Date:" textFill="#7f8c8d" />
+      <Label fx:id="lblDate" layoutX="68.0" layoutY="93.0" text="2024-04-12" />
+      
+      <!-- Customer Section -->
+      <AnchorPane layoutX="30.0" layoutY="121.0" prefHeight="70.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+         <children>
+            <Label layoutX="15.0" layoutY="10.0" text="Select Customer (Name/Contact)" textFill="#7f8c8d" />
+            <ComboBox fx:id="cmbCustomerId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
+            <Button layoutX="225.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Customer" />
+          </children>
+      </AnchorPane>
+      
+       <!-- Inventory Section -->
+       <AnchorPane layoutX="30.0" layoutY="204.0" prefHeight="163.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+          <children>
+             <Label layoutX="15.0" layoutY="10.0" text="Select Inventory (Name)" textFill="#7f8c8d" />
+            <ComboBox fx:id="cmbProductId" editable="true" layoutX="15.0" layoutY="30.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="30.0" prefWidth="201.0" promptText="Type to Search..." />
+            
+             <Button layoutX="226.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Inventory" />
+            
+             <Label layoutX="15.0" layoutY="65.0" text="Unit Price" textFill="#7f8c8d" />
+            <TextField fx:id="txtUnitPrice" layoutX="15.0" layoutY="82.0" prefHeight="25.0" prefWidth="120.0" text="0.00" />
+            
+            <Label layoutX="149.0" layoutY="65.0" text="Qty On Hand (Kg)" textFill="#7f8c8d" />
+            <Label fx:id="lblQtyOnHand" layoutX="149.0" layoutY="77.0" text="0Kg" textFill="#00a118">
+               <font>
+                  <Font name="System Bold" size="19.0" />
+               </font>
+            </Label>
+            
+             <Label layoutX="269.0" layoutY="64.0" text="Qty (Kg)" textFill="#7f8c8d" />
+            <TextField fx:id="txtQty" layoutX="253.0" layoutY="82.0" prefHeight="25.0" prefWidth="99.0" />
+            
+            <Button layoutX="14.0" layoutY="117.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="30.0" prefWidth="344.0" style="-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="WHITE" />
+         </children>
+      </AnchorPane>
+      
+      <TableView fx:id="tblCart" layoutX="407.0" layoutY="31.0" prefHeight="400.0" prefWidth="376.0">
+        <columns>
+           <TableColumn fx:id="colDescription" prefWidth="101.3333740234375" text="Inventory Name" />
+          <TableColumn fx:id="colQty" prefWidth="54.666595458984375" text="Qty(Kg)" />
+          <TableColumn fx:id="colUnitPrice" prefWidth="64.66668701171875" text="Unit Price" />
+          <TableColumn fx:id="colTotal" prefWidth="77.33331298828125" text="Total" />
+          <TableColumn fx:id="colAction" maxWidth="100.0" prefWidth="75.33331298828125" text="Action" />
+        </columns>
+      </TableView>
+      
+       <Button layoutX="566.0" layoutY="440.0" mnemonicParsing="false" onAction="#btnGeneratePdfOnAction" prefHeight="40.0" prefWidth="215.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14; -fx-background-radius: 5;" text="GENERATE PDF" />
+      
+      <AnchorPane layoutX="30.0" layoutY="377.0" prefHeight="103.0" prefWidth="368.0" style="-fx-background-color: #efefef; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+         <children>
+            
+            <Label layoutX="14.0" layoutY="13.0" text="NET TOTAL (LKR):" textFill="#c0392b">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="lblNetTotal" layoutX="187.0" layoutY="13.0" text="0.00/=" textFill="#c0392b">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Label>
+            <Label layoutX="14.0" layoutY="47.0" text="Discount (%) :" textFill="#7f8c8d" />
+            <TextField fx:id="txtDiscount" layoutX="90.0" layoutY="43.0" onKeyReleased="#txtDiscountOnKeyReleased" prefHeight="25.0" prefWidth="80.0" promptText="0" />
+            <Label layoutX="180.0" layoutY="47.0" text="Tax (%) :" textFill="#7f8c8d" />
+            <TextField fx:id="txtTax" layoutX="233.0" layoutY="43.0" onKeyReleased="#txtTaxOnKeyReleased" prefHeight="25.0" prefWidth="80.0" promptText="0" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

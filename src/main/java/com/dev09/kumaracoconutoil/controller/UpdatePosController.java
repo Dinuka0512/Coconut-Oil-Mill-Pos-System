@@ -79,7 +79,7 @@ public class UpdatePosController implements Initializable {
     private Label lblQtyOnHand;
 
     @FXML
-    private Label lblUnitPrice;
+    private TextField txtUnitPrice;
 
     @FXML
     private TableView<CartTM> tblOrderCart;
@@ -195,7 +195,7 @@ public class UpdatePosController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 if (dto.getName().equals(selection)) {
                     selectedProduct = dto;
-                    lblUnitPrice.setText("Rs. " + dto.getPrice() + "/=");
+                    txtUnitPrice.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     break;
                 }
@@ -270,7 +270,7 @@ public class UpdatePosController implements Initializable {
         }
         
         try {
-            String priceStr = lblUnitPrice.getText().replace("Rs. ", "").replace("/=", "");
+            String priceStr = txtUnitPrice.getText();
             double unitPrice = Double.parseDouble(priceStr.trim());
             double total = qty * unitPrice;
             Button btn = new Button("Remove");

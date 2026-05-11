@@ -5,7 +5,9 @@ import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public interface OrderBO extends SuperBo {
     boolean placeOrder(OrderDto dto) throws SQLException, ClassNotFoundException;
@@ -17,4 +19,5 @@ public interface OrderBO extends SuperBo {
     byte[] generateOrderBillA4(String orderId) throws SQLException, ClassNotFoundException;
     OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException;
     OrderEntity getOrderWithProducts(String orderId) throws SQLException, ClassNotFoundException;
+    List<LocalDate> getOrderDatesByMonth(int year, int month) throws SQLException, ClassNotFoundException;
 }

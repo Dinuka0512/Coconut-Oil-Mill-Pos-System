@@ -44,12 +44,8 @@
             
              <Button layoutX="226.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="30.0" prefWidth="130.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ New Inventory" />
             
-            <Label layoutX="15.0" layoutY="65.0" text="Unit Price" textFill="#7f8c8d" />
-            <Label fx:id="lblUnitPrice" layoutX="15.0" layoutY="77.0" text="0.00" textFill="#00a118">
-               <font>
-                  <Font name="System Bold" size="19.0" />
-               </font>
-            </Label>
+             <Label layoutX="15.0" layoutY="63.0" text="Unit Price" textFill="#7f8c8d" />
+            <TextField fx:id="txtUnitPrice" layoutX="15.0" layoutY="79.0" prefHeight="25.0" prefWidth="120.0" text="0.00" />
             
             <Label layoutX="149.0" layoutY="65.0" text="Qty On Hand (Kg)" textFill="#7f8c8d" />
             <Label fx:id="lblQtyOnHand" layoutX="149.0" layoutY="77.0" text="0Kg" textFill="#00a118">

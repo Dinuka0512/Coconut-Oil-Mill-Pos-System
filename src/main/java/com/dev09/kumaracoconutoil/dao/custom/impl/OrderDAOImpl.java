@@ -7,6 +7,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,6 +125,21 @@ public class OrderDAOImpl implements OrderDAO {
         }
     }
     
+    @Override
+    public List<LocalDate> getOrderDatesByMonth(int year, int month) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<LocalDate> query = session.createQuery(
+                "SELECT DISTINCT o.date FROM OrderEntity o WHERE FUNCTION('YEAR', o.date) = :year AND FUNCTION('MONTH', o.date) = :month ORDER BY o.date",
+                LocalDate.class);
+            query.setParameter("year", year);
+            query.setParameter("month", month);
+            return query.list();
+        } finally {
+            session.close();
+        }
+    }
+
     @Override
     public OrderEntity searchWithProducts(String orderId) {
         Session session = FactoryConfiguration.getInstance().getSession();

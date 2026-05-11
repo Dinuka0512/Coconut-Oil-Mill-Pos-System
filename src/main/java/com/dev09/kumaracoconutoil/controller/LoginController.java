@@ -1,8 +1,10 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
+import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
+import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.extra.UserExtraDto;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,6 +31,7 @@ public class LoginController implements Initializable {
     private AnchorPane body;
 
     private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
+    private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
 
     @FXML
     void login(ActionEvent event) {
@@ -60,6 +63,10 @@ public class LoginController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         //FIRST HERE SAVE THE USER...
         userBo.saveAdmin();
+
+        if (customerBO.getAllCustomers().isEmpty()) {
+            customerBO.saveCustomer(new CustomerDto("CUST001", "DEMO Customer", "democust@gmail.com"));
+        }
     }
 
     private void mainNavigateTo(String path) {

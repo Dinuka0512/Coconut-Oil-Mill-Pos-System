@@ -137,6 +137,11 @@ public class CustomerController implements Initializable {
     //CUSTOMER DELETE HERE (WITH CONFIRMATION)
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
+        if ("CUST001".equals(currentCustomerId)) {
+            new Alert(Alert.AlertType.WARNING, "Demo customer cannot be deleted!").show();
+            return;
+        }
+
         // Confirmation dialog
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete Customer");
