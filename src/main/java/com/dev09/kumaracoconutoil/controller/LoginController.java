@@ -53,7 +53,11 @@ public class LoginController implements Initializable {
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
             new Alert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage()).show();
-            mainNavigateTo("/view/dashboard.fxml");
+            if ("client".equals(userExtraDto.getUserDto().getRole())) {
+                mainNavigateTo("/view/clientDashboard.fxml");
+            } else {
+                mainNavigateTo("/view/dashboard.fxml");
+            }
         }else{
             new Alert(Alert.AlertType.WARNING, userExtraDto.getMessage()).show();
         }

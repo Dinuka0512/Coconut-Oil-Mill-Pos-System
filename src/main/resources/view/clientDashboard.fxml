@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="body" prefHeight="616.0" prefWidth="873.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DashboardController">
+    <children>
+      <AnchorPane prefHeight="99.0" prefWidth="925.0" style="-fx-background-color: #f0edee;">
+         <children>
+
+               <!-- Tagline -->
+               <Label layoutX="38.0" layoutY="59.333333333333336" prefHeight="16.0" prefWidth="205.0" text="Your Trusted Partner in Coconut Products" textFill="#3b3b3b" AnchorPane.leftAnchor="38.0" AnchorPane.topAnchor="59.0">
+                   <font>
+                       <Font size="11.0" />
+                   </font>
+               </Label>
+
+               <!-- Company Name (left) -->
+               <Label layoutX="37.333333333333336" layoutY="17.666666666666668" prefWidth="205.0" text="Dilshan Oil Mill" textFill="#3b3b3b" AnchorPane.leftAnchor="37.333333333333336" AnchorPane.topAnchor="17.666666666666668">
+                   <font>
+                       <Font name="Bebas Neue Regular" size="39.0" />
+                   </font>
+               </Label>
+             <ImageView fitHeight="45.0" fitWidth="44.0" layoutX="858.0" layoutY="31.0">
+                <image>
+                   <Image url="@../asets/user.png" />
+                </image>
+             </ImageView>
+             <Label fx:id="lblUserName" alignment="CENTER_RIGHT" layoutX="645.0" layoutY="33.0" prefHeight="17.0" prefWidth="205.0" text="Sample@userName">
+                <font>
+                   <Font name="System Bold" size="17.0" />
+                </font>
+             </Label>
+             <Label fx:id="lblUserEmail" alignment="CENTER_RIGHT" layoutX="646.0" layoutY="52.0" prefHeight="17.0" prefWidth="205.0" text="Sample Email Address">
+                <font>
+                   <Font size="14.0" />
+                </font></Label>
+          </children>
+      </AnchorPane>
+      <AnchorPane layoutY="99.0" prefHeight="517.0" prefWidth="129.0" style="-fx-background-color: #dddcdc;">
+         <children>
+            <Label layoutX="57.0" layoutY="27.0" text="Home" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="26.0">
+               <image>
+                  <Image url="@../asets/home.png" />
+               </image>
+            </ImageView>
+            <Button layoutX="10.0" layoutY="17.0" mnemonicParsing="false" onAction="#goToHome" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Label layoutX="53.0" layoutY="82.0" text="Customer" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="80.0">
+               <image>
+                  <Image url="@../asets/customer.png" />
+               </image>
+            </ImageView>
+            <Label layoutX="55.0" layoutY="137.0" text="Inventory" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="135.0">
+               <image>
+                  <Image url="@../asets/product.png" />
+               </image>
+            </ImageView>
+            <Label layoutX="54.0" layoutY="191.0" text="Invoice" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="190.0">
+               <image>
+                  <Image url="@../asets/order.png" />
+               </image>
+            </ImageView>
+            <Button layoutX="10.0" layoutY="71.0" mnemonicParsing="false" onAction="#goToCustomer" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="126.0" mnemonicParsing="false" onAction="#goToInventory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="181.0" mnemonicParsing="false" onAction="#goToOrder" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="437.0">
+               <image>
+                  <Image url="@../asets/settings.png" />
+               </image>
+            </ImageView>
+            <Label layoutX="54.0" layoutY="439.0" text="Settings" />
+            <Button layoutX="10.0" layoutY="428.0" mnemonicParsing="false" onAction="#goToSettings" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="14.0" layoutY="472.0" mnemonicParsing="false" onAction="#logOut" prefHeight="25.0" prefWidth="102.0" style="-fx-background-color: red;" text="Log Out" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </Button>
+         </children></AnchorPane>
+      <AnchorPane fx:id="bodyContent" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0">
+         <children>
+            <!-- Sales Today Card -->
+            <AnchorPane layoutX="37.0" layoutY="23.0" prefHeight="71.0" prefWidth="165.0" style="-fx-background-color: f1f1f1; -fx-background-radius: 20;">
+               <children>
+                  <Label layoutX="17.0" layoutY="12.0" text="Sales Today" textFill="#4c4c4c">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblSalesToday" layoutX="17.0" layoutY="28.0" prefHeight="36.0" prefWidth="140.0" text="Rs.0.00" textFill="#ff9e00">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="17.0" fitWidth="23.0" layoutX="133.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../asets/money.png" />
+                     </image>
+                  </ImageView>
+               </children>
+            </AnchorPane>
+
+            <!-- Weekly Sales Card -->
+            <AnchorPane layoutX="212.0" layoutY="23.0" prefHeight="71.0" prefWidth="165.0" style="-fx-background-color: f1f1f1; -fx-background-radius: 20;">
+               <children>
+                  <Label layoutX="17.0" layoutY="12.0" text="Weekly Sales" textFill="#4c4c4c">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblWeeklySales" layoutX="17.0" layoutY="28.0" prefHeight="36.0" prefWidth="140.0" text="Rs.0.00" textFill="#ff9e00">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="17.0" fitWidth="23.0" layoutX="133.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../asets/money.png" />
+                     </image>
+                  </ImageView>
+               </children>
+            </AnchorPane>
+
+            <!-- Monthly Sales Card -->
+            <AnchorPane layoutX="387.0" layoutY="23.0" prefHeight="71.0" prefWidth="165.0" style="-fx-background-color: f1f1f1; -fx-background-radius: 20;">
+               <children>
+                  <Label layoutX="17.0" layoutY="12.0" text="Monthly Sales" textFill="#4c4c4c">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblMonthlySales" layoutX="17.0" layoutY="28.0" prefHeight="36.0" prefWidth="140.0" text="Rs.0.00" textFill="#ff9e00">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="17.0" fitWidth="23.0" layoutX="133.0" layoutY="15.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../asets/money.png" />
+                     </image>
+                  </ImageView>
+               </children>
+            </AnchorPane>
+
+            <!-- Customers Card -->
+            <AnchorPane layoutX="562.0" layoutY="23.0" prefHeight="71.0" prefWidth="100.0" style="-fx-background-color: f1f1f1; -fx-background-radius: 20;">
+               <children>
+                  <Label layoutX="15.0" layoutY="12.0" text="Customers" textFill="#4c4c4c">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="17.0" fitWidth="20.0" layoutX="75.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../asets/customer.png" />
+                     </image>
+                  </ImageView>
+                  <Label fx:id="lblTotalCustomers" layoutX="15.0" layoutY="30.0" prefHeight="32.0" prefWidth="70.0" text="0" textFill="#ff9e00">
+                     <font>
+                        <Font name="System Bold" size="20.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+
+            <!-- Products Card -->
+            <AnchorPane layoutX="672.0" layoutY="23.0" prefHeight="71.0" prefWidth="100.0" style="-fx-background-color: f1f1f1; -fx-background-radius: 20;">
+               <children>
+                   <Label layoutX="15.0" layoutY="12.0" text="Inventory" textFill="#4c4c4c">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="75.0" layoutY="11.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../asets/product.png" />
+                     </image>
+                  </ImageView>
+                  <Label fx:id="lblTotalProducts" layoutX="15.0" layoutY="30.0" prefHeight="32.0" prefWidth="70.0" text="0" textFill="#ff9e00">
+                     <font>
+                        <Font name="System Bold" size="20.0" />
+                     </font>
+                  </Label>
+               </children>
+            </AnchorPane>
+
+            <!-- Recent Sales Table -->
+            <Label layoutX="20.0" layoutY="330.0" text="Recent Sales" textFill="#4c4c4c">
+               <font>
+                   <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <TableView fx:id="tblRecentSales" layoutX="20.0" layoutY="348.0" prefHeight="148.0" prefWidth="743.0">
+              <columns>
+                  <TableColumn fx:id="colDate" prefWidth="130.0" text="Date" />
+                <TableColumn fx:id="colOrderId" prefWidth="110.0" text="Invoice Id" />
+                <TableColumn fx:id="colCustomer" prefWidth="180.0" text="Customer" />
+                <TableColumn fx:id="colQty" prefWidth="100.0" text="Qty (Kg)" />
+                <TableColumn fx:id="colTotal" prefWidth="222.00002034505212" text="Total (LKR)" />
+              </columns>
+            </TableView>
+
+            <!-- Bar Chart for Weekly Sales -->
+            <Label layoutX="35.0" layoutY="109.0" text="Weekly Sales Overview" textFill="#4c4c4c">
+               <font>
+                   <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <BarChart fx:id="barChart" animated="false" layoutX="11.0" layoutY="122.0" prefHeight="204.0" prefWidth="400.0">
+              <xAxis>
+                <CategoryAxis side="BOTTOM" />
+              </xAxis>
+              <yAxis>
+                <NumberAxis side="LEFT" />
+              </yAxis>
+            </BarChart>
+
+            <!-- Line Chart for Monthly Sales -->
+            <Label layoutX="428.0" layoutY="108.0" text="Monthly Sales Trend" textFill="#4c4c4c">
+               <font>
+                   <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <LineChart fx:id="lineChart" animated="false" layoutX="401.0" layoutY="122.0" prefHeight="204.0" prefWidth="370.0">
+              <xAxis>
+                <CategoryAxis side="BOTTOM" />
+              </xAxis>
+              <yAxis>
+                <NumberAxis side="LEFT" />
+              </yAxis>
+            </LineChart>
+         </children>
+      </AnchorPane>
+    </children>
+</AnchorPane>

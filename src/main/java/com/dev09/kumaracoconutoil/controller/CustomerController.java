@@ -93,6 +93,11 @@ public class CustomerController implements Initializable {
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
 
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            btnUpdate.setDisable(true);
+            btnDelete.setDisable(true);
+        }
+
         loadAllCustomers();
         generateNextId();
 
@@ -108,10 +113,10 @@ public class CustomerController implements Initializable {
                 txtName.setText(newValue.getName());
                 txtContact.setText(newValue.getContact());
 
-                // Disable Save, Enable Update/Delete
                 btnSave.setDisable(true);
-                btnUpdate.setDisable(false);
-                btnDelete.setDisable(false);
+                boolean isClient = DashboardController.userData != null && "client".equals(DashboardController.userData.getRole());
+                btnUpdate.setDisable(isClient);
+                btnDelete.setDisable(isClient);
             }
         });
     }
