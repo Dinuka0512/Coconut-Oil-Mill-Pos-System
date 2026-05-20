@@ -136,6 +136,10 @@ public class ProductController implements Initializable {
 
     @FXML
     void exportAllItems(ActionEvent event) {
+        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+            new Alert(Alert.AlertType.WARNING, "You don't have permission to export reports!").show();
+            return;
+        }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Select Format");
         alert.setHeaderText("How do you need to print?");

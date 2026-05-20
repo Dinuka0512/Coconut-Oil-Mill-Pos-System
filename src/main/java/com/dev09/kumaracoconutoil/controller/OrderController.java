@@ -71,9 +71,6 @@ public class OrderController implements Initializable {
     private Label lblNetTotal;
 
     @FXML
-    private Label lblOrderId;
-
-    @FXML
     private Label lblQtyOnHand;
 
     @FXML
@@ -126,7 +123,6 @@ public class OrderController implements Initializable {
         tblOrderCart.setItems(obList);
 
         lblDate.setText(String.valueOf(LocalDate.now()));
-        setOrderId();
         loadCustomerIds();
         loadProductIds();
         loadTax();
@@ -169,52 +165,6 @@ public class OrderController implements Initializable {
         }
     }
     
-    public void loadOrderForEdit(OrderDto orderDto) {
-        try {
-            lblOrderId.setText(orderDto.getOrderId());
-            lblDate.setText(String.valueOf(orderDto.getDate()));
-            
-            if (orderDto.getCustomer() != null) {
-                cmbCustomerId.getItems().clear();
-                cmbCustomerId.getItems().add(orderDto.getCustomer().getName());
-                cmbCustomerId.getSelectionModel().select(0);
-                selectedCustomer = orderDto.getCustomer();
-            }
-            
-            txtDiscount.setText(String.valueOf(orderDto.getDiscount()));
-            txtTax.setText(String.valueOf(orderDto.getTax()));
-            
-            if (orderDto.getOrderProducts() != null) {
-                for (OrderProductDetailsDto detail : orderDto.getOrderProducts()) {
-                    ProductDto product = detail.getProduct();
-                    if (product != null) {
-                        double qty = detail.getQuantity();
-                        double unitPrice = detail.getUnitPrice();
-                        double total = qty * unitPrice;
-                        
-                        Button btn = new Button("Remove");
-                        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-                        btn.setOnAction(e -> {
-                            ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
-                            ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-                            Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
-                            if (result.orElse(no) == yes) {
-                                obList.removeIf(item -> item.getCode().equals(product.getId()));
-                                calculateTotal();
-                            }
-                        });
-                        
-                        obList.add(new CartTM(product.getId(), product.getName(), qty, unitPrice, total, btn));
-                    }
-                }
-                calculateTotal();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();
-        }
-    }
-    
     private void validateDiscount() {
         String text = txtDiscount.getText();
         if (text != null && !text.isEmpty()) {
@@ -230,14 +180,6 @@ public class OrderController implements Initializable {
             }
         } else {
             txtDiscount.setText("0");
-        }
-    }
-
-    private void setOrderId() {
-        try {
-            lblOrderId.setText(orderBO.generateNextOrderId());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -577,7 +519,7 @@ public class OrderController implements Initializable {
             return;
         }
 
-        String orderId = lblOrderId.getText();
+        String orderId = orderBO.generateNextOrderId();
         LocalDate date = LocalDate.parse(lblDate.getText());
         CustomerDto customerDto = selectedCustomer;
 
@@ -663,7 +605,6 @@ public class OrderController implements Initializable {
         obList.clear();
         tblOrderCart.refresh();
         
-        setOrderId();
         lblDate.setText(String.valueOf(LocalDate.now()));
         
         cmbCustomerId.getItems().clear();

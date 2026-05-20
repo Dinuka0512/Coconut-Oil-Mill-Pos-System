@@ -95,7 +95,7 @@ public class OrderDAOImpl implements OrderDAO {
     }
 
     @Override
-    public String generateNewId() {
+    public synchronized String generateNewId() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
             String sql = "SELECT orderId FROM orders ORDER BY orderId DESC LIMIT 1";

@@ -27,7 +27,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -320,7 +323,17 @@ public class DashboardController implements Initializable {
 
     @FXML
     void goToOrder(ActionEvent event) {
-        subNavigateTo("/view/pos.fxml");
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/view/pos.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Invoice");
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Cannot open invoice window!").show();
+        }
     }
 
     @FXML

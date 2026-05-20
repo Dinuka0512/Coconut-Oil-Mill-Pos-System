@@ -17,15 +17,8 @@
          </font>
       </Label>
       
-       <Label layoutX="30.0" layoutY="73.0" text="Invoice ID:" textFill="#7f8c8d" />
-      <Label fx:id="lblOrderId" layoutX="93.0" layoutY="73.0" text="O001" textFill="#00a118">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      
-      <Label layoutX="30.0" layoutY="93.0" text="Date:" textFill="#7f8c8d" />
-      <Label fx:id="lblDate" layoutX="68.0" layoutY="93.0" text="2024-04-12" />
+       <Label layoutX="30.0" layoutY="73.0" text="Date:" textFill="#7f8c8d" />
+      <Label fx:id="lblDate" layoutX="68.0" layoutY="73.0" text="2024-04-12" />
       
       <!-- Customer Section -->
       <AnchorPane layoutX="30.0" layoutY="121.0" prefHeight="70.0" prefWidth="368.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
