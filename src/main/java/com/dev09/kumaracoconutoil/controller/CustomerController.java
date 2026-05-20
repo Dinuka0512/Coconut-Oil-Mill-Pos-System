@@ -76,6 +76,9 @@ public class CustomerController implements Initializable {
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
                 () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.C, KeyCombination.CONTROL_DOWN),
+                () -> btnClear.fire());
     }
 
     @Override
@@ -84,6 +87,11 @@ public class CustomerController implements Initializable {
 
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
+
+        btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
+        btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
+        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
+        btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
 
         loadAllCustomers();
         generateNextId();

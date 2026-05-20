@@ -257,7 +257,7 @@ public class OrderController implements Initializable {
     private void loadProductIds() {
         currentProducts = productBO.getAllProducts();
         for (ProductDto dto : currentProducts) {
-            cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
+            cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
         }
     }
 
@@ -350,7 +350,7 @@ public class OrderController implements Initializable {
         String selection = cmbProductId.getValue();
         if (selection != null && currentProducts != null) {
             for (ProductDto dto : currentProducts) {
-                String display = dto.getName() + " (" + dto.getItemcode() + ")";
+                String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equals(selection) || dto.getName().equals(selection)) {
                     selectedProduct = dto;
                     txtUnitPrice.setText(String.valueOf(dto.getPrice()));
@@ -371,15 +371,15 @@ public class OrderController implements Initializable {
         if (searchText.isEmpty()) {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
-                cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
+                cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
             }
             if (resetTimer != null) resetTimer.stop();
         } else {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
-                String display = dto.getName() + " (" + dto.getItemcode() + ")";
+                String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (dto.getName().toLowerCase().contains(searchText) ||
-                    dto.getItemcode().toLowerCase().contains(searchText)) {
+                    (dto.getItemcode() != null ? dto.getItemcode() : "").toLowerCase().contains(searchText)) {
                     cmbProductId.getItems().add(display);
                 }
             }
@@ -391,7 +391,7 @@ public class OrderController implements Initializable {
                     cmbProductId.getEditor().setText("");
                     cmbProductId.getItems().clear();
                     for (ProductDto dto : currentProducts) {
-                        cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
+                        cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
                     }
                 }
             }));

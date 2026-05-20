@@ -74,6 +74,24 @@ public class ProductController implements Initializable {
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentProductId;
 
+    private void setupShortcuts(Scene scene) {
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
+                () -> btnSave.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
+                () -> btnUpdate.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.D, KeyCombination.CONTROL_DOWN),
+                () -> btnDelete.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
+                () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.C, KeyCombination.CONTROL_DOWN),
+                () -> btnClear.fire());
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         pageReset();
@@ -82,8 +100,19 @@ public class ProductController implements Initializable {
         colPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
 
+        btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
+        btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
+        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
+        btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+
         loadAllProducts();
         generateNextId();
+
+        txtItemCode.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                setupShortcuts(newScene);
+            }
+        });
 
         tblProduct.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -317,8 +346,9 @@ public class ProductController implements Initializable {
         ProductDto foundProduct = null;
 
         for (ProductDto dto : allProducts) {
+            String itemcode = dto.getItemcode();
             if (dto.getId().toLowerCase().equals(searchTerm) ||
-                    dto.getItemcode().toLowerCase().contains(searchTerm) ||
+                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
                     dto.getName().toLowerCase().contains(searchTerm)) {
                 foundProduct = dto;
                 break;
@@ -347,8 +377,9 @@ public class ProductController implements Initializable {
         ProductDto foundProduct = null;
 
         for (ProductDto dto : allProducts) {
+            String itemcode = dto.getItemcode();
             if (dto.getId().toLowerCase().equals(searchTerm) ||
-                    dto.getItemcode().toLowerCase().contains(searchTerm) ||
+                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
                     dto.getName().toLowerCase().contains(searchTerm)) {
                 foundProduct = dto;
                 break;
