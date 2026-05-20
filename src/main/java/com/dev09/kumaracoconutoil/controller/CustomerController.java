@@ -10,8 +10,11 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 
 import java.io.File;
@@ -60,6 +63,21 @@ public class CustomerController implements Initializable {
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private String currentCustomerId;
 
+    private void setupShortcuts(Scene scene) {
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
+                () -> btnSave.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
+                () -> btnUpdate.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.D, KeyCombination.CONTROL_DOWN),
+                () -> btnDelete.fire());
+        scene.getAccelerators().put(
+                new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
+                () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         pageReset();
@@ -69,6 +87,12 @@ public class CustomerController implements Initializable {
 
         loadAllCustomers();
         generateNextId();
+
+        txtName.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                setupShortcuts(newScene);
+            }
+        });
 
         tblCustomer.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -166,6 +190,20 @@ public class CustomerController implements Initializable {
     @FXML
     void btnClearOnAction(ActionEvent event) {
         clearFields();
+    }
+
+    @FXML
+    void onNameAction(ActionEvent event) {
+        txtContact.requestFocus();
+    }
+
+    @FXML
+    void onContactAction(ActionEvent event) {
+        if (!btnSave.isDisabled()) {
+            btnSave.fire();
+        } else if (!btnUpdate.isDisabled()) {
+            btnUpdate.fire();
+        }
     }
 
     private void clearFields() {

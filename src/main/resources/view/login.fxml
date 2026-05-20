@@ -36,7 +36,7 @@
         </Label>
 
         <!-- Username Field (styled) -->
-        <TextField fx:id="txtUsername" layoutX="576.0" layoutY="263.0" prefHeight="26.0" prefWidth="266.0" promptText="Username" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="263.0" />
+        <TextField fx:id="txtUsername" layoutX="576.0" layoutY="263.0" onAction="#onUsernameAction" prefHeight="26.0" prefWidth="266.0" promptText="Username" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="263.0" />
 
         <!-- Password Label -->
         <Label layoutX="584.3333333333334" layoutY="312.6666666666667" text="Password" AnchorPane.rightAnchor="288.33333333333326" AnchorPane.topAnchor="312.6666666666667">
@@ -46,7 +46,7 @@
         </Label>
 
         <!-- Password Field (styled) -->
-        <PasswordField fx:id="txtPassword" layoutX="576.0" layoutY="331.0" prefHeight="26.0" prefWidth="266.0" promptText="Password" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="331.0" />
+        <PasswordField fx:id="txtPassword" layoutX="576.0" layoutY="331.0" onAction="#onPasswordAction" prefHeight="26.0" prefWidth="266.0" promptText="Password" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="331.0" />
 
         <!-- Login Button -->
         <Button layoutX="582.4000000000001" layoutY="386.6" mnemonicParsing="false" onAction="#login" prefHeight="38.0" prefWidth="266.0" style="-fx-background-color: #ffc000; -fx-background-radius: 20;" text="LogIn" textFill="WHITE" AnchorPane.rightAnchor="82.39999999999998" AnchorPane.topAnchor="386.6">

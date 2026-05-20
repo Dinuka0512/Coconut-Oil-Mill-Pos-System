@@ -6,4 +6,5 @@ import com.dev09.kumaracoconutoil.entity.CustomerEntity;
 import com.dev09.kumaracoconutoil.entity.ProductEntity;
 
 public interface ProductDAO extends SuperDAO, CrudDAO<ProductEntity> {
+    boolean existByItemCode(String itemCode);
 }

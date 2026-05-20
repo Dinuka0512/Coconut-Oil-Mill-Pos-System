@@ -19,10 +19,10 @@
       <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
-            <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" prefHeight="30.0" prefWidth="350.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
+             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="350.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
             
             <Label layoutX="390.0" layoutY="15.0" text="Contact Number" textFill="#7f8c8d" />
-            <TextField fx:id="txtContact" layoutX="390.0" layoutY="35.0" prefHeight="30.0" prefWidth="320.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
+            <TextField fx:id="txtContact" layoutX="390.0" layoutY="35.0" onAction="#onContactAction" prefHeight="30.0" prefWidth="320.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
             
             <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
             <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public interface ProductBO extends SuperBo {
     ArrayList<ProductDto> getAllProducts();
     boolean saveProduct(ProductDto dto);
+    boolean existProductByItemCode(String itemCode);
     boolean updateProduct(ProductDto dto);
     boolean existProduct(String id);
     boolean deleteProduct(String id);

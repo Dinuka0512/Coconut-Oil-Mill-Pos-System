@@ -120,6 +120,20 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public boolean existByItemCode(String itemCode) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<Long> query = session.createQuery(
+                    "SELECT COUNT(p) FROM ProductEntity p WHERE p.itemcode = :itemcode",
+                    Long.class);
+            query.setParameter("itemcode", itemCode);
+            return query.uniqueResult() > 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public ProductEntity search(String id) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {

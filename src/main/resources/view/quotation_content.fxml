@@ -55,7 +55,7 @@
             </Label>
             
              <Label layoutX="269.0" layoutY="64.0" text="Qty (Kg)" textFill="#7f8c8d" />
-            <TextField fx:id="txtQty" layoutX="253.0" layoutY="82.0" prefHeight="25.0" prefWidth="99.0" />
+             <TextField fx:id="txtQty" layoutX="253.0" layoutY="82.0" onAction="#btnAddToCartOnAction" prefHeight="25.0" prefWidth="99.0" />
             
             <Button layoutX="14.0" layoutY="117.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="30.0" prefWidth="344.0" style="-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="WHITE" />
          </children>

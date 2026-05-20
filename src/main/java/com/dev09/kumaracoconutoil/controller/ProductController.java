@@ -8,11 +8,14 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 
 import java.net.URL;
@@ -27,6 +30,9 @@ import javafx.scene.control.ChoiceDialog;
 public class ProductController implements Initializable {
 
     @FXML
+    private TableColumn<ProductDto, String> colItemCode;
+
+    @FXML
     private TableColumn<ProductDto, String> colName;
 
     @FXML
@@ -37,6 +43,9 @@ public class ProductController implements Initializable {
 
     @FXML
     private TableView<ProductDto> tblProduct;
+
+    @FXML
+    private TextField txtItemCode;
 
     @FXML
     private TextField txtName;
@@ -68,6 +77,7 @@ public class ProductController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         pageReset();
+        colItemCode.setCellValueFactory(new PropertyValueFactory<>("itemcode"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
@@ -78,6 +88,7 @@ public class ProductController implements Initializable {
         tblProduct.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 currentProductId = newValue.getId();
+                txtItemCode.setText(newValue.getItemcode());
                 txtName.setText(newValue.getName());
                 txtPrice.setText(String.valueOf(newValue.getPrice()));
                 txtQty.setText(String.valueOf(newValue.getQty()));
@@ -151,12 +162,18 @@ public class ProductController implements Initializable {
     @FXML
     void btnSaveOnAction(ActionEvent event) {
         String id = currentProductId;
+        String itemcode = txtItemCode.getText();
         String name = txtName.getText();
         String priceText = txtPrice.getText();
         String qtyText = txtQty.getText();
 
-        if (name.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
+        if (itemcode.isEmpty() || name.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "Mandatory fields are empty!").show();
+            return;
+        }
+
+        if (productBO.existProductByItemCode(itemcode)) {
+            new Alert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.").show();
             return;
         }
 
@@ -164,7 +181,7 @@ public class ProductController implements Initializable {
             double price = Double.parseDouble(priceText);
             double qty = Double.parseDouble(qtyText);
 
-            boolean isSaved = productBO.saveProduct(new ProductDto(id, name, qty, price));
+            boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, qty, price));
             if (isSaved) {
                 new Alert(Alert.AlertType.INFORMATION, "Product Saved!").show();
                 loadAllProducts();
@@ -184,15 +201,27 @@ public class ProductController implements Initializable {
             return;
         }
         String id = currentProductId;
+        String itemcode = txtItemCode.getText();
         String name = txtName.getText();
         String priceText = txtPrice.getText();
         String qtyText = txtQty.getText();
+
+        if (itemcode.isEmpty() || name.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
+            new Alert(Alert.AlertType.WARNING, "Mandatory fields are empty!").show();
+            return;
+        }
+
+        ProductDto currentProduct = productBO.searchProduct(id);
+        if (currentProduct != null && !itemcode.equals(currentProduct.getItemcode()) && productBO.existProductByItemCode(itemcode)) {
+            new Alert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.").show();
+            return;
+        }
 
         try {
             double price = Double.parseDouble(priceText);
             double qty = Double.parseDouble(qtyText);
 
-            boolean isUpdated = productBO.updateProduct(new ProductDto(id, name, qty, price));
+            boolean isUpdated = productBO.updateProduct(new ProductDto(id, itemcode, name, qty, price));
             if (isUpdated) {
                 new Alert(Alert.AlertType.INFORMATION, "Product Updated!").show();
                 loadAllProducts();
@@ -235,9 +264,34 @@ public class ProductController implements Initializable {
         clearFields();
     }
 
+    @FXML
+    void onItemCodeAction(ActionEvent event) {
+        txtName.requestFocus();
+    }
+
+    @FXML
+    void onNameAction(ActionEvent event) {
+        txtPrice.requestFocus();
+    }
+
+    @FXML
+    void onPriceAction(ActionEvent event) {
+        txtQty.requestFocus();
+    }
+
+    @FXML
+    void onQtyAction(ActionEvent event) {
+        if (!btnSave.isDisabled()) {
+            btnSave.fire();
+        } else if (!btnUpdate.isDisabled()) {
+            btnUpdate.fire();
+        }
+    }
+
     private void clearFields() {
         pageReset();
         generateNextId();
+        txtItemCode.clear();
         txtName.clear();
         txtPrice.clear();
         txtQty.clear();
@@ -264,6 +318,7 @@ public class ProductController implements Initializable {
 
         for (ProductDto dto : allProducts) {
             if (dto.getId().toLowerCase().equals(searchTerm) ||
+                    dto.getItemcode().toLowerCase().contains(searchTerm) ||
                     dto.getName().toLowerCase().contains(searchTerm)) {
                 foundProduct = dto;
                 break;
@@ -272,6 +327,7 @@ public class ProductController implements Initializable {
 
         if (foundProduct != null) {
             currentProductId = foundProduct.getId();
+            txtItemCode.setText(foundProduct.getItemcode());
             txtName.setText(foundProduct.getName());
             txtPrice.setText(String.valueOf(foundProduct.getPrice()));
             txtQty.setText(String.valueOf(foundProduct.getQty()));
@@ -292,6 +348,7 @@ public class ProductController implements Initializable {
 
         for (ProductDto dto : allProducts) {
             if (dto.getId().toLowerCase().equals(searchTerm) ||
+                    dto.getItemcode().toLowerCase().contains(searchTerm) ||
                     dto.getName().toLowerCase().contains(searchTerm)) {
                 foundProduct = dto;
                 break;
@@ -300,6 +357,7 @@ public class ProductController implements Initializable {
 
         if (foundProduct != null) {
             currentProductId = foundProduct.getId();
+            txtItemCode.setText(foundProduct.getItemcode());
             txtName.setText(foundProduct.getName());
             txtPrice.setText(String.valueOf(foundProduct.getPrice()));
             txtQty.setText(String.valueOf(foundProduct.getQty()));

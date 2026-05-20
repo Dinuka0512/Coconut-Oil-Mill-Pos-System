@@ -156,7 +156,7 @@ public class QuotationController implements Initializable {
     private void loadProductIds() {
         currentProducts = productBO.getAllProducts();
         for (ProductDto dto : currentProducts) {
-            cmbProductId.getItems().add(dto.getName());
+            cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
         }
     }
 
@@ -251,10 +251,12 @@ public class QuotationController implements Initializable {
         String selection = cmbProductId.getValue();
         if (selection != null && currentProducts != null) {
             for (ProductDto dto : currentProducts) {
-                if (dto.getName().equals(selection)) {
+                String display = dto.getName() + " (" + dto.getItemcode() + ")";
+                if (display.equals(selection) || dto.getName().equals(selection)) {
                     selectedProduct = dto;
                     txtUnitPrice.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
+                    txtQty.requestFocus();
                     break;
                 }
             }
@@ -269,14 +271,16 @@ public class QuotationController implements Initializable {
         if (searchText.isEmpty()) {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
-                cmbProductId.getItems().add(dto.getName());
+                cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
             }
             if (resetTimer != null) resetTimer.stop();
         } else {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
-                if (dto.getName().toLowerCase().contains(searchText)) {
-                    cmbProductId.getItems().add(dto.getName());
+                String display = dto.getName() + " (" + dto.getItemcode() + ")";
+                if (dto.getName().toLowerCase().contains(searchText) ||
+                    dto.getItemcode().toLowerCase().contains(searchText)) {
+                    cmbProductId.getItems().add(display);
                 }
             }
             cmbProductId.show();
@@ -287,7 +291,7 @@ public class QuotationController implements Initializable {
                     cmbProductId.getEditor().setText("");
                     cmbProductId.getItems().clear();
                     for (ProductDto dto : currentProducts) {
-                        cmbProductId.getItems().add(dto.getName());
+                        cmbProductId.getItems().add(dto.getName() + " (" + dto.getItemcode() + ")");
                     }
                 }
             }));

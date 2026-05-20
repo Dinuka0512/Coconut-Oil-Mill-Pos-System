@@ -116,6 +116,7 @@ public class OrderBOImpl implements OrderBO {
                     if (op.getProduct() != null) {
                         ProductDto productDto = new ProductDto();
                         productDto.setId(op.getProduct().getId());
+                        productDto.setItemcode(op.getProduct().getItemcode());
                         productDto.setName(op.getProduct().getName());
                         productDto.setQty(op.getProduct().getQty());
                         productDto.setPrice(op.getProduct().getPrice());

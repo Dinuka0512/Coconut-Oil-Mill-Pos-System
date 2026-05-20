@@ -21,6 +21,7 @@ public class ProductBOImpl implements ProductBO {
         for (ProductEntity entity : all) {
             dtoList.add(new ProductDto(
                     entity.getId(),
+                    entity.getItemcode(),
                     entity.getName(),
                     entity.getQty(),
                     entity.getPrice()
@@ -34,6 +35,7 @@ public class ProductBOImpl implements ProductBO {
         // Create entity using setters (avoid constructor confusion)
         ProductEntity entity = new ProductEntity();
         entity.setId(dto.getId());
+        entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
         entity.setQty(dto.getQty());
         entity.setPrice(dto.getPrice());
@@ -45,10 +47,16 @@ public class ProductBOImpl implements ProductBO {
     public boolean updateProduct(ProductDto dto) {
         ProductEntity entity = new ProductEntity();
         entity.setId(dto.getId());
+        entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
         entity.setQty(dto.getQty());
         entity.setPrice(dto.getPrice());
         return productDAO.update(entity);
+    }
+
+    @Override
+    public boolean existProductByItemCode(String itemCode) {
+        return productDAO.existByItemCode(itemCode);
     }
 
     @Override
@@ -72,6 +80,7 @@ public class ProductBOImpl implements ProductBO {
         if (entity != null) {
             return new ProductDto(
                     entity.getId(),
+                    entity.getItemcode(),
                     entity.getName(),
                     entity.getQty(),
                     entity.getPrice()

@@ -356,21 +356,22 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
             y -= 20;
 
-            // Table Header (3 columns: Name, Price, Qty)
+            // Table Header (4 columns: ItemCode, Name, Price, Qty)
             c.setFont(THERMAL_FONT_BOLD, 8);
             c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
             c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
             c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
             c.addRect(x, y - 16, w, 16); c.fill();
             c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-            float col1 = x + 10, col2 = x + w * 0.6f, col3 = x + w * 0.8f;
-            float col1w = w * 0.5f, col2w = w * 0.2f, col3w = w * 0.2f;
-            c.beginText(); c.newLineAtOffset(col1, y - 11); c.showText("Name"); c.endText();
-            c.beginText(); c.newLineAtOffset(col2 + (col2w - getThermalTextWidth("Price", THERMAL_FONT_8))/2, y - 11); c.showText("Price"); c.endText();
-            c.beginText(); c.newLineAtOffset(col3 + (col3w - getThermalTextWidth("Qty", THERMAL_FONT_8))/2, y - 11); c.showText("Qty"); c.endText();
+            float col1 = x + 5, col2 = x + w * 0.22f, col3 = x + w * 0.62f, col4 = x + w * 0.82f;
+            float col1w = w * 0.17f, col2w = w * 0.35f, col3w = w * 0.17f, col4w = w * 0.17f;
+            c.beginText(); c.newLineAtOffset(col1, y - 11); c.showText("Code"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, y - 11); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3 + (col3w - getThermalTextWidth("Price", THERMAL_FONT_8))/2, y - 11); c.showText("Price"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4 + (col4w - getThermalTextWidth("Qty", THERMAL_FONT_8))/2, y - 11); c.showText("Qty"); c.endText();
             y -= 16;
 
-            // Table Rows (3 columns: Name, Price, Qty)
+            // Table Rows (4 columns: ItemCode, Name, Price, Qty)
             c.setFont(THERMAL_FONT, THERMAL_FONT_9);
             int idx = 1;
             int lowStock = 0;
@@ -381,17 +382,20 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                     c.addRect(x, y - 14, w, 14); c.fill();
                 }
                 c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                String name = truncate(p.getName() != null ? p.getName() : "-", 20);
+                String code = truncate(p.getItemcode() != null ? p.getItemcode() : "-", 10);
+                String name = truncate(p.getName() != null ? p.getName() : "-", 18);
                 String price = String.format("%.2f", p.getPrice());
                 String qty = String.valueOf(p.getQty());
+                // Left-align Code
+                c.beginText(); c.newLineAtOffset(col1, y - 10); c.showText(code); c.endText();
                 // Left-align Name
-                c.beginText(); c.newLineAtOffset(col1, y - 10); c.showText(name); c.endText();
+                c.beginText(); c.newLineAtOffset(col2, y - 10); c.showText(name); c.endText();
                 // Center Price
                 float pw = PDType1Font.HELVETICA.getStringWidth(price) / 1000f * 9f;
-                c.beginText(); c.newLineAtOffset(col2 + (col2w - pw)/2, y - 10); c.showText(price); c.endText();
+                c.beginText(); c.newLineAtOffset(col3 + (col3w - pw)/2, y - 10); c.showText(price); c.endText();
                 // Center Qty
                 float qw = PDType1Font.HELVETICA.getStringWidth(qty) / 1000f * 9f;
-                c.beginText(); c.newLineAtOffset(col3 + (col3w - qw)/2, y - 10); c.showText(qty); c.endText();
+                c.beginText(); c.newLineAtOffset(col4 + (col4w - qw)/2, y - 10); c.showText(qty); c.endText();
                 c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
                 c.moveTo(x, y - 14); c.lineTo(x + w, y - 14); c.stroke();
                 y -= 14;
@@ -1033,7 +1037,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                 c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
             }
             c.setNonStrokingColor(1f, 1f, 1f);
-            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ItemCode"); c.endText();
             c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
             c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Price (LKR)"); c.endText();
             c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Qty"); c.endText();
@@ -1070,7 +1074,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                         c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
                     }
                     c.setNonStrokingColor(1f, 1f, 1f);
-                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ItemCode"); c.endText();
                     c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
                     c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Price (LKR)"); c.endText();
                     c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Qty"); c.endText();
@@ -1093,7 +1097,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                 }
 
                 c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(p.getId()); c.endText();
+                String itemCode = p.getItemcode() != null ? p.getItemcode() : "-";
+                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(itemCode.length() > 12 ? itemCode.substring(0, 10) + ".." : itemCode); c.endText();
 
                 String nm = p.getName() != null ? p.getName() : "-";
                 c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(nm.length() > 30 ? nm.substring(0, 27) + "..." : nm); c.endText();

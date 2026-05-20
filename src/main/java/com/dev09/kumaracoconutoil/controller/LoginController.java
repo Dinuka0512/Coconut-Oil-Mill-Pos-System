@@ -59,6 +59,16 @@ public class LoginController implements Initializable {
         }
     }
 
+    @FXML
+    void onUsernameAction(ActionEvent event) {
+        txtPassword.requestFocus();
+    }
+
+    @FXML
+    void onPasswordAction(ActionEvent event) {
+        login(event);
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         //FIRST HERE SAVE THE USER...
