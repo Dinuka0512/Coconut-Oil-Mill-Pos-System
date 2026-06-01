@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
@@ -17,9 +19,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -29,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -39,9 +43,6 @@ public class OrderController implements Initializable {
 
     @FXML
     private AnchorPane body;
-
-    @FXML
-    private AnchorPane posContent;
 
     @FXML
     private ComboBox<String> cmbCustomerId;
@@ -63,7 +64,7 @@ public class OrderController implements Initializable {
 
     @FXML
     private TableColumn<CartTM, Button> colAction;
-    
+
     @FXML
     private TextField txtTax;
 
@@ -107,13 +108,9 @@ public class OrderController implements Initializable {
     private java.util.List<ProductDto> currentProducts;
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
-    private boolean isContentLoading = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (isContentLoading) return;
-        isContentLoading = true;
-        loadPosContent();
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
@@ -126,60 +123,17 @@ public class OrderController implements Initializable {
         loadCustomerIds();
         loadProductIds();
         loadTax();
-        
+
         txtDiscount.setText("0");
         txtAmount.setText("-");
-        
-        txtDiscount.focusedProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal) {
-                validateDiscount();
-            }
-        });
     }
 
-    private void loadPosContent() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/pos_content.fxml"));
-            loader.setController(this);
-            isContentLoading = true;
-            javafx.scene.Parent root = loader.load();
-            posContent.getChildren().clear();
-            posContent.getChildren().add(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            isContentLoading = false;
-        }
-    }
-    
     private void loadTax() {
         try {
             TaxDto taxDto = taxBO.searchTax("1");
-            if (taxDto != null) {
-                txtTax.setText(String.valueOf(taxDto.getTax()));
-            } else {
-                txtTax.setText("0");
-            }
+            txtTax.setText(taxDto != null ? String.valueOf(taxDto.getTax()) : "0");
         } catch (Exception e) {
             txtTax.setText("0");
-        }
-    }
-    
-    private void validateDiscount() {
-        String text = txtDiscount.getText();
-        if (text != null && !text.isEmpty()) {
-            try {
-                int val = Integer.parseInt(text);
-                if (val > 100) {
-                    txtDiscount.setText("100");
-                } else if (val < 0) {
-                    txtDiscount.setText("0");
-                }
-            } catch (NumberFormatException e) {
-                txtDiscount.setText("0");
-            }
-        } else {
-            txtDiscount.setText("0");
         }
     }
 
@@ -206,36 +160,36 @@ public class OrderController implements Initializable {
     @FXML
     void btnNewCustomerOnAction(ActionEvent event) {
         try {
-            javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/customers.fxml"));
-            javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setScene(new javafx.scene.Scene(root));
+            Parent root = FXMLLoader.load(getClass().getResource("/view/customers.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
             stage.setTitle("New Customer");
             stage.setResizable(false);
             stage.showAndWait();
-            
+
             cmbCustomerId.getItems().clear();
             loadCustomerIds();
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage());
         }
     }
 
     @FXML
     void btnNewProductOnAction(ActionEvent event) {
         try {
-            javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/inventory.fxml"));
-            javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setScene(new javafx.scene.Scene(root));
+            Parent root = FXMLLoader.load(getClass().getResource("/view/inventory.fxml"));
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
             stage.setTitle("New Inventory");
             stage.setResizable(false);
             stage.showAndWait();
-            
+
             cmbProductId.getItems().clear();
             loadProductIds();
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage());
         }
     }
 
@@ -345,7 +299,7 @@ public class OrderController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an inventory first!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a product first!");
             return;
         }
         String code = selectedProduct.getId();
@@ -354,12 +308,11 @@ public class OrderController implements Initializable {
         try {
             qty = Double.parseDouble(txtQty.getText());
         } catch (NumberFormatException ex) {
-            new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter a valid quantity!");
             return;
         }
-        
+
         double qtyOnHand = selectedProduct.getQty();
-        
         double existingQtyInCart = 0;
         for (int i = 0; i < obList.size(); i++) {
             if (code.equals(obList.get(i).getCode())) {
@@ -367,34 +320,26 @@ public class OrderController implements Initializable {
                 break;
             }
         }
-        
+
         double totalQtyInCart = existingQtyInCart + qty;
-        
         if (totalQtyInCart > qtyOnHand) {
-            new Alert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Not enough stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
             return;
         }
-        
+
         try {
-            String priceStr = txtUnitPrice.getText();
-            double unitPrice = Double.parseDouble(priceStr.trim());
+            double unitPrice = Double.parseDouble(txtUnitPrice.getText().trim());
             double total = qty * unitPrice;
-            Button btn = new Button("Remove");
-            btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+            Button btn = new Button("X");
+            btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
 
             btn.setOnAction(e -> {
                 ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
                 ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-                Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
-
+                Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Remove this item?", yes, no).showAndWait();
                 if (result.orElse(no) == yes) {
-                    for (int i = 0; i < obList.size(); i++) {
-                        if (obList.get(i).getBtn() == btn) {
-                            obList.remove(i);
-                            calculateTotal();
-                            break;
-                        }
-                    }
+                    obList.removeIf(item -> item.getBtn() == btn);
+                    calculateTotal();
                 }
             });
 
@@ -402,22 +347,22 @@ public class OrderController implements Initializable {
                 if (code.equals(obList.get(i).getCode())) {
                     qty += obList.get(i).getQty();
                     total = unitPrice * qty;
-
                     obList.get(i).setQty(qty);
                     obList.get(i).setTotal(total);
-
                     tblOrderCart.refresh();
                     calculateTotal();
                     txtQty.clear();
+                    txtQty.requestFocus();
                     return;
                 }
             }
-            
+
             obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
             calculateTotal();
             txtQty.clear();
+            txtQty.requestFocus();
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Invalid unit price!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid unit price!");
         }
     }
 
@@ -426,26 +371,21 @@ public class OrderController implements Initializable {
         for (CartTM tm : obList) {
             netTotal += tm.getTotal();
         }
-        
+
         double discountPercent = 0.0;
         try {
             String discountText = txtDiscount.getText();
             if (discountText != null && !discountText.isEmpty()) {
                 discountText = discountText.replace("%", "").trim();
                 discountPercent = Double.parseDouble(discountText);
-                if (discountPercent < 0 || discountPercent > 100) {
-                    new Alert(Alert.AlertType.WARNING, "Discount must be between 0% and 100%!").show();
-                    txtDiscount.setText("0%");
-                    discountPercent = 0.0;
-                }
             }
         } catch (NumberFormatException e) {
             discountPercent = 0.0;
         }
-        
+
         double discountAmount = netTotal * (discountPercent / 100.0);
         double totalAfterDiscount = netTotal - discountAmount;
-        
+
         double taxPercent = 0.0;
         try {
             String taxText = txtTax.getText();
@@ -455,31 +395,28 @@ public class OrderController implements Initializable {
         } catch (NumberFormatException e) {
             taxPercent = 0.0;
         }
-        
+
         double taxAmount = totalAfterDiscount * (taxPercent / 100.0);
         double finalTotal = totalAfterDiscount + taxAmount;
-        
+
         lblNetTotal.setText(String.format("%.2f", finalTotal));
-        
         calculateBalance();
     }
 
     private void calculateBalance() {
         try {
             double netTotal = Double.parseDouble(lblNetTotal.getText());
-            double amount = 0.0;
             String amountText = txtAmount.getText();
-            
-            if (amountText != null && !amountText.isEmpty() && !amountText.equals("-")) {
-                amount = Double.parseDouble(amountText);
-            } else {
+
+            if (amountText == null || amountText.isEmpty() || amountText.equals("-")) {
                 lblBalance.setText("0.00");
                 lblBalance.setStyle("-fx-text-fill: #00a118;");
                 return;
             }
-            
+
+            double amount = Double.parseDouble(amountText);
             double balance = amount - netTotal;
-            
+
             if (balance < 0) {
                 lblBalance.setText("Insufficient!");
                 lblBalance.setStyle("-fx-text-fill: red;");
@@ -504,38 +441,38 @@ public class OrderController implements Initializable {
 
     @FXML
     void txtDiscountOnAction(ActionEvent event) {
-        validateDiscount();
         calculateTotal();
     }
 
     @FXML
     void btnPlaceOrderOnAction(ActionEvent event) {
         if (selectedCustomer == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select a customer first!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a customer first!");
             return;
         }
         if (obList.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Cart is empty!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Cart is empty!");
             return;
         }
 
-        String orderId = orderBO.generateNextOrderId();
+        String orderId;
         LocalDate date = LocalDate.parse(lblDate.getText());
         CustomerDto customerDto = selectedCustomer;
 
         double netTotal = 0.0;
         double discount = 0.0;
         double taxRate = 0.0;
-        double taxAmount = 0.0;
         double balance = 0.0;
 
         try {
+            orderId = orderBO.generateNextOrderId();
             netTotal = Double.parseDouble(lblNetTotal.getText());
             discount = Double.parseDouble(txtDiscount.getText());
-            taxRate = Double.parseDouble(txtTax.getText()); // This is the TAX RATE (e.g., 8.0)
-            taxAmount = netTotal * (taxRate / 100.0); // Calculate TAX AMOUNT correctly
+            taxRate = Double.parseDouble(txtTax.getText());
             balance = Double.parseDouble(lblBalance.getText());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error processing order: " + e.getMessage());
+            return;
         }
 
         double amount = netTotal;
@@ -546,22 +483,21 @@ public class OrderController implements Initializable {
             details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
         }
 
-        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, taxAmount, taxRate, balance);
+        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, 0, taxRate, balance);
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {
-                new Alert(Alert.AlertType.INFORMATION, "Invoice Placed Successfully!").show();
-                
-                // Ask user how to print the bill
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice Placed Successfully!");
+
                 Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
                 printAlert.setTitle("Print Bill");
-                printAlert.setHeaderText("How do you need to print the bill?");
-                printAlert.setContentText("Choose the print format:");
-                
+                printAlert.setHeaderText("Print bill?");
+                printAlert.setContentText("Choose format:");
+
                 ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
                 ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
                 printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
-                
+
                 Optional<ButtonType> result = printAlert.showAndWait();
                 if (result.isPresent()) {
                     try {
@@ -571,7 +507,7 @@ public class OrderController implements Initializable {
                         } else {
                             pdfBytes = orderBO.generateOrderBillA4(orderId);
                         }
-                        
+
                         if (pdfBytes != null) {
                             File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
                             Files.write(tempFile.toPath(), pdfBytes);
@@ -579,47 +515,41 @@ public class OrderController implements Initializable {
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        new Alert(Alert.AlertType.ERROR, "Error generating bill: " + ex.getMessage()).show();
+                        AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating bill: " + ex.getMessage());
                     }
                 }
 
                 resetPosForm();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Invoice Placement Failed!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Invoice Placement Failed!");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error: " + e.getMessage());
         }
-    }
-
-    private void clearProductFields() {
-        cmbProductId.getSelectionModel().clearSelection();
-        selectedProduct = null;
-        txtUnitPrice.clear();
-        lblQtyOnHand.setText("");
-        txtQty.clear();
     }
 
     private void resetPosForm() {
         obList.clear();
         tblOrderCart.refresh();
-        
+
         lblDate.setText(String.valueOf(LocalDate.now()));
-        
+
         cmbCustomerId.getItems().clear();
         cmbCustomerId.getSelectionModel().clearSelection();
         loadCustomerIds();
         selectedCustomer = null;
-        
+
         cmbProductId.getItems().clear();
         cmbProductId.getSelectionModel().clearSelection();
         loadProductIds();
         selectedProduct = null;
-        clearProductFields();
-        
+        txtUnitPrice.clear();
+        lblQtyOnHand.setText("");
+        txtQty.clear();
+
         loadTax();
-        
+
         txtDiscount.setText("0");
         txtAmount.setText("-");
         lblBalance.setText("0.00");
@@ -636,22 +566,22 @@ public class OrderController implements Initializable {
                 loadTax();
                 txtTax.setEditable(false);
                 btnUpdate.setText("Edit");
-                btnUpdate.setStyle("-fx-background-color: #b1b1b1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
-                new Alert(Alert.AlertType.INFORMATION, "Tax updated successfully!").show();
+                btnUpdate.setStyle("-fx-background-color: #b1b1b1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Tax updated!");
             } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Invalid tax value!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid tax value!");
             }
         } else {
             txtTax.setEditable(true);
             btnUpdate.setText("Save");
-            btnUpdate.setStyle("-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
+            btnUpdate.setStyle("-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
         }
     }
 
     @FXML
     void btnPreviousOrders(ActionEvent event) {
         try {
-            javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(getClass().getResource("/view/OrderManage.fxml"));
+            Parent root = FXMLLoader.load(getClass().getResource("/view/OrderManage.fxml"));
             body.getChildren().clear();
             body.getChildren().add(root);
         } catch (IOException e) {

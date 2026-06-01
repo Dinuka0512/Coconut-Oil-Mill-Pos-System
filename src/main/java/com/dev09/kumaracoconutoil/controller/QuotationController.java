@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
@@ -174,7 +176,7 @@ public class QuotationController implements Initializable {
             loadCustomerIds();
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage());
         }
     }
 
@@ -192,7 +194,7 @@ public class QuotationController implements Initializable {
             loadProductIds();
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage());
         }
     }
 
@@ -303,7 +305,7 @@ public class QuotationController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an inventory first!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an inventory first!");
             return;
         }
         String code = selectedProduct.getId();
@@ -313,12 +315,12 @@ public class QuotationController implements Initializable {
         try {
             qty = Double.parseDouble(txtQty.getText());
         } catch (NumberFormatException ex) {
-            new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid quantity!");
             return;
         }
 
         if (qty <= 0) {
-            new Alert(Alert.AlertType.WARNING, "Quantity must be greater than zero!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Quantity must be greater than zero!");
             return;
         }
 
@@ -349,7 +351,7 @@ public class QuotationController implements Initializable {
                 if (code.equals(obList.get(i).getCode())) {
                     double newQty = qty + obList.get(i).getQty();
                     if (newQty > availableQty) {
-                        new Alert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg").show();
+                        AlertUtil.showAlert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg");
                         return;
                     }
                     qty = newQty;
@@ -366,7 +368,7 @@ public class QuotationController implements Initializable {
             }
 
             if (qty > availableQty) {
-                new Alert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg").show();
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg");
                 return;
             }
 
@@ -374,7 +376,7 @@ public class QuotationController implements Initializable {
             calculateTotal();
             txtQty.clear();
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Invalid unit price!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid unit price!");
         }
     }
 
@@ -427,7 +429,7 @@ public class QuotationController implements Initializable {
     @FXML
     void btnGeneratePdfOnAction(ActionEvent event) {
         if (obList.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Cart is empty!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Cart is empty!");
             return;
         }
 
@@ -480,7 +482,7 @@ public class QuotationController implements Initializable {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error generating PDF: " + e.getMessage()).show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating PDF: " + e.getMessage());
             }
         }
     }

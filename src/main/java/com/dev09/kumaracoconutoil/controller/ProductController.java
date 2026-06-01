@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
@@ -137,7 +139,7 @@ public class ProductController implements Initializable {
     @FXML
     void exportAllItems(ActionEvent event) {
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "You don't have permission to export reports!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "You don't have permission to export reports!");
             return;
         }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -170,7 +172,7 @@ public class ProductController implements Initializable {
                 Desktop.getDesktop().open(tempFile);
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error generating report: " + e.getMessage()).show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating report: " + e.getMessage());
             }
         }
     }
@@ -201,12 +203,12 @@ public class ProductController implements Initializable {
         String qtyText = txtQty.getText();
 
         if (itemcode.isEmpty() || name.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Mandatory fields are empty!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Mandatory fields are empty!");
             return;
         }
 
         if (productBO.existProductByItemCode(itemcode)) {
-            new Alert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.");
             return;
         }
 
@@ -216,21 +218,21 @@ public class ProductController implements Initializable {
 
             boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, qty, price));
             if (isSaved) {
-                new Alert(Alert.AlertType.INFORMATION, "Product Saved!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Saved!");
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to save inventory!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save inventory!");
             }
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Invalid input for price or quantity!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid input for price or quantity!");
         }
     }
 
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "Only admins can update inventory!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update inventory!");
             return;
         }
         String id = currentProductId;
@@ -240,13 +242,13 @@ public class ProductController implements Initializable {
         String qtyText = txtQty.getText();
 
         if (itemcode.isEmpty() || name.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Mandatory fields are empty!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Mandatory fields are empty!");
             return;
         }
 
         ProductDto currentProduct = productBO.searchProduct(id);
         if (currentProduct != null && !itemcode.equals(currentProduct.getItemcode()) && productBO.existProductByItemCode(itemcode)) {
-            new Alert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.");
             return;
         }
 
@@ -256,21 +258,21 @@ public class ProductController implements Initializable {
 
             boolean isUpdated = productBO.updateProduct(new ProductDto(id, itemcode, name, qty, price));
             if (isUpdated) {
-                new Alert(Alert.AlertType.INFORMATION, "Product Updated!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to update inventory!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
             }
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Invalid input for price or quantity!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid input for price or quantity!");
         }
     }
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "Only admins can delete inventory!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can delete inventory!");
             return;
         }
         // Confirmation dialog
@@ -283,11 +285,11 @@ public class ProductController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             boolean isDeleted = productBO.deleteProduct(currentProductId);
             if (isDeleted) {
-                new Alert(Alert.AlertType.INFORMATION, "Product Deleted!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Deleted!");
                 loadAllProducts();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to delete inventory!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete inventory!");
             }
         }
     }
@@ -332,7 +334,10 @@ public class ProductController implements Initializable {
 
     @FXML
     void txtSearchOnKeyReleased(KeyEvent event) {
-        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+        if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+            txtSearch.clear();
+            txtSearch.getParent().requestFocus();
+        } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
             performSearchWithAlert();
         } else {
             performSearch();
@@ -399,7 +404,7 @@ public class ProductController implements Initializable {
             tblProduct.getSelectionModel().select(foundProduct);
             tblProduct.scrollTo(foundProduct);
         } else {
-            new Alert(Alert.AlertType.WARNING, "Inventory not found!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Inventory not found!");
         }
     }
 }

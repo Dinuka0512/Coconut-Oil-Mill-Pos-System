@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
@@ -243,7 +245,7 @@ public class UpdatePosController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an inventory first!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an inventory first!");
             return;
         }
         String code = selectedProduct.getId();
@@ -252,7 +254,7 @@ public class UpdatePosController implements Initializable {
         try {
             qty = Double.parseDouble(txtQty.getText());
         } catch (NumberFormatException ex) {
-            new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid quantity!");
             return;
         }
         
@@ -269,7 +271,7 @@ public class UpdatePosController implements Initializable {
         double totalQtyInCart = existingQtyInCart + qty;
         
         if (totalQtyInCart > qtyOnHand) {
-            new Alert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
             return;
         }
         
@@ -318,7 +320,7 @@ public class UpdatePosController implements Initializable {
             calculateTotal();
             txtQty.clear();
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Invalid unit price!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid unit price!");
         }
     }
 
@@ -420,7 +422,7 @@ public class UpdatePosController implements Initializable {
             calculateTotal();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage());
         }
     }
 
@@ -463,7 +465,7 @@ public class UpdatePosController implements Initializable {
             loadCustomerIds();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage());
         }
     }
 
@@ -481,7 +483,7 @@ public class UpdatePosController implements Initializable {
             loadProductIds();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage());
         }
     }
 
@@ -492,16 +494,16 @@ public class UpdatePosController implements Initializable {
     @FXML
     void btnUpdateOrderOnAction(ActionEvent event) {
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "Only admins can update invoices!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update invoices!");
             return;
         }
         if (selectedCustomer == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select a customer!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a customer!");
             return;
         }
         
         if (obList.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Please add inventory items to the cart!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please add inventory items to the cart!");
             return;
         }
         
@@ -550,7 +552,7 @@ public class UpdatePosController implements Initializable {
             
             double balance = amountPaid - finalTotal;
             if (balance < 0) {
-                new Alert(Alert.AlertType.WARNING, "Amount paid must be at least the total amount!").show();
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Amount paid must be at least the total amount!");
                 return;
             }
 
@@ -614,16 +616,16 @@ public class UpdatePosController implements Initializable {
             
             boolean success = orderBO.updateOrder(orderDto);
             if (success) {
-                new Alert(Alert.AlertType.INFORMATION, "Invoice updated successfully!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice updated successfully!");
                 
                 Stage stage = (Stage) body.getScene().getWindow();
                 stage.close();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to update invoice!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update invoice!");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error updating order: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error updating order: " + e.getMessage());
         }
     }
 

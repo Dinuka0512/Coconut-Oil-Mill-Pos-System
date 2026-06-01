@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
@@ -142,7 +144,7 @@ public class DashboardController implements Initializable {
 
         loadTask.setOnFailed(e -> {
             Platform.runLater(() -> {
-                new Alert(Alert.AlertType.ERROR, "Error loading dashboard data").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading dashboard data");
                 loadTask.getException().printStackTrace();
             });
         });
@@ -281,7 +283,7 @@ public class DashboardController implements Initializable {
             body.getChildren().add(dashboardPane);
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");
         }
     }
 
@@ -292,7 +294,7 @@ public class DashboardController implements Initializable {
             bodyContent.getChildren().add(pane);
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");
         }
     }
 
@@ -332,7 +334,7 @@ public class DashboardController implements Initializable {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot open invoice window!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open invoice window!");
         }
     }
 

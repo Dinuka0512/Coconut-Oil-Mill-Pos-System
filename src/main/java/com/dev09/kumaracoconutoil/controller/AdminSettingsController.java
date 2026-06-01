@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
@@ -92,38 +94,38 @@ public class AdminSettingsController implements Initializable {
         String role = cmbRole.getValue();
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || role == null) {
-            new Alert(Alert.AlertType.WARNING, "All fields are required!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "All fields are required!");
             return;
         }
 
         if (!Validation.isValidEmail(email)) {
-            new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid email format!");
             return;
         }
 
         if (userBo.isEmailExist(email, null)) {
-            new Alert(Alert.AlertType.WARNING, "Email already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Email already exists!");
             return;
         }
 
         if (userBo.isNameExist(name, null)) {
-            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Username already exists!");
             return;
         }
 
         if (password.length() < 5) {
-            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Password must be at least 5 characters!");
             return;
         }
 
         UserDto newUser = new UserDto(currentUserId, name, email, password, role);
         boolean success = userBo.saveUser(newUser);
         if (success) {
-            new Alert(Alert.AlertType.INFORMATION, "User saved successfully!").show();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User saved successfully!");
             loadAllUsers();
             clearFields();
         } else {
-            new Alert(Alert.AlertType.ERROR, "Failed to save user!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save user!");
         }
     }
 
@@ -135,52 +137,52 @@ public class AdminSettingsController implements Initializable {
         String role = cmbRole.getValue();
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || role == null) {
-            new Alert(Alert.AlertType.WARNING, "All fields are required!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "All fields are required!");
             return;
         }
 
         if (!"U001".equals(currentUserId)) {
             if (!Validation.isValidEmail(email)) {
-                new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid email format!");
                 return;
             }
         }
 
         if (userBo.isEmailExist(email, currentUserId)) {
-            new Alert(Alert.AlertType.WARNING, "Email already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Email already exists!");
             return;
         }
 
         if (userBo.isNameExist(name, currentUserId)) {
-            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Username already exists!");
             return;
         }
 
         if (password.length() < 5) {
-            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Password must be at least 5 characters!");
             return;
         }
 
         UserDto updatedUser = new UserDto(currentUserId, name, email, password, role);
         boolean success = userBo.updateUser(updatedUser);
         if (success) {
-            new Alert(Alert.AlertType.INFORMATION, "User updated successfully!").show();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User updated successfully!");
             loadAllUsers();
             clearFields();
         } else {
-            new Alert(Alert.AlertType.ERROR, "Failed to update user!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update user!");
         }
     }
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
         if ("U001".equals(currentUserId)) {
-            new Alert(Alert.AlertType.WARNING, "Cannot delete the main admin account!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Cannot delete the main admin account!");
             return;
         }
 
         if (DashboardController.userData != null && DashboardController.userData.getId().equals(currentUserId)) {
-            new Alert(Alert.AlertType.WARNING, "You cannot delete your own account!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "You cannot delete your own account!");
             return;
         }
 
@@ -193,11 +195,11 @@ public class AdminSettingsController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             boolean success = userBo.deleteUser(currentUserId);
             if (success) {
-                new Alert(Alert.AlertType.INFORMATION, "User deleted successfully!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User deleted successfully!");
                 loadAllUsers();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to delete user!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete user!");
             }
         }
     }
@@ -269,7 +271,7 @@ public class AdminSettingsController implements Initializable {
             btnUpdate.setDisable(false);
             btnDelete.setDisable(false);
         } else {
-            new Alert(Alert.AlertType.WARNING, "User not found!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "User not found!");
         }
     }
 

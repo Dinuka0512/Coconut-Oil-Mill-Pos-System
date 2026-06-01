@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
@@ -140,17 +142,17 @@ public class CustomerController implements Initializable {
         String contact = txtContact.getText();
 
         if (name.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Name Required!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Name Required!");
             return;
         }
 
         boolean isSaved = customerBO.saveCustomer(new CustomerDto(id, name, contact));
         if (isSaved) {
-            new Alert(Alert.AlertType.INFORMATION, "Customer Saved!").show();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Customer Saved!");
             loadAllCustomers();
             clearFields();
         } else {
-            new Alert(Alert.AlertType.ERROR, "Failed to save customer!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save customer!");
         }
     }
 
@@ -163,11 +165,11 @@ public class CustomerController implements Initializable {
 
         boolean isUpdated = customerBO.updateCustomer(new CustomerDto(id, name, contact));
         if (isUpdated) {
-            new Alert(Alert.AlertType.INFORMATION, "Customer Updated!").show();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Customer Updated!");
             loadAllCustomers();
             clearFields();
         } else {
-            new Alert(Alert.AlertType.ERROR, "Failed to update customer!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update customer!");
         }
     }
 
@@ -175,7 +177,7 @@ public class CustomerController implements Initializable {
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
         if ("CUST001".equals(currentCustomerId)) {
-            new Alert(Alert.AlertType.WARNING, "Demo customer cannot be deleted!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer cannot be deleted!");
             return;
         }
 
@@ -190,11 +192,11 @@ public class CustomerController implements Initializable {
             String id = currentCustomerId;
             boolean isDeleted = customerBO.deleteCustomer(id);
             if (isDeleted) {
-                new Alert(Alert.AlertType.INFORMATION, "Customer Deleted!").show();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Customer Deleted!");
                 loadAllCustomers();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to delete customer!").show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete customer!");
             }
         }
     }
@@ -235,7 +237,10 @@ public class CustomerController implements Initializable {
     //CUSTOMER SEARCH
     @FXML
     void txtSearchOnKeyReleased(KeyEvent event) {
-        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+        if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+            txtSearch.clear();
+            txtSearch.getParent().requestFocus();
+        } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
             performSearchWithAlert();
         } else {
             performSearch();
@@ -296,7 +301,7 @@ public class CustomerController implements Initializable {
             tblCustomer.getSelectionModel().select(foundCustomer);
             tblCustomer.scrollTo(foundCustomer);
         } else {
-            new Alert(Alert.AlertType.WARNING, "Customer not found!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Customer not found!");
         }
     }
 

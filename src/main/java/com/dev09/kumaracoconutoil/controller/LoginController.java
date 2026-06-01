@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
@@ -36,30 +38,30 @@ public class LoginController implements Initializable {
     @FXML
     void login(ActionEvent event) {
         if(txtUsername.getText().isEmpty()){
-            new Alert(Alert.AlertType.WARNING, "Required The username.").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Required The username.");
             return;
         }
 
         if(txtPassword.getText().isEmpty()){
-            new Alert(Alert.AlertType.WARNING, "Required The password.").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Required The password.");
             return;
         }
 
         UserExtraDto userExtraDto = userBo.loginByName(txtUsername.getText(), txtPassword.getText());
         if(userExtraDto == null){
-            new Alert(Alert.AlertType.ERROR, "Login service error. Please try again.").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Login service error. Please try again.");
             return;
         }
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
-            new Alert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage());
             if ("client".equals(userExtraDto.getUserDto().getRole())) {
                 mainNavigateTo("/view/clientDashboard.fxml");
             } else {
                 mainNavigateTo("/view/dashboard.fxml");
             }
         }else{
-            new Alert(Alert.AlertType.WARNING, userExtraDto.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, userExtraDto.getMessage());
         }
     }
 
@@ -96,7 +98,7 @@ public class LoginController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");
         }
     }
 }

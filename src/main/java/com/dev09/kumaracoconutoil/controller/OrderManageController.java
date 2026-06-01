@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
@@ -155,7 +157,7 @@ public class OrderManageController implements Initializable {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading orders: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading orders: " + e.getMessage());
         }
     }
 
@@ -200,11 +202,11 @@ public class OrderManageController implements Initializable {
                     }
                 }
                 if (tblOrders.getItems().isEmpty()) {
-                    new Alert(Alert.AlertType.INFORMATION, "No invoices found!").show();
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "No invoices found!");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error searching: " + e.getMessage()).show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error searching: " + e.getMessage());
             }
         } else {
             LocalDate selectedDate = datePicker.getValue();
@@ -218,7 +220,7 @@ public class OrderManageController implements Initializable {
     void btnViewBillOnAction(ActionEvent event) {
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an invoice from the table!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an invoice from the table!");
             return;
         }
         viewBill(selected.getOrderId());
@@ -228,7 +230,7 @@ public class OrderManageController implements Initializable {
         try {
             OrderEntity order = orderBO.getOrderWithProducts(orderId);
             if (order == null) {
-                new Alert(Alert.AlertType.WARNING, "Invoice not found!").show();
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Invoice not found!");
                 return;
             }
             
@@ -260,19 +262,19 @@ public class OrderManageController implements Initializable {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error generating bill: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating bill: " + e.getMessage());
         }
     }
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "Only admins can delete invoices!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can delete invoices!");
             return;
         }
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an invoice from the table!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an invoice from the table!");
             return;
         }
         
@@ -285,15 +287,15 @@ public class OrderManageController implements Initializable {
             try {
                 boolean success = orderBO.deleteOrder(selected.getOrderId());
                 if (success) {
-                    new Alert(Alert.AlertType.INFORMATION, "Invoice deleted successfully!").show();
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice deleted successfully!");
                     loadOrderDatesForMonth(YearMonth.from(datePicker.getValue()));
                     loadOrdersByDate(datePicker.getValue());
                 } else {
-                    new Alert(Alert.AlertType.ERROR, "Failed to delete invoice!").show();
+                    AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete invoice!");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error deleting order: " + e.getMessage()).show();
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error deleting order: " + e.getMessage());
             }
         }
     }
@@ -303,7 +305,7 @@ public class OrderManageController implements Initializable {
         datePicker.setValue(LocalDate.now());
         loadOrderDatesForMonth(YearMonth.now());
         loadOrdersByDate(datePicker.getValue());
-        new Alert(Alert.AlertType.INFORMATION, "Orders refreshed for today!").show();
+        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Orders refreshed for today!");
     }
 
     @FXML
@@ -319,11 +321,11 @@ public class OrderManageController implements Initializable {
     
     private void btnEditOnAction(OrderDto order) {
         if (order == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an invoice to edit!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an invoice to edit!");
             return;
         }
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            new Alert(Alert.AlertType.WARNING, "Only admins can edit invoices!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can edit invoices!");
             return;
         }
         try {
@@ -344,7 +346,7 @@ public class OrderManageController implements Initializable {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage()).show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage());
         }
     }
 }

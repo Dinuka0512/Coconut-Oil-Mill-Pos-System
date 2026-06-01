@@ -1,5 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AlertUtil;
+
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
@@ -45,7 +47,7 @@ public class SettingsController {
     @FXML
     void updateUser(ActionEvent event) {
         if (currentUser == null) {
-            new Alert(Alert.AlertType.ERROR, "No user logged in!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "No user logged in!");
             return;
         }
 
@@ -55,34 +57,34 @@ public class SettingsController {
         String newPassword = txtNewPassword.getText();
 
         if (newName.isEmpty() || newEmail.isEmpty() || currentPasswordInput.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "Name, Email, and Current Password are required!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Name, Email, and Current Password are required!");
             return;
         }
 
         if (!currentUser.getPassword().equals(currentPasswordInput)) {
-            new Alert(Alert.AlertType.ERROR, "Current password is incorrect!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Current password is incorrect!");
             return;
         }
 
         if (!"U001".equals(currentUser.getId())) {
             if (!Validation.isValidEmail(newEmail)) {
-                new Alert(Alert.AlertType.WARNING, "Invalid email format!").show();
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid email format!");
                 return;
             }
         }
 
         if (userBo.isEmailExist(newEmail, currentUser.getId())) {
-            new Alert(Alert.AlertType.WARNING, "Email already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Email already exists!");
             return;
         }
 
         if (userBo.isNameExist(newName, currentUser.getId())) {
-            new Alert(Alert.AlertType.WARNING, "Username already exists!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Username already exists!");
             return;
         }
 
         if (!newPassword.isEmpty() && newPassword.length() < 5) {
-            new Alert(Alert.AlertType.WARNING, "Password must be at least 5 characters!").show();
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Password must be at least 5 characters!");
             return;
         }
 
@@ -110,10 +112,10 @@ public class SettingsController {
             DashboardController.userData = updatedUser;
             currentUser = updatedUser;
             mainNavigateTo("/view/login.fxml");
-            new Alert(Alert.AlertType.INFORMATION, "Profile updated successfully!").show();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Profile updated successfully!");
             clearPasswordFields();
         } else {
-            new Alert(Alert.AlertType.ERROR, "Failed to update profile!").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update profile!");
         }
     }
 
@@ -130,7 +132,7 @@ public class SettingsController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Cannot load...").show();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");
         }
     }
 }

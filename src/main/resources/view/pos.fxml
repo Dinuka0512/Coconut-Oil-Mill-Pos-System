@@ -1,9 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="body" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.OrderController">
+<AnchorPane prefHeight="560.0" prefWidth="800.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SimplePOSController">
    <children>
-      <AnchorPane fx:id="posContent" prefHeight="517.0" prefWidth="796.0" />
+
+      <!-- Title -->
+      <Label layoutX="42.0" layoutY="43.0" text="POS System" textFill="#2c3e50">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+
+      <!-- Product & Quantity panel -->
+      <AnchorPane layoutX="483.0" layoutY="171.0" prefHeight="238.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+          <children>
+             <Label layoutX="15.0" layoutY="12.0" text="Product" textFill="#7f8c8d" />
+             <ComboBox fx:id="cmbProduct" editable="true" layoutX="13.0" layoutY="31.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type product name..." />
+
+             <Label layoutX="17.0" layoutY="131.0" text="Qty Buy (Kg)" textFill="#7f8c8d" />
+             <TextField fx:id="txtQty" layoutX="17.0" layoutY="149.0" onAction="#btnAddToCartOnAction" prefHeight="26.0" prefWidth="119.0" text="1" />
+
+             <Button layoutX="16.0" layoutY="193.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="32.0" prefWidth="246.0" style="-fx-background-color: #0B2447; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="#010d36" />
+             <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #ffa300; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
+             <Label layoutX="17.0" layoutY="68.0" text="Qty On Hand" textFill="#7f8c8d" />
+             <Label fx:id="lblQtyOnHand" layoutX="18.0" layoutY="81.0" text="0Kg" textFill="#7f8c8d">
+                <font>
+                   <Font name="System Bold" size="23.0" />
+                </font>
+             </Label>
+             <Label layoutX="143.0" layoutY="131.0" text="Unit Price (Rs.)" textFill="#7f8c8d" />
+             <TextField fx:id="txtUnitPriceDisplay" editable="false" layoutX="143.0" layoutY="149.0" prefHeight="26.0" prefWidth="119.0" />
+             <Line endX="147.800048828125" layoutX="114.0" layoutY="124.0" startX="-100.0" stroke="#00000043" />
+             <Label layoutX="123.0" layoutY="91.0" text="Product Code : " textFill="#7f8c8d" />
+             <Label layoutX="123.0" layoutY="74.0" text="Name : " textFill="#7f8c8d" />
+             <Label fx:id="lblItemName" layoutX="166.0" layoutY="74.0" text="-" textFill="#097637" />
+             <Label fx:id="lblItemCode" layoutX="206.0" layoutY="91.0" text="-" textFill="#0a5c1e" />
+          </children>
+      </AnchorPane>
+
+      <!-- Cart Table -->
+      <TableView fx:id="tblCart" layoutX="42.0" layoutY="86.0" prefHeight="393.0" prefWidth="426.0">
+          <columns>
+             <TableColumn fx:id="colIndex" minWidth="3.99993896484375" prefWidth="24.800018310546875" text="#" />
+             <TableColumn fx:id="colProduct" prefWidth="139.20004272460938" text="Product" />
+             <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="67.199951171875" text="Qty (Kg)" />
+             <TableColumn fx:id="colPrice" prefWidth="78.4000244140625" text="Unit Price" />
+             <TableColumn fx:id="colTotal" prefWidth="52.0" text="Total" />
+             <TableColumn fx:id="colAction" prefWidth="61.60001220703123" text="Remove" />
+          </columns>
+      </TableView>
+      <AnchorPane layoutX="483.0" layoutY="87.0" prefHeight="70.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+          <children>
+             <Label layoutX="12.0" layoutY="11.0" text="Customer" textFill="#7f8c8d" />
+             <ComboBox fx:id="cmbCustomer" editable="true" layoutX="12.0" layoutY="31.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type customer name..." />
+             <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #ffa300; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
+          </children>
+      </AnchorPane>
+      <Button layoutX="483.0" layoutY="422.0" mnemonicParsing="true" onAction="#btnPlaceOrderOnAction" prefHeight="58.0" prefWidth="278.0" style="-fx-background-color: #008402; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Place _Invoice (Ctrl+Enter)">
+          <font>
+             <Font size="17.0" />
+          </font>
+      </Button>
+      <Label fx:id="lblNetTotal" layoutX="42.0" layoutY="482.0" text="Total: Rs. 0.00" textFill="#d41200">
+          <font>
+             <Font name="System Bold" size="22.0" />
+          </font>
+      </Label>
+
    </children>
 </AnchorPane>
