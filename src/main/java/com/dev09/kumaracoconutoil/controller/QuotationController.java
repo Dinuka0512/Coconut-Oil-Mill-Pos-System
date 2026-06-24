@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -38,9 +36,6 @@ public class QuotationController implements Initializable {
 
     @FXML
     private AnchorPane body;
-
-    @FXML
-    private AnchorPane quotationContent;
 
     @FXML
     private ComboBox<String> cmbCustomerId;
@@ -64,31 +59,22 @@ public class QuotationController implements Initializable {
     private TableColumn<CartTM, Button> colAction;
 
     @FXML
-    private TextField txtTax;
-
-    @FXML
     private Label lblNetTotal;
-
-    @FXML
-    private Label lblQuotationId;
 
     @FXML
     private Label lblQtyOnHand;
 
     @FXML
-    private TextField txtUnitPrice;
+    private Label lblQuotationId;
 
     @FXML
-    private Label lblDate;
+    private TextField txtUnitPrice;
 
     @FXML
     private TableView<CartTM> tblCart;
 
     @FXML
     private TextField txtQty;
-
-    @FXML
-    private TextField txtDiscount;
 
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
@@ -98,13 +84,10 @@ public class QuotationController implements Initializable {
     private java.util.List<ProductDto> currentProducts;
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
-    private boolean isContentLoading = false;
+    private static int quotationCounter = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (isContentLoading) return;
-        isContentLoading = true;
-        loadContent();
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
@@ -113,33 +96,14 @@ public class QuotationController implements Initializable {
 
         tblCart.setItems(obList);
 
-        lblDate.setText(String.valueOf(LocalDate.now()));
-        setQuotationId();
         loadCustomerIds();
         loadProductIds();
-
-        txtDiscount.setText("0");
-        txtTax.setText("0");
-    }
-
-    private void loadContent() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/quotation_content.fxml"));
-            loader.setController(this);
-            isContentLoading = true;
-            javafx.scene.Parent root = loader.load();
-            quotationContent.getChildren().clear();
-            quotationContent.getChildren().add(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            isContentLoading = false;
-        }
+        setQuotationId();
     }
 
     private void setQuotationId() {
-        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        lblQuotationId.setText("QT-" + ts);
+        quotationCounter++;
+        lblQuotationId.setText(String.format("Q%03d", quotationCounter));
     }
 
     private void loadCustomerIds() {
@@ -385,45 +349,7 @@ public class QuotationController implements Initializable {
         for (CartTM tm : obList) {
             netTotal += tm.getTotal();
         }
-
-        double discountPercent = 0.0;
-        try {
-            String discountText = txtDiscount.getText();
-            if (discountText != null && !discountText.isEmpty()) {
-                discountPercent = Double.parseDouble(discountText);
-                if (discountPercent < 0) discountPercent = 0;
-            }
-        } catch (NumberFormatException e) {
-            discountPercent = 0.0;
-        }
-
-        double discountAmount = netTotal * (discountPercent / 100.0);
-        double totalAfterDiscount = netTotal - discountAmount;
-
-        double taxPercent = 0.0;
-        try {
-            String taxText = txtTax.getText();
-            if (taxText != null && !taxText.isEmpty()) {
-                taxPercent = Double.parseDouble(taxText);
-            }
-        } catch (NumberFormatException e) {
-            taxPercent = 0.0;
-        }
-
-        double taxAmount = totalAfterDiscount * (taxPercent / 100.0);
-        double finalTotal = totalAfterDiscount + taxAmount;
-
-        lblNetTotal.setText(String.format("%.2f", finalTotal));
-    }
-
-    @FXML
-    void txtDiscountOnKeyReleased(javafx.scene.input.KeyEvent event) {
-        calculateTotal();
-    }
-
-    @FXML
-    void txtTaxOnKeyReleased(javafx.scene.input.KeyEvent event) {
-        calculateTotal();
+        lblNetTotal.setText(String.format("%.2f", netTotal));
     }
 
     @FXML
@@ -434,19 +360,7 @@ public class QuotationController implements Initializable {
         }
 
         String quotationId = lblQuotationId.getText();
-        LocalDate date = LocalDate.parse(lblDate.getText());
-
-        double discount = 0.0;
-        double tax = 0.0;
-
-        try {
-            discount = Double.parseDouble(txtDiscount.getText());
-        } catch (NumberFormatException e) {
-        }
-        try {
-            tax = Double.parseDouble(txtTax.getText());
-        } catch (NumberFormatException e) {
-        }
+        LocalDate date = LocalDate.now();
 
         String customerName = selectedCustomer != null ? selectedCustomer.getName() : "-";
         String customerContact = selectedCustomer != null ? selectedCustomer.getContact() : null;
@@ -467,11 +381,11 @@ public class QuotationController implements Initializable {
                 if (result.get() == smallBtn) {
                     pdfBytes = PdfGenerator.generateQuotationBill80mm(
                             quotationId, date, customerName, customerContact,
-                            new ArrayList<>(obList), discount, tax);
+                            new ArrayList<>(obList), 0, 0);
                 } else {
                     pdfBytes = PdfGenerator.generateQuotationBillA4Pro(
                             quotationId, date, customerName, customerContact,
-                            new ArrayList<>(obList), discount, tax);
+                            new ArrayList<>(obList), 0, 0);
                 }
 
                 if (pdfBytes != null) {
@@ -499,9 +413,6 @@ public class QuotationController implements Initializable {
         obList.clear();
         tblCart.refresh();
 
-        setQuotationId();
-        lblDate.setText(String.valueOf(LocalDate.now()));
-
         cmbCustomerId.getItems().clear();
         cmbCustomerId.getSelectionModel().clearSelection();
         loadCustomerIds();
@@ -513,8 +424,6 @@ public class QuotationController implements Initializable {
         selectedProduct = null;
         clearProductFields();
 
-        txtDiscount.setText("0");
-        txtTax.setText("0");
         lblNetTotal.setText("0.00");
     }
 
