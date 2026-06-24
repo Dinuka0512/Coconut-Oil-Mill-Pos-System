@@ -11,6 +11,7 @@ import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,6 +20,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
@@ -42,31 +46,28 @@ public class UpdatePosController implements Initializable {
     private AnchorPane body;
 
     @FXML
-    private Button btnUpdate;
-
-    @FXML
     private ComboBox<String> cmbCustomerId;
 
     @FXML
     private ComboBox<String> cmbProductId;
 
     @FXML
+    private TableColumn<CartTM, Integer> colIndex;
+
+    @FXML
     private TableColumn<CartTM, String> colDescription;
 
     @FXML
-    private TableColumn<CartTM, Integer> colQty;
-
-    @FXML
-    private TableColumn<CartTM, Double> colTotal;
+    private TableColumn<CartTM, Double> colQty;
 
     @FXML
     private TableColumn<CartTM, Double> colUnitPrice;
 
     @FXML
-    private TableColumn<CartTM, Button> colAction;
+    private TableColumn<CartTM, Double> colTotal;
 
     @FXML
-    private Label lblBalance;
+    private TableColumn<CartTM, Button> colAction;
 
     @FXML
     private Label lblDate;
@@ -81,22 +82,19 @@ public class UpdatePosController implements Initializable {
     private Label lblQtyOnHand;
 
     @FXML
+    private Label lblItemName;
+
+    @FXML
+    private Label lblItemCode;
+
+    @FXML
     private TextField txtUnitPrice;
 
     @FXML
     private TableView<CartTM> tblOrderCart;
 
     @FXML
-    private TextField txtAmount;
-
-    @FXML
-    private TextField txtDiscount;
-
-    @FXML
     private TextField txtQty;
-
-    @FXML
-    private TextField txtTax;
 
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
@@ -112,6 +110,17 @@ public class UpdatePosController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        colIndex.setCellFactory(col -> new TableCell<CartTM, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(getIndex() + 1));
+                }
+            }
+        });
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
@@ -121,6 +130,35 @@ public class UpdatePosController implements Initializable {
         tblOrderCart.setItems(obList);
         loadCustomerIds();
         loadProductIds();
+
+        txtQty.setOnAction(e -> {
+            if (selectedProduct == null) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+                cmbProductId.requestFocus();
+                return;
+            }
+            try {
+                double qty = Double.parseDouble(txtQty.getText());
+                if (qty <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter a valid quantity!");
+                txtQty.requestFocus();
+                return;
+            }
+            txtUnitPrice.requestFocus();
+        });
+
+        txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
+
+        Platform.runLater(() -> {
+            Scene scene = tblOrderCart.getScene();
+            if (scene != null) {
+                scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN),
+                    () -> btnUpdateOrderOnAction(null)
+                );
+            }
+        });
     }
 
     private void loadCustomerIds() {
@@ -140,7 +178,7 @@ public class UpdatePosController implements Initializable {
             cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
         }
     }
-    
+
     @FXML
     void cmbCustomerOnAction(ActionEvent event) {
         String selection = cmbCustomerId.getValue();
@@ -200,6 +238,8 @@ public class UpdatePosController implements Initializable {
                     selectedProduct = dto;
                     txtUnitPrice.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
+                    lblItemName.setText(dto.getName());
+                    lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
                     txtQty.requestFocus();
                     break;
                 }
@@ -245,83 +285,102 @@ public class UpdatePosController implements Initializable {
     @FXML
     void btnAddToCartOnAction(ActionEvent event) {
         if (selectedProduct == null) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an inventory first!");
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a product first!");
             return;
         }
+
         String code = selectedProduct.getId();
         String description = selectedProduct.getName();
         double qty;
         try {
             qty = Double.parseDouble(txtQty.getText());
         } catch (NumberFormatException ex) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid quantity!");
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter a valid quantity!");
             return;
         }
-        
+
+        if (qty <= 0) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Quantity must be greater than zero!");
+            return;
+        }
+
         double qtyOnHand = selectedProduct.getQty();
-        
         double existingQtyInCart = 0;
-        for (int i = 0; i < obList.size(); i++) {
-            if (code.equals(obList.get(i).getCode())) {
-                existingQtyInCart = obList.get(i).getQty();
+        for (CartTM item : obList) {
+            if (code.equals(item.getCode())) {
+                existingQtyInCart = item.getQty();
                 break;
             }
         }
-        
+
         double totalQtyInCart = existingQtyInCart + qty;
-        
         if (totalQtyInCart > qtyOnHand) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
             return;
         }
-        
+
         try {
-            String priceStr = txtUnitPrice.getText();
-            double unitPrice = Double.parseDouble(priceStr.trim());
+            double unitPrice = Double.parseDouble(txtUnitPrice.getText().trim());
             double total = qty * unitPrice;
-            Button btn = new Button("Remove");
-            btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+            Button btn = new Button("X");
+            btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
 
             btn.setOnAction(e -> {
                 ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
                 ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-                Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
-
+                Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Remove this item?", yes, no).showAndWait();
                 if (result.orElse(no) == yes) {
+                    String prodCode = null;
+                    double removedQty = 0;
                     for (int i = 0; i < obList.size(); i++) {
                         if (obList.get(i).getBtn() == btn) {
-                            String prodCode = obList.get(i).getCode();
-                            double removedQty = obList.get(i).getQty();
-                            removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
-                            obList.remove(i);
-                            calculateTotal();
+                            prodCode = obList.get(i).getCode();
+                            removedQty = obList.get(i).getQty();
                             break;
                         }
                     }
+                    if (prodCode != null) {
+                        removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
+                    }
+                    obList.removeIf(item -> item.getBtn() == btn);
+                    calculateTotal();
                 }
             });
 
-            for (int i = 0; i < obList.size(); i++) {
-                if (code.equals(obList.get(i).getCode())) {
-                    qty += obList.get(i).getQty();
-                    total = unitPrice * qty;
-
-                    obList.get(i).setQty(qty);
-                    obList.get(i).setTotal(total);
-
+            boolean merged = false;
+            for (CartTM item : obList) {
+                if (code.equals(item.getCode()) && unitPrice == item.getUnitPrice()) {
+                    item.setQty(item.getQty() + qty);
+                    item.setTotal(item.getTotal() + total);
                     tblOrderCart.refresh();
-                    calculateTotal();
-                    txtQty.clear();
-                    return;
+                    merged = true;
+                    break;
                 }
             }
-            
-            obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
+
+            if (!merged) {
+                obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
+            }
             calculateTotal();
-            txtQty.clear();
+            clearProductSelection();
+            cmbProductId.requestFocus();
         } catch (NumberFormatException e) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid unit price!");
         }
+    }
+
+    private void clearProductSelection() {
+        selectedProduct = null;
+        txtQty.clear();
+        txtQty.setText("1");
+        txtUnitPrice.clear();
+        lblQtyOnHand.setText("0Kg");
+        lblItemName.setText("-");
+        lblItemCode.setText("-");
+        cmbProductId.getEditor().clear();
+        cmbProductId.getSelectionModel().clearSelection();
+        cmbProductId.getItems().clear();
+        loadProductIds();
     }
 
     private void calculateTotal() {
@@ -329,36 +388,7 @@ public class UpdatePosController implements Initializable {
         for (CartTM tm : obList) {
             netTotal += tm.getTotal();
         }
-
-        double discountPercent = 0.0;
-        try {
-            String discountText = txtDiscount.getText();
-            if (discountText != null && !discountText.trim().isEmpty()) {
-                discountText = discountText.replace("%", "").trim();
-                discountPercent = Double.parseDouble(discountText);
-            }
-        } catch (NumberFormatException e) {
-            discountPercent = 0.0;
-        }
-
-        double discountAmount = netTotal * (discountPercent / 100.0);
-        double totalAfterDiscount = netTotal - discountAmount;
-
-        double taxPercent = 0.0;
-        try {
-            String taxText = txtTax.getText();
-            if (taxText != null && !taxText.trim().isEmpty()) {
-                taxPercent = Double.parseDouble(taxText.trim());
-            }
-        } catch (NumberFormatException e) {
-            taxPercent = 0.0;
-        }
-
-        double taxAmount = totalAfterDiscount * (taxPercent / 100.0);
-        double finalTotal = totalAfterDiscount + taxAmount;
-
-        lblNetTotal.setText(String.format("%.2f", finalTotal));
-        calculateBalance();
+        lblNetTotal.setText(String.format("Total: Rs. %.2f", netTotal));
     }
 
     public void loadOrderForEdit(OrderDto orderDto) {
@@ -376,37 +406,34 @@ public class UpdatePosController implements Initializable {
                 selectedCustomer = orderDto.getCustomer();
             }
 
-            txtDiscount.setText(orderDto.getDiscount() > 0 ? String.valueOf(orderDto.getDiscount()) : "");
-            txtTax.setText(orderDto.getTax() > 0 ? String.valueOf(orderDto.getTax()) : "");
-            txtAmount.setText("");
-            
             if (orderDto.getOrderProducts() != null) {
-                double cartTotal = 0;
                 for (OrderProductDetailsDto detail : orderDto.getOrderProducts()) {
                     if (detail.getProduct() != null) {
                         ProductDto product = detail.getProduct();
                         double qty = detail.getQuantity();
                         double unitPrice = detail.getUnitPrice();
                         double total = qty * unitPrice;
-                        cartTotal += total;
 
-                        Button btn = new Button("Remove");
-                        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+                        Button btn = new Button("X");
+                        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
                         btn.setOnAction(e -> {
                             ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
                             ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-                            Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
+                            Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Remove this item?", yes, no).showAndWait();
                             if (result.orElse(no) == yes) {
-                                String prodCode = product.getId();
+                                String prodCode = null;
                                 double removedQty = 0;
-                                for (CartTM item : obList) {
-                                    if (item.getCode().equals(prodCode)) {
-                                        removedQty = item.getQty();
+                                for (int i = 0; i < obList.size(); i++) {
+                                    if (obList.get(i).getBtn() == btn) {
+                                        prodCode = obList.get(i).getCode();
+                                        removedQty = obList.get(i).getQty();
                                         break;
                                     }
                                 }
-                                removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
-                                obList.removeIf(item -> item.getCode().equals(prodCode));
+                                if (prodCode != null) {
+                                    removedQtyMap.put(prodCode, removedQtyMap.getOrDefault(prodCode, 0.0) + removedQty);
+                                }
+                                obList.removeIf(item -> item.getBtn() == btn);
                                 calculateTotal();
                             }
                         });
@@ -414,41 +441,16 @@ public class UpdatePosController implements Initializable {
                         obList.add(new CartTM(product.getId(), product.getName(), qty, unitPrice, total, btn));
                     }
                 }
-                lblNetTotal.setText(String.format("%.2f", cartTotal));
             }
-            
-            lblBalance.setText("0.00/");
+
             tblOrderCart.refresh();
             calculateTotal();
+
+            Platform.runLater(() -> cmbProductId.requestFocus());
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading order: " + e.getMessage());
         }
-    }
-
-    private void calculateBalance() {
-        try {
-            double netTotal = Double.parseDouble(lblNetTotal.getText());
-            double amount = 0;
-            String amountText = txtAmount.getText();
-            if (amountText != null && !amountText.trim().isEmpty()) {
-                amount = Double.parseDouble(amountText.trim());
-            }
-            
-            if (amount < netTotal) {
-                lblBalance.setText("Insufficient/");
-                lblBalance.setStyle("-fx-text-fill: #e74c3c;");
-            } else {
-                double balance = amount - netTotal;
-                lblBalance.setText(String.format("%.2f/", balance));
-                lblBalance.setStyle("-fx-text-fill: #00a118;");
-            }
-        } catch (NumberFormatException e) {
-            lblBalance.setText("0.00/");
-        }
-    }
-
-    private void validateDiscount() {
     }
 
     @FXML
@@ -460,7 +462,7 @@ public class UpdatePosController implements Initializable {
             stage.setTitle("New Customer");
             stage.setResizable(false);
             stage.showAndWait();
-            
+
             cmbCustomerId.getItems().clear();
             loadCustomerIds();
         } catch (Exception e) {
@@ -478,17 +480,13 @@ public class UpdatePosController implements Initializable {
             stage.setTitle("New Inventory");
             stage.setResizable(false);
             stage.showAndWait();
-            
+
             cmbProductId.getItems().clear();
             loadProductIds();
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage());
         }
-    }
-
-    @FXML
-    void btnUpdateOnAction(ActionEvent event) {
     }
 
     @FXML
@@ -501,59 +499,16 @@ public class UpdatePosController implements Initializable {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a customer!");
             return;
         }
-        
+
         if (obList.isEmpty()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please add inventory items to the cart!");
             return;
         }
-        
+
         try {
             double netTotal = 0.0;
             for (CartTM tm : obList) {
                 netTotal += tm.getTotal();
-            }
-            
-            double discountPercent = 0.0;
-            try {
-                String discountText = txtDiscount.getText();
-                if (discountText != null && !discountText.trim().isEmpty()) {
-                    discountText = discountText.replace("%", "").trim();
-                    discountPercent = Double.parseDouble(discountText);
-                }
-            } catch (NumberFormatException e) {
-                discountPercent = 0.0;
-            }
-            
-            double discountAmount = netTotal * (discountPercent / 100.0);
-            double totalAfterDiscount = netTotal - discountAmount;
-            
-            double taxPercent = 0.0;
-            try {
-                String taxText = txtTax.getText();
-                if (taxText != null && !taxText.trim().isEmpty()) {
-                    taxPercent = Double.parseDouble(taxText.trim());
-                }
-            } catch (NumberFormatException e) {
-                taxPercent = 0.0;
-            }
-            
-            double taxAmount = totalAfterDiscount * (taxPercent / 100.0);
-            double finalTotal = totalAfterDiscount + taxAmount;
-            
-            double amountPaid = 0;
-            try {
-                String amountText = txtAmount.getText();
-                if (amountText != null && !amountText.trim().isEmpty()) {
-                    amountPaid = Double.parseDouble(amountText.trim());
-                }
-            } catch (NumberFormatException e) {
-                amountPaid = 0;
-            }
-            
-            double balance = amountPaid - finalTotal;
-            if (balance < 0) {
-                AlertUtil.showAlert(Alert.AlertType.WARNING, "Amount paid must be at least the total amount!");
-                return;
             }
 
             java.util.Map<String, Double> originalCartQty = new java.util.HashMap<>();
@@ -590,34 +545,34 @@ public class UpdatePosController implements Initializable {
                     productBO.updateStock(prodId, newCartQty.get(prodId));
                 }
             }
-            
+
             ArrayList<OrderProductDetailsDto> orderProducts = new ArrayList<>();
             for (CartTM tm : obList) {
                 ProductDto product = new ProductDto();
                 product.setId(tm.getCode());
                 product.setName(tm.getDescription());
-                
+
                 OrderProductDetailsDto detail = new OrderProductDetailsDto();
                 detail.setProduct(product);
                 detail.setQuantity(tm.getQty());
                 detail.setUnitPrice(tm.getUnitPrice());
                 orderProducts.add(detail);
             }
-            
+
             OrderDto orderDto = new OrderDto();
             orderDto.setOrderId(lblOrderId.getText());
             orderDto.setDate(LocalDate.parse(lblDate.getText()));
             orderDto.setCustomer(selectedCustomer);
             orderDto.setOrderProducts(orderProducts);
-            orderDto.setAmountPaid(amountPaid);
-            orderDto.setDiscount(discountPercent);
-            orderDto.setTax(taxPercent);
-            orderDto.setBalance(balance);
-            
+            orderDto.setAmountPaid(netTotal);
+            orderDto.setDiscount(0);
+            orderDto.setTax(0);
+            orderDto.setBalance(0);
+
             boolean success = orderBO.updateOrder(orderDto);
             if (success) {
                 AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice updated successfully!");
-                
+
                 Stage stage = (Stage) body.getScene().getWindow();
                 stage.close();
             } else {
@@ -627,20 +582,6 @@ public class UpdatePosController implements Initializable {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Error updating order: " + e.getMessage());
         }
-    }
-
-    @FXML
-    void txtDiscountOnAction(ActionEvent event) {
-    }
-
-    @FXML
-    void txtDiscountOnKeyReleased(KeyEvent event) {
-        calculateTotal();
-    }
-
-    @FXML
-    void txtAmountOnKeyReleased(KeyEvent event) {
-        calculateBalance();
     }
 
 }
