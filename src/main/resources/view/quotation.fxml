@@ -18,11 +18,6 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
-      <Label fx:id="lblQuotationId" layoutX="145.0" layoutY="29.0" text="Q001" textFill="#00a118">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
 
       <AnchorPane layoutX="474.0" layoutY="152.0" prefHeight="238.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
@@ -51,8 +46,8 @@
             <TableColumn fx:id="colDescription" prefWidth="139.20004272460938" text="Inventory" />
             <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="67.199951171875" text="Qty (Kg)" />
             <TableColumn fx:id="colUnitPrice" prefWidth="78.4000244140625" text="Unit Price" />
-            <TableColumn fx:id="colTotal" prefWidth="85.0" text="Total" />
-            <TableColumn fx:id="colAction" prefWidth="61.60001220703123" text="Remove" />
+            <TableColumn fx:id="colTotal" prefWidth="67.199951171875" text="Total" />
+            <TableColumn fx:id="colAction" prefWidth="80.800048828125" text="Remove" />
          </columns>
       </TableView>
       <AnchorPane layoutX="474.0" layoutY="68.0" prefHeight="70.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
@@ -62,7 +57,7 @@
             <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
          </children>
       </AnchorPane>
-      <Button layoutX="474.0" layoutY="403.0" mnemonicParsing="false" onAction="#btnGeneratePdfOnAction" prefHeight="58.0" prefWidth="278.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GENERATE PDF">
+      <Button layoutX="474.0" layoutY="403.0" mnemonicParsing="false" onAction="#btnGeneratePdfOnAction" prefHeight="58.0" prefWidth="278.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GENERATE PDF (Ctrl+Enter)">
          <font>
             <Font size="17.0" />
          </font>

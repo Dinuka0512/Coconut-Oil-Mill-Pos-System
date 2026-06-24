@@ -17,6 +17,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -65,9 +69,6 @@ public class QuotationController implements Initializable {
     private Label lblQtyOnHand;
 
     @FXML
-    private Label lblQuotationId;
-
-    @FXML
     private TextField txtUnitPrice;
 
     @FXML
@@ -85,6 +86,7 @@ public class QuotationController implements Initializable {
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
     private static int quotationCounter = 0;
+    private String currentQuotationId;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -99,11 +101,25 @@ public class QuotationController implements Initializable {
         loadCustomerIds();
         loadProductIds();
         setQuotationId();
+
+        txtQty.setOnAction(e -> txtUnitPrice.requestFocus());
+        txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
+
+        javafx.application.Platform.runLater(() -> {
+            cmbProductId.requestFocus();
+            javafx.scene.Scene scene = tblCart.getScene();
+            if (scene != null) {
+                scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN),
+                    () -> btnGeneratePdfOnAction(null)
+                );
+            }
+        });
     }
 
     private void setQuotationId() {
         quotationCounter++;
-        lblQuotationId.setText(String.format("Q%03d", quotationCounter));
+        currentQuotationId = String.format("Q%03d", quotationCounter);
     }
 
     private void loadCustomerIds() {
@@ -274,7 +290,6 @@ public class QuotationController implements Initializable {
         }
         String code = selectedProduct.getId();
         String description = selectedProduct.getName();
-        double availableQty = selectedProduct.getQty();
         double qty;
         try {
             qty = Double.parseDouble(txtQty.getText());
@@ -301,44 +316,28 @@ public class QuotationController implements Initializable {
                 Optional<ButtonType> result = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to remove?", yes, no).showAndWait();
 
                 if (result.orElse(no) == yes) {
-                    for (int i = 0; i < obList.size(); i++) {
-                        if (obList.get(i).getBtn() == btn) {
-                            obList.remove(i);
-                            calculateTotal();
-                            break;
-                        }
-                    }
+                    obList.removeIf(item -> item.getBtn() == btn);
+                    calculateTotal();
                 }
             });
 
-            for (int i = 0; i < obList.size(); i++) {
-                if (code.equals(obList.get(i).getCode())) {
-                    double newQty = qty + obList.get(i).getQty();
-                    if (newQty > availableQty) {
-                        AlertUtil.showAlert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg");
-                        return;
-                    }
-                    qty = newQty;
-                    total = unitPrice * qty;
-
-                    obList.get(i).setQty(qty);
-                    obList.get(i).setTotal(total);
-
+            boolean merged = false;
+            for (CartTM item : obList) {
+                if (code.equals(item.getCode()) && unitPrice == item.getUnitPrice()) {
+                    item.setQty(item.getQty() + qty);
+                    item.setTotal(item.getTotal() + total);
                     tblCart.refresh();
-                    calculateTotal();
-                    txtQty.clear();
-                    return;
+                    merged = true;
+                    break;
                 }
             }
 
-            if (qty > availableQty) {
-                AlertUtil.showAlert(Alert.AlertType.WARNING, "Insufficient stock! Available: " + availableQty + " Kg");
-                return;
+            if (!merged) {
+                obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
             }
-
-            obList.add(new CartTM(code, description, qty, unitPrice, total, btn));
             calculateTotal();
-            txtQty.clear();
+            clearProductSelection();
+            cmbProductId.requestFocus();
         } catch (NumberFormatException e) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid unit price!");
         }
@@ -349,7 +348,7 @@ public class QuotationController implements Initializable {
         for (CartTM tm : obList) {
             netTotal += tm.getTotal();
         }
-        lblNetTotal.setText(String.format("%.2f", netTotal));
+        lblNetTotal.setText(String.format("Total: Rs. %.2f", netTotal));
     }
 
     @FXML
@@ -359,7 +358,7 @@ public class QuotationController implements Initializable {
             return;
         }
 
-        String quotationId = lblQuotationId.getText();
+        String quotationId = currentQuotationId;
         LocalDate date = LocalDate.now();
 
         String customerName = selectedCustomer != null ? selectedCustomer.getName() : "-";
@@ -401,12 +400,16 @@ public class QuotationController implements Initializable {
         }
     }
 
-    private void clearProductFields() {
-        cmbProductId.getSelectionModel().clearSelection();
+    private void clearProductSelection() {
         selectedProduct = null;
-        txtUnitPrice.clear();
-        lblQtyOnHand.setText("");
         txtQty.clear();
+        txtQty.setText("1");
+        txtUnitPrice.clear();
+        lblQtyOnHand.setText("0Kg");
+        cmbProductId.getEditor().clear();
+        cmbProductId.getSelectionModel().clearSelection();
+        cmbProductId.getItems().clear();
+        loadProductIds();
     }
 
     private void resetForm() {
@@ -418,13 +421,9 @@ public class QuotationController implements Initializable {
         loadCustomerIds();
         selectedCustomer = null;
 
-        cmbProductId.getItems().clear();
-        cmbProductId.getSelectionModel().clearSelection();
-        loadProductIds();
-        selectedProduct = null;
-        clearProductFields();
+        clearProductSelection();
 
-        lblNetTotal.setText("0.00");
+        lblNetTotal.setText("Total: Rs. 0.00");
     }
 
     @FXML

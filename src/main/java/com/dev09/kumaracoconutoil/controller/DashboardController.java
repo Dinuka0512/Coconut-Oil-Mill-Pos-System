@@ -342,4 +342,9 @@ public class DashboardController implements Initializable {
     void goToQuotation(ActionEvent event) {
         subNavigateTo("/view/quotation.fxml");
     }
+
+    @FXML
+    void goToPrevious(ActionEvent event) {
+        subNavigateTo("/view/OrderManage.fxml");
+    }
 }
