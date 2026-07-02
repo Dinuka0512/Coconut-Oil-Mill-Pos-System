@@ -20,4 +20,7 @@ public interface OrderBO extends SuperBo {
     OrderEntity getOrderById(String orderId) throws SQLException, ClassNotFoundException;
     OrderEntity getOrderWithProducts(String orderId) throws SQLException, ClassNotFoundException;
     List<LocalDate> getOrderDatesByMonth(int year, int month) throws SQLException, ClassNotFoundException;
+    double getTotalDueByCustomer(String customerId) throws SQLException, ClassNotFoundException;
+    List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) throws SQLException, ClassNotFoundException;
+    double payCustomerDue(String customerId, double amount) throws SQLException, ClassNotFoundException;
 }

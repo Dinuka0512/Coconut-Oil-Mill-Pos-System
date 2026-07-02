@@ -321,6 +321,10 @@ public class UpdatePosController implements Initializable {
 
         try {
             double unitPrice = Double.parseDouble(txtUnitPrice.getText().trim());
+            if (unitPrice <= 0) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Unit price must be greater than zero!");
+                return;
+            }
             double total = qty * unitPrice;
             Button btn = new Button("X");
             btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");

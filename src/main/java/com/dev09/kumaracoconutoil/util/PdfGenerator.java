@@ -1205,22 +1205,42 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         // Payment info box (border around payment section)
         c.setLineWidth(0.5f);
         c.setStrokingColor(0f, 0f, 0f);
-        c.addRect(x, y - 34, w, 34);
+        c.addRect(x, y - 48, w, 48);
         c.stroke();
 
         // Payment method (left) and Paid amount (right) on same line
-        c.beginText(); c.newLineAtOffset(x + 5, y - 12); c.showText("PAYMENT: CASH"); c.endText();
+        String method = order.getPaymentMethod();
+        if (method == null || method.isEmpty()) method = "CASH";
+        c.beginText(); c.newLineAtOffset(x + 5, y - 12); c.showText("PAYMENT: " + method); c.endText();
 
-        double paid = order.getAmountPaid(); // Use actual paid amount from order
+        double paid = order.getAmountPaid();
         String s1 = String.format("Paid: LKR %.2f", paid);
         float tw = getThermalTextWidth(s1, 8);
         c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 12); c.showText(s1); c.endText();
-        y -= 14;
+        y -= 16;
 
-        // Balance on next line (LEFT aligned)
-        double balance = order.getBalance(); // Use actual balance from order
-        String s2 = String.format("Balance: LKR %.2f", balance);
-        c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(s2); c.endText();
+        // Balance
+        double balance = order.getBalance();
+        if (balance < 0) {
+            String due = String.format("Due Amount: LKR %.2f", Math.abs(balance));
+            c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(due); c.endText();
+            c.setNonStrokingColor(0.8f, 0f, 0f);
+            tw = getThermalTextWidth(due, 8);
+            c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText("UNPAID"); c.endText();
+        } else {
+            String balStr = String.format("Balance: LKR %.2f", balance);
+            c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(balStr); c.endText();
+            if (balance > 0) {
+                c.setNonStrokingColor(0f, 0.5f, 0f);
+                tw = getThermalTextWidth("CHANGE", 8);
+                c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText("CHANGE"); c.endText();
+            } else {
+                c.setNonStrokingColor(0f, 0.5f, 0f);
+                tw = getThermalTextWidth("PAID", 8);
+                c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText("PAID"); c.endText();
+            }
+        }
+        c.setNonStrokingColor(0f, 0f, 0f);
         y -= 20;
 
         return y;
@@ -1441,10 +1461,26 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.setFont(PDType1Font.HELVETICA, 10); c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
 
             // Payment left side
+            String method = order.getPaymentMethod();
+            if (method == null || method.isEmpty()) method = "CASH";
+            double balance = order.getBalance();
             c.setLineWidth(0.5f); c.setStrokingColor(0.7f, 0.7f, 0.7f);
-            c.addRect(m, y - 30, 200, 30); c.stroke();
+            c.addRect(m, y - 44, 200, 44); c.stroke();
             c.setFont(PDType1Font.HELVETICA_BOLD, 9); c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
-            c.beginText(); c.newLineAtOffset(m + 10, y - 15); c.showText("PAYMENT METHOD: CASH"); c.endText();
+            c.beginText(); c.newLineAtOffset(m + 10, y - 15); c.showText("PAYMENT: " + method); c.endText();
+            c.setFont(PDType1Font.HELVETICA, 9);
+            String paidStr = String.format("Paid: LKR %,.2f", order.getAmountPaid());
+            c.beginText(); c.newLineAtOffset(m + 10, y - 30); c.showText(paidStr); c.endText();
+            if (balance < 0) {
+                c.setNonStrokingColor(0.8f, 0f, 0f);
+                String dueStr = String.format("Due: LKR %,.2f", Math.abs(balance));
+                c.beginText(); c.newLineAtOffset(m + 10, y - 42); c.showText(dueStr); c.endText();
+            } else {
+                c.setNonStrokingColor(0f, 0.5f, 0f);
+                String balStr = balance > 0 ? String.format("Change: LKR %,.2f", balance) : "Settled";
+                c.beginText(); c.newLineAtOffset(m + 10, y - 42); c.showText(balStr); c.endText();
+            }
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
 
             // Subtotal
             String subStr = String.format("Sub Total: LKR %,.2f", grandTotal);

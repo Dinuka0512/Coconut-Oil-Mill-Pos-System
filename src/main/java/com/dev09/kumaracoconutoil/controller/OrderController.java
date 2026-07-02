@@ -483,7 +483,7 @@ public class OrderController implements Initializable {
             details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
         }
 
-        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, 0, taxRate, balance);
+        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, 0, taxRate, balance, null);
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {

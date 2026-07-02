@@ -13,11 +13,12 @@ public class OrderDto {
     private double tax;
     private double taxRate; // Tax rate at time of order (e.g., 8.0 for 8%)
     private double balance;
+    private String paymentMethod;
 
     public OrderDto() {}
 
     public OrderDto(String orderId, LocalDate date, CustomerDto customer, List<OrderProductDetailsDto> orderProducts,
-                    double amountPaid, double discount, double tax, double taxRate, double balance) {
+                    double amountPaid, double discount, double tax, double taxRate, double balance, String paymentMethod) {
         this.orderId = orderId;
         this.date = date;
         this.customer = customer;
@@ -27,6 +28,7 @@ public class OrderDto {
         this.tax = tax;
         this.taxRate = taxRate;
         this.balance = balance;
+        this.paymentMethod = paymentMethod;
     }
 
     public String getOrderId() { return orderId; }
@@ -47,6 +49,8 @@ public class OrderDto {
     public void setTaxRate(double taxRate) { this.taxRate = taxRate; }
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 
     public String getCustomerName() {
         return customer != null ? customer.getName() : "";

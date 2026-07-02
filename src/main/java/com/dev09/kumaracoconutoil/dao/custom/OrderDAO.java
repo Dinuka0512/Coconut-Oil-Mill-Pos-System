@@ -11,4 +11,6 @@ import java.util.List;
 public interface OrderDAO extends SuperDAO, CrudDAO<OrderEntity> {
     OrderEntity searchWithProducts(String orderId);
     List<LocalDate> getOrderDatesByMonth(int year, int month);
+    double getTotalDueByCustomer(String customerId);
+    List<OrderEntity> getUnpaidOrdersByCustomer(String customerId);
 }

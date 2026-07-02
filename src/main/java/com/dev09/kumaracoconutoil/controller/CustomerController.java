@@ -4,6 +4,7 @@ import com.dev09.kumaracoconutoil.util.AlertUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
+import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,6 +40,9 @@ public class CustomerController implements Initializable {
     private TableColumn<CustomerDto, String> colName;
 
     @FXML
+    private TableColumn<CustomerDto, Double> colDue;
+
+    @FXML
     private TableView<CustomerDto> tblCustomer;
 
     @FXML
@@ -63,6 +67,7 @@ public class CustomerController implements Initializable {
     private Button btnUpdate;
 
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
+    private OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private String currentCustomerId;
 
     private void setupShortcuts(Scene scene) {
@@ -89,6 +94,7 @@ public class CustomerController implements Initializable {
 
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
+        colDue.setCellValueFactory(new PropertyValueFactory<>("dueAmount"));
 
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
@@ -127,6 +133,14 @@ public class CustomerController implements Initializable {
     private void loadAllCustomers() {
         tblCustomer.getItems().clear();
         ArrayList<CustomerDto> allCustomers = customerBO.getAllCustomers();
+        for (CustomerDto dto : allCustomers) {
+            try {
+                double due = orderBO.getTotalDueByCustomer(dto.getCustId());
+                dto.setDueAmount(due);
+            } catch (Exception e) {
+                dto.setDueAmount(0.0);
+            }
+        }
         tblCustomer.setItems(FXCollections.observableArrayList(allCustomers));
     }
 

@@ -59,12 +59,13 @@
           </columns>
       </TableView>
       <AnchorPane layoutX="483.0" layoutY="87.0" prefHeight="70.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
-          <children>
-             <Label layoutX="12.0" layoutY="11.0" text="Customer" textFill="#7f8c8d" />
-             <ComboBox fx:id="cmbCustomer" editable="true" layoutX="12.0" layoutY="31.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type customer name..." />
-             <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #ffa300; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
-          </children>
-      </AnchorPane>
+           <children>
+              <Label layoutX="12.0" layoutY="11.0" text="Customer" textFill="#7f8c8d" />
+              <ComboBox fx:id="cmbCustomer" editable="true" layoutX="12.0" layoutY="31.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type customer name..." />
+              <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #ffa300; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
+           </children>
+       </AnchorPane>
+      <Label fx:id="lblDueWarning" layoutX="486.0" layoutY="160.0" prefHeight="18.0" prefWidth="272.0" textFill="#c0392b" visible="false" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-background-color: #fde8e8; -fx-padding: 2 5; -fx-background-radius: 3;" />
       <Button layoutX="483.0" layoutY="422.0" mnemonicParsing="true" onAction="#btnPlaceOrderOnAction" prefHeight="58.0" prefWidth="278.0" style="-fx-background-color: #008402; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Place _Invoice (Ctrl+Enter)">
           <font>
              <Font size="17.0" />

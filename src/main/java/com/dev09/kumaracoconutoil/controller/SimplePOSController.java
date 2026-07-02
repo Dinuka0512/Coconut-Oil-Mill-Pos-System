@@ -6,8 +6,6 @@ import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
-import com.dev09.kumaracoconutoil.dto.OrderDto;
-import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.collections.FXCollections;
@@ -26,11 +24,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
-import java.awt.Desktop;
-import java.io.File;
 import java.net.URL;
-import java.nio.file.Files;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -54,6 +48,9 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     private Label lblNetTotal;
+
+    @FXML
+    private Label lblDueWarning;
 
     @FXML
     private Label lblItemName;
@@ -169,6 +166,7 @@ public class SimplePOSController implements Initializable {
             }
             index++;
         }
+        checkCustomerDue();
     }
 
     @FXML
@@ -232,8 +230,25 @@ public class SimplePOSController implements Initializable {
             for (CustomerDto dto : currentCustomers) {
                 if ((dto.getName() + " - " + dto.getContact()).equals(selection)) {
                     selectedCustomer = dto;
+                    checkCustomerDue();
                     break;
                 }
+            }
+        }
+    }
+
+    private void checkCustomerDue() {
+        if (selectedCustomer != null) {
+            try {
+                double due = orderBO.getTotalDueByCustomer(selectedCustomer.getCustId());
+                if (due > 0) {
+                    lblDueWarning.setText("⚠ Due: Rs. " + String.format("%.2f", due));
+                    lblDueWarning.setVisible(true);
+                } else {
+                    lblDueWarning.setVisible(false);
+                }
+            } catch (Exception e) {
+                lblDueWarning.setVisible(false);
             }
         }
     }
@@ -348,6 +363,10 @@ public class SimplePOSController implements Initializable {
 
         try {
             double unitPrice = Double.parseDouble(txtUnitPriceDisplay.getText().trim());
+            if (unitPrice <= 0) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Unit price must be greater than zero!");
+                return;
+            }
             double total = qty * unitPrice;
             Button btn = new Button("X");
             btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
@@ -419,56 +438,25 @@ public class SimplePOSController implements Initializable {
         }
 
         try {
-            String orderId = orderBO.generateNextOrderId();
-            LocalDate date = LocalDate.now();
-
-            ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
-            for (CartTM tm : obList) {
-                ProductDto productDto = productBO.searchProduct(tm.getCode());
-                details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
-            }
-
             String totalText = lblNetTotal.getText().replace("Total: Rs. ", "").trim();
             double netTotal = Double.parseDouble(totalText);
 
-            OrderDto orderDto = new OrderDto(orderId, date, selectedCustomer, details, netTotal, 0, 0, 0, 0);
-            boolean isPlaced = orderBO.placeOrder(orderDto);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/balance.fxml"));
+            Parent root = loader.load();
+            BalanceController balanceController = loader.getController();
 
-            if (isPlaced) {
-                Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                printAlert.setTitle("Print Bill");
-                printAlert.setHeaderText("Invoice Placed Successfully!");
-                printAlert.setContentText("Choose PDF format:");
+            balanceController.setOrderData(obList, selectedCustomer, netTotal);
 
-                ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
-                ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
-                printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
+            Stage balanceStage = new Stage();
+            balanceStage.setScene(new Scene(root));
+            balanceStage.setTitle("Payment / Balance");
+            balanceStage.setResizable(false);
+            balanceStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            balanceStage.showAndWait();
 
-                Optional<ButtonType> result = printAlert.showAndWait();
-                if (result.isPresent()) {
-                    try {
-                        byte[] pdfBytes;
-                        if (result.get() == smallBtn) {
-                            pdfBytes = orderBO.generateOrderBill80mm(orderId);
-                        } else {
-                            pdfBytes = orderBO.generateOrderBillA4(orderId);
-                        }
-
-                        if (pdfBytes != null) {
-                            File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                            Files.write(tempFile.toPath(), pdfBytes);
-                            Desktop.getDesktop().open(tempFile);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating bill: " + ex.getMessage());
-                    }
-                }
-
+            if (balanceController.isOrderPlaced()) {
                 Stage stage = (Stage) tblCart.getScene().getWindow();
                 stage.close();
-            } else {
-                AlertUtil.showAlert(Alert.AlertType.ERROR, "Invoice Placement Failed!");
             }
         } catch (Exception e) {
             e.printStackTrace();

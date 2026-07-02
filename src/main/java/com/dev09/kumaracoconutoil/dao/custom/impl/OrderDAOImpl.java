@@ -141,6 +141,35 @@ public class OrderDAOImpl implements OrderDAO {
     }
 
     @Override
+    public double getTotalDueByCustomer(String customerId) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<Double> query = session.createQuery(
+                "SELECT COALESCE(SUM(o.balance), 0) FROM OrderEntity o WHERE o.customer.custId = :custId AND o.balance < 0",
+                Double.class);
+            query.setParameter("custId", customerId);
+            Double result = query.uniqueResult();
+            return result != null ? -result : 0.0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<OrderEntity> query = session.createQuery(
+                "SELECT o FROM OrderEntity o WHERE o.customer.custId = :custId AND o.balance < 0 ORDER BY o.date ASC, o.orderId ASC",
+                OrderEntity.class);
+            query.setParameter("custId", customerId);
+            return query.list();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public OrderEntity searchWithProducts(String orderId) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {

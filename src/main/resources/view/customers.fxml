@@ -36,8 +36,9 @@
       
       <TableView fx:id="tblCustomer" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
         <columns>
-          <TableColumn fx:id="colName" prefWidth="368.80005645751953" text="Name" />
-          <TableColumn fx:id="colContact" prefWidth="362.3999328613281" text="Contact" />
+          <TableColumn fx:id="colName" prefWidth="280.0" text="Name" />
+          <TableColumn fx:id="colContact" prefWidth="260.0" text="Contact" />
+          <TableColumn fx:id="colDue" prefWidth="190.0" text="Due Amount (Rs.)" />
         </columns>
       </TableView>
    </children>

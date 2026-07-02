@@ -39,6 +39,7 @@ public class OrderBOImpl implements OrderBO {
             entity.setTax(dto.getTax());
             entity.setTaxRate(dto.getTaxRate()); // Save tax rate
             entity.setBalance(dto.getBalance());
+            entity.setPaymentMethod(dto.getPaymentMethod());
             
             com.dev09.kumaracoconutoil.entity.CustomerEntity customer = new com.dev09.kumaracoconutoil.entity.CustomerEntity();
             customer.setCustId(dto.getCustomer().getCustId());
@@ -105,6 +106,7 @@ public class OrderBOImpl implements OrderBO {
             dto.setTax(entity.getTax());
             dto.setTaxRate(entity.getTaxRate());
             dto.setBalance(entity.getBalance());
+            dto.setPaymentMethod(entity.getPaymentMethod());
             
             if (entity.getOrderProducts() != null) {
                 dto.setOrderProducts(new ArrayList<>());
@@ -149,6 +151,7 @@ public class OrderBOImpl implements OrderBO {
             entity.setDiscount(dto.getDiscount());
             entity.setTax(dto.getTax());
             entity.setBalance(dto.getBalance());
+            entity.setPaymentMethod(dto.getPaymentMethod());
             
             if (entity.getOrderProducts() != null) {
                 entity.getOrderProducts().clear();
@@ -220,5 +223,35 @@ public class OrderBOImpl implements OrderBO {
     @Override
     public OrderEntity getOrderWithProducts(String orderId) throws SQLException, ClassNotFoundException {
         return orderDAO.searchWithProducts(orderId);
+    }
+
+    @Override
+    public double getTotalDueByCustomer(String customerId) throws SQLException, ClassNotFoundException {
+        return orderDAO.getTotalDueByCustomer(customerId);
+    }
+
+    @Override
+    public List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) throws SQLException, ClassNotFoundException {
+        return orderDAO.getUnpaidOrdersByCustomer(customerId);
+    }
+
+    @Override
+    public double payCustomerDue(String customerId, double amount) throws SQLException, ClassNotFoundException {
+        List<OrderEntity> unpaidOrders = orderDAO.getUnpaidOrdersByCustomer(customerId);
+        double remaining = amount;
+        for (OrderEntity order : unpaidOrders) {
+            if (remaining <= 0) break;
+            double owed = -order.getBalance();
+            if (remaining >= owed) {
+                order.setBalance(0);
+                orderDAO.update(order);
+                remaining -= owed;
+            } else {
+                order.setBalance(order.getBalance() + remaining);
+                orderDAO.update(order);
+                remaining = 0;
+            }
+        }
+        return remaining;
     }
 }

@@ -26,6 +26,8 @@ public class OrderEntity {
     private double taxRate; // Tax rate at time of order (e.g., 8.0 for 8%)
     private double balance;
 
+    private String paymentMethod;
+
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean isDeleted = false;
 
@@ -35,7 +37,7 @@ public class OrderEntity {
     public OrderEntity() {}
 
     public OrderEntity(String orderId, LocalDate date, CustomerEntity customer, double amountPaid,
-                       double discount, double tax, double taxRate, double balance, boolean isDeleted) {
+                       double discount, double tax, double taxRate, double balance, String paymentMethod, boolean isDeleted) {
         this.orderId = orderId;
         this.date = date;
         this.customer = customer;
@@ -44,6 +46,7 @@ public class OrderEntity {
         this.tax = tax;
         this.taxRate = taxRate;
         this.balance = balance;
+        this.paymentMethod = paymentMethod;
         this.isDeleted = isDeleted;
     }
 
@@ -63,6 +66,8 @@ public class OrderEntity {
     public void setTaxRate(double taxRate) { this.taxRate = taxRate; }
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
     public List<OrderProductDetailsEntity> getOrderProducts() { return orderProducts; }

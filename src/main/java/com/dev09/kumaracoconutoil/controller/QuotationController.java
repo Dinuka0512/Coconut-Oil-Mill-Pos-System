@@ -306,6 +306,10 @@ public class QuotationController implements Initializable {
         try {
             String priceStr = txtUnitPrice.getText();
             double unitPrice = Double.parseDouble(priceStr.trim());
+            if (unitPrice <= 0) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Unit price must be greater than zero!");
+                return;
+            }
             double total = qty * unitPrice;
             Button btn = new Button("Remove");
             btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
