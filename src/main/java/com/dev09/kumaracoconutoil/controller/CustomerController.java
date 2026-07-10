@@ -4,13 +4,10 @@ import com.dev09.kumaracoconutoil.util.AlertUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
-import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -52,6 +49,9 @@ public class CustomerController implements Initializable {
     private TextField txtName;
 
     @FXML
+    private TextField txtDue;
+
+    @FXML
     private TextField txtSearch;
 
     @FXML
@@ -67,24 +67,30 @@ public class CustomerController implements Initializable {
     private Button btnUpdate;
 
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
-    private OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private String currentCustomerId;
 
     private void setupShortcuts(Scene scene) {
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
-                () -> btnSave.fire());
+                () -> {
+                    if (!btnSave.isDisabled()) btnSave.fire();
+                    else if (!btnUpdate.isDisabled()) btnUpdate.fire();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
-                () -> btnUpdate.fire());
+                () -> {
+                    if (!btnUpdate.isDisabled()) btnUpdate.fire();
+                });
         scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.D, KeyCombination.CONTROL_DOWN),
-                () -> btnDelete.fire());
+                new KeyCodeCombination(javafx.scene.input.KeyCode.DELETE, KeyCombination.CONTROL_DOWN),
+                () -> {
+                    if (!btnDelete.isDisabled()) btnDelete.fire();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
                 () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
         scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.C, KeyCombination.CONTROL_DOWN),
+                new KeyCodeCombination(javafx.scene.input.KeyCode.ESCAPE, KeyCombination.CONTROL_DOWN),
                 () -> btnClear.fire());
     }
 
@@ -98,8 +104,8 @@ public class CustomerController implements Initializable {
 
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
-        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
-        btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+Del)"));
+        btnClear.setTooltip(new Tooltip("Clear (Ctrl+Esc)"));
 
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
             btnUpdate.setDisable(true);
@@ -120,6 +126,8 @@ public class CustomerController implements Initializable {
                 currentCustomerId = newValue.getCustId();
                 txtName.setText(newValue.getName());
                 txtContact.setText(newValue.getContact());
+                double due = newValue.getDueAmount();
+                txtDue.setText(due == 0 ? "0" : String.format("%.2f", due));
 
                 btnSave.setDisable(true);
                 boolean isClient = DashboardController.userData != null && "client".equals(DashboardController.userData.getRole());
@@ -133,14 +141,6 @@ public class CustomerController implements Initializable {
     private void loadAllCustomers() {
         tblCustomer.getItems().clear();
         ArrayList<CustomerDto> allCustomers = customerBO.getAllCustomers();
-        for (CustomerDto dto : allCustomers) {
-            try {
-                double due = orderBO.getTotalDueByCustomer(dto.getCustId());
-                dto.setDueAmount(due);
-            } catch (Exception e) {
-                dto.setDueAmount(0.0);
-            }
-        }
         tblCustomer.setItems(FXCollections.observableArrayList(allCustomers));
     }
 
@@ -173,6 +173,11 @@ public class CustomerController implements Initializable {
     //CUSTOMER UPDATE HERE
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
+        if ("CUST001".equals(currentCustomerId)) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer cannot be updated!");
+            return;
+        }
+
         String id = currentCustomerId;
         String name = txtName.getText();
         String contact = txtContact.getText();
@@ -223,11 +228,21 @@ public class CustomerController implements Initializable {
 
     @FXML
     void onNameAction(ActionEvent event) {
+        if (txtName.getText().trim().isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Name Required!");
+            txtName.requestFocus();
+            return;
+        }
         txtContact.requestFocus();
     }
 
     @FXML
     void onContactAction(ActionEvent event) {
+        if (txtName.getText().trim().isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Name Required!");
+            txtName.requestFocus();
+            return;
+        }
         if (!btnSave.isDisabled()) {
             btnSave.fire();
         } else if (!btnUpdate.isDisabled()) {
@@ -240,6 +255,7 @@ public class CustomerController implements Initializable {
         generateNextId();
         txtName.clear();
         txtContact.clear();
+        txtDue.clear();
     }
 
     private void pageReset() {
@@ -284,6 +300,8 @@ public class CustomerController implements Initializable {
             currentCustomerId = foundCustomer.getCustId();
             txtName.setText(foundCustomer.getName());
             txtContact.setText(foundCustomer.getContact());
+            double due1 = foundCustomer.getDueAmount();
+            txtDue.setText(due1 == 0 ? "0" : String.format("%.2f", due1));
             tblCustomer.getSelectionModel().select(foundCustomer);
             tblCustomer.scrollTo(foundCustomer);
         }
@@ -312,6 +330,8 @@ public class CustomerController implements Initializable {
             currentCustomerId = foundCustomer.getCustId();
             txtName.setText(foundCustomer.getName());
             txtContact.setText(foundCustomer.getContact());
+            double due2 = foundCustomer.getDueAmount();
+            txtDue.setText(due2 == 0 ? "0" : String.format("%.2f", due2));
             tblCustomer.getSelectionModel().select(foundCustomer);
             tblCustomer.scrollTo(foundCustomer);
         } else {

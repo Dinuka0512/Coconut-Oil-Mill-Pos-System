@@ -20,7 +20,8 @@ public class CustomerBOImpl implements CustomerBO {
             allCustomers.add(new CustomerDto(
                     customer.getCustId(),
                     customer.getName(),
-                    customer.getContact()
+                    customer.getContact(),
+                    customer.getDueAmount()
             ));
         }
         return allCustomers;
@@ -33,19 +34,24 @@ public class CustomerBOImpl implements CustomerBO {
                 dto.getName(),
                 dto.getContact(),
                 false,
-                null
+                0
         );
         return customerDAO.save(entity);
     }
 
     @Override
     public boolean updateCustomer(CustomerDto dto) {
+        CustomerEntity existing = customerDAO.search(dto.getCustId());
+        double currentDue = 0;
+        if (existing != null) {
+            currentDue = existing.getDueAmount();
+        }
         CustomerEntity entity = new CustomerEntity(
                 dto.getCustId(),
                 dto.getName(),
                 dto.getContact(),
                 false,
-                null
+                currentDue
         );
         return customerDAO.update(entity);
     }
@@ -72,7 +78,8 @@ public class CustomerBOImpl implements CustomerBO {
             return new CustomerDto(
                     customer.getCustId(),
                     customer.getName(),
-                    customer.getContact()
+                    customer.getContact(),
+                    customer.getDueAmount()
             );
         }
         return null;

@@ -239,15 +239,11 @@ public class SimplePOSController implements Initializable {
 
     private void checkCustomerDue() {
         if (selectedCustomer != null) {
-            try {
-                double due = orderBO.getTotalDueByCustomer(selectedCustomer.getCustId());
-                if (due > 0) {
-                    lblDueWarning.setText("⚠ Due: Rs. " + String.format("%.2f", due));
-                    lblDueWarning.setVisible(true);
-                } else {
-                    lblDueWarning.setVisible(false);
-                }
-            } catch (Exception e) {
+            double due = selectedCustomer.getDueAmount();
+            if (due > 0) {
+                lblDueWarning.setText("⚠ Due: Rs. " + String.format("%.2f", due));
+                lblDueWarning.setVisible(true);
+            } else {
                 lblDueWarning.setVisible(false);
             }
         }

@@ -17,7 +17,8 @@ public class FactoryConfiguration {
                 .addAnnotatedClass(OrderProductDetailsEntity.class)
                 .addAnnotatedClass(ProductEntity.class)
                 .addAnnotatedClass(TaxEntity.class)
-                .addAnnotatedClass(CustomerEntity.class);
+                .addAnnotatedClass(CustomerEntity.class)
+                .addAnnotatedClass(DuePaymentEntity.class);
         sessionFactory = config.buildSessionFactory();
     }
 

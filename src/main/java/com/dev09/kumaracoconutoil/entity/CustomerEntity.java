@@ -18,6 +18,9 @@ public class CustomerEntity {
     private String name;
     private String contact;
 
+    @Column(name = "due_amount", columnDefinition = "double default 0")
+    private double dueAmount = 0;
+
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean isDeleted = false;
 
@@ -33,11 +36,12 @@ public class CustomerEntity {
         this.isDeleted = isDeleted;
     }
 
-    public CustomerEntity(String custId, String name, String contact, boolean isDeleted, Object orders) {
+    public CustomerEntity(String custId, String name, String contact, boolean isDeleted, double dueAmount) {
         this.custId = custId;
         this.name = name;
         this.contact = contact;
         this.isDeleted = isDeleted;
+        this.dueAmount = dueAmount;
     }
 
     public String getCustId() { return custId; }
@@ -46,6 +50,8 @@ public class CustomerEntity {
     public void setName(String name) { this.name = name; }
     public String getContact() { return contact; }
     public void setContact(String contact) { this.contact = contact; }
+    public double getDueAmount() { return dueAmount; }
+    public void setDueAmount(double dueAmount) { this.dueAmount = dueAmount; }
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
     public List<OrderEntity> getOrders() { return orders; }

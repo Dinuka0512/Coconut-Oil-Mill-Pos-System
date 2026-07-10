@@ -21,8 +21,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
-import com.dev09.kumaracoconutoil.entity.OrderEntity;
-
 import java.awt.Desktop;
 import java.io.File;
 import java.net.URL;
@@ -41,34 +39,40 @@ public class BalanceController implements Initializable {
     private Label lblCustomer;
 
     @FXML
-    private Label lblNetTotal;
-
-    @FXML
-    private TextField txtTaxRate;
-
-    @FXML
-    private Label lblTaxAmount;
-
-    @FXML
-    private Label lblTotalWithTax;
+    private Label lblExistingDue;
 
     @FXML
     private TextField txtAmountPaid;
 
     @FXML
-    private Label lblBalance;
-
-    @FXML
     private ComboBox<String> cmbPaymentMethod;
 
     @FXML
-    private Label lblBalanceNote;
+    private Label lblBalance;
+
+    @FXML
+    private Label lblBalance1;
+
+    @FXML
+    private Label lblBillTotal;
+
+    @FXML
+    private Label lblPrecent;
+
+    @FXML
+    private TextField txtPayDueAmount;
+
+    @FXML
+    private CheckBox chkPayDue1;
 
     @FXML
     private CheckBox chkPayDue;
 
     @FXML
-    private Label lblExistingDue;
+    private TextField txtTax;
+
+    @FXML
+    private Button btnSaveTax;
 
     private final TaxBO taxBO = (TaxBO) BOFactory.getInstance().getBo(BOFactory.BOType.TAX);
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
@@ -77,6 +81,10 @@ public class BalanceController implements Initializable {
     private ObservableList<CartTM> cartItems;
     private CustomerDto customer;
     private double originalNetTotal;
+    private double currentTaxRate;
+    private double loadedTaxRate;
+    private double currentTotalWithTax;
+    private double existingDue;
     private boolean orderPlaced = false;
 
     @Override
@@ -84,20 +92,24 @@ public class BalanceController implements Initializable {
         cmbPaymentMethod.getItems().addAll("Cash", "Card", "Credit");
         cmbPaymentMethod.getSelectionModel().selectFirst();
 
-        loadTaxRate();
+        currentTaxRate = loadTaxRate();
+        loadedTaxRate = currentTaxRate;
+        txtTax.setText(String.valueOf(currentTaxRate));
+        btnSaveTax.setDisable(true);
 
         Platform.runLater(() -> txtAmountPaid.requestFocus());
     }
 
-    private void loadTaxRate() {
+    private double loadTaxRate() {
         try {
             TaxDto taxDto = taxBO.searchTax("1");
             if (taxDto != null) {
-                txtTaxRate.setText(String.valueOf(taxDto.getTax()));
+                return taxDto.getTax();
             }
         } catch (Exception e) {
-            txtTaxRate.setText("0");
+            // ignore
         }
+        return 0.0;
     }
 
     public void setOrderData(ObservableList<CartTM> items, CustomerDto cust, double netTotal) {
@@ -119,24 +131,20 @@ public class BalanceController implements Initializable {
         txtDescription.setText(desc.toString());
 
         lblCustomer.setText(cust.getName());
-        lblNetTotal.setText(String.format("%.2f", netTotal));
 
-        try {
-            double existingDue = orderBO.getTotalDueByCustomer(cust.getCustId());
-            lblExistingDue.setText("Rs. " + String.format("%.2f", existingDue));
-            lblExistingDue.setVisible(true);
-            if (existingDue > 0) {
-                chkPayDue.setVisible(true);
-                chkPayDue.setManaged(true);
-            } else {
-                chkPayDue.setVisible(false);
-                chkPayDue.setManaged(false);
-            }
-        } catch (Exception e) {
-            lblExistingDue.setText("Rs. 0.00");
-            lblExistingDue.setVisible(true);
-            chkPayDue.setVisible(false);
-            chkPayDue.setManaged(false);
+        existingDue = cust.getDueAmount();
+        lblExistingDue.setText("Rs. " + String.format("%.2f", existingDue));
+
+        if (existingDue > 0) {
+            chkPayDue.setDisable(false);
+            chkPayDue.setSelected(false);
+            txtPayDueAmount.setDisable(true);
+            txtPayDueAmount.clear();
+            txtPayDueAmount.setPromptText("0.00");
+        } else {
+            chkPayDue.setDisable(true);
+            chkPayDue.setSelected(false);
+            txtPayDueAmount.setDisable(true);
         }
 
         recalculate();
@@ -147,54 +155,40 @@ public class BalanceController implements Initializable {
     }
 
     private void recalculate() {
-        double netTotal = originalNetTotal;
+        double taxAmount = originalNetTotal * (currentTaxRate / 100.0);
+        currentTotalWithTax = originalNetTotal + taxAmount;
 
-        double taxPercent = 0.0;
-        try {
-            String taxText = txtTaxRate.getText();
-            if (taxText != null && !taxText.isEmpty()) {
-                taxPercent = Double.parseDouble(taxText);
-            }
-        } catch (NumberFormatException e) {
-            taxPercent = 0.0;
-        }
-
-        double taxAmount = netTotal * (taxPercent / 100.0);
-        double totalWithTax = netTotal + taxAmount;
-
-        lblTaxAmount.setText(String.format("%.2f", taxAmount));
-        lblTotalWithTax.setText(String.format("%.2f", totalWithTax));
+        lblBillTotal.setText(String.format("%.2f", originalNetTotal));
+        lblPrecent.setText(String.format("%.2f", taxAmount));
+        lblBalance1.setText("LKR " + String.format("%.2f", currentTotalWithTax));
 
         calculateBalance();
     }
 
     private void calculateBalance() {
         try {
-            double totalWithTax = Double.parseDouble(lblTotalWithTax.getText());
             String amountText = txtAmountPaid.getText();
+
+            double totalOwed = currentTotalWithTax + existingDue;
 
             if (amountText == null || amountText.isEmpty()) {
                 lblBalance.setText("0.00");
-                lblBalance.setStyle("-fx-text-fill: #00a118;");
-                lblBalanceNote.setText("");
+                lblBalance.setStyle("-fx-text-fill: #16a34a;");
                 return;
             }
 
             double amount = Double.parseDouble(amountText);
-            double balance = amount - totalWithTax;
+            double balance = amount - totalOwed;
 
             if (balance < 0) {
                 lblBalance.setText(String.format("%.2f", Math.abs(balance)) + " Due");
                 lblBalance.setStyle("-fx-text-fill: red;");
-                lblBalanceNote.setText("Insufficient payment! Balance of Rs. " + String.format("%.2f", Math.abs(balance)) + " remains.");
             } else {
                 lblBalance.setText(String.format("%.2f", balance));
-                lblBalance.setStyle("-fx-text-fill: #00a118;");
-                lblBalanceNote.setText(balance > 0 ? "Change due: Rs. " + String.format("%.2f", balance) : "Settled");
+                lblBalance.setStyle("-fx-text-fill: #16a34a;");
             }
         } catch (NumberFormatException e) {
             lblBalance.setText("0.00");
-            lblBalanceNote.setText("");
         }
     }
 
@@ -219,13 +213,37 @@ public class BalanceController implements Initializable {
     }
 
     @FXML
-    void onTaxRateChanged() {
-        recalculate();
+    void onAmountPaidChanged() {
+        calculateBalance();
     }
 
     @FXML
-    void onAmountPaidChanged() {
-        calculateBalance();
+    void isPayDuePayment() {
+        boolean selected = chkPayDue.isSelected();
+        txtPayDueAmount.setDisable(!selected);
+        if (selected) {
+            txtPayDueAmount.requestFocus();
+        } else {
+            txtPayDueAmount.clear();
+            calculateBalance();
+        }
+    }
+
+    @FXML
+    void onDueAmountAction() {
+        String text = txtPayDueAmount.getText();
+        if (text != null && !text.isEmpty()) {
+            try {
+                double duePay = Double.parseDouble(text);
+                if (duePay > existingDue) {
+                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
+                    txtPayDueAmount.setText(String.format("%.2f", existingDue));
+                }
+            } catch (NumberFormatException e) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number!");
+                txtPayDueAmount.clear();
+            }
+        }
     }
 
     private void setupKeyboardHandlers() {
@@ -253,9 +271,7 @@ public class BalanceController implements Initializable {
             String orderId = orderBO.generateNextOrderId();
             LocalDate date = LocalDate.now();
 
-            double taxPercent = Double.parseDouble(txtTaxRate.getText());
-            double taxAmount = originalNetTotal * (taxPercent / 100.0);
-            double totalWithTax = originalNetTotal + taxAmount;
+            double taxAmount = originalNetTotal * (currentTaxRate / 100.0);
 
             double amountPaid = 0.0;
             String amountText = txtAmountPaid.getText();
@@ -263,17 +279,28 @@ public class BalanceController implements Initializable {
                 amountPaid = Double.parseDouble(amountText);
             }
 
-            if ("CUST001".equals(customer.getCustId()) && amountPaid < totalWithTax) {
+            double duePaymentAmount = 0.0;
+            if (existingDue > 0 && txtPayDueAmount.isVisible() && !txtPayDueAmount.isDisable()) {
+                String dueText = txtPayDueAmount.getText();
+                if (dueText != null && !dueText.isEmpty()) {
+                    duePaymentAmount = Double.parseDouble(dueText);
+                    if (duePaymentAmount > existingDue) {
+                        AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
+                        return;
+                    }
+                }
+            }
+
+            if ("CUST001".equals(customer.getCustId()) && amountPaid < currentTotalWithTax) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer (CUST001) must pay in full!");
                 return;
             }
 
-            double effectivePaid = amountPaid;
-            if (chkPayDue.isSelected()) {
-                effectivePaid = orderBO.payCustomerDue(customer.getCustId(), amountPaid);
+            if (duePaymentAmount > 0) {
+                orderBO.payCustomerDue(customer.getCustId(), duePaymentAmount);
             }
 
-            double balance = effectivePaid - totalWithTax;
+            double balance = amountPaid - currentTotalWithTax;
             String paymentMethod = cmbPaymentMethod.getValue();
 
             ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
@@ -283,7 +310,7 @@ public class BalanceController implements Initializable {
             }
 
             OrderDto orderDto = new OrderDto(orderId, date, customer, details,
-                    amountPaid, 0, taxAmount, taxPercent, balance, paymentMethod);
+                    amountPaid, 0, taxAmount, currentTaxRate, balance, paymentMethod);
 
             boolean isPlaced = orderBO.placeOrder(orderDto);
 
@@ -335,6 +362,54 @@ public class BalanceController implements Initializable {
     @FXML
     void btnCancelOnAction() {
         closeStage();
+    }
+
+    @FXML
+    void onTaxChanged() {
+        String taxText = txtTax.getText();
+        if (taxText == null || taxText.isEmpty()) {
+            btnSaveTax.setDisable(true);
+            btnSaveTax.setText("Update");
+            return;
+        }
+        try {
+            double newTax = Double.parseDouble(taxText);
+            boolean changed = newTax != loadedTaxRate;
+            btnSaveTax.setDisable(!changed);
+            btnSaveTax.setText(changed ? "Save" : "Update");
+        } catch (NumberFormatException e) {
+            btnSaveTax.setDisable(true);
+            btnSaveTax.setText("Update");
+        }
+    }
+
+    @FXML
+    void btnUpdateAction() {
+        String taxText = txtTax.getText();
+        if (taxText == null || taxText.isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter a tax rate!");
+            return;
+        }
+        try {
+            double newTax = Double.parseDouble(taxText);
+            TaxDto taxDto = taxBO.searchTax("1");
+            if (taxDto != null) {
+                taxDto.setTax(newTax);
+                boolean updated = taxBO.updateTax(taxDto);
+                if (updated) {
+                    currentTaxRate = newTax;
+                    loadedTaxRate = newTax;
+                    btnSaveTax.setDisable(true);
+                    btnSaveTax.setText("Update");
+                    recalculate();
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Tax updated to " + newTax + "%");
+                } else {
+                    AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update tax!");
+                }
+            }
+        } catch (NumberFormatException e) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid tax rate!");
+        }
     }
 
     private void closeStage() {

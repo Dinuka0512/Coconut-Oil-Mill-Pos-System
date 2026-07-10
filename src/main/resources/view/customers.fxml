@@ -16,19 +16,22 @@
          </font>
       </Label>
       
-      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="32.0" layoutY="74.0" prefHeight="135.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
-             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="350.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
+             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="346.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
             
-            <Label layoutX="390.0" layoutY="15.0" text="Contact Number" textFill="#7f8c8d" />
-            <TextField fx:id="txtContact" layoutX="390.0" layoutY="35.0" onAction="#onContactAction" prefHeight="30.0" prefWidth="320.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
+            <Label layoutX="381.0" layoutY="15.0" text="Contact Number" textFill="#7f8c8d" />
+            <TextField fx:id="txtContact" layoutX="381.0" layoutY="35.0" onAction="#onContactAction" prefHeight="30.0" prefWidth="226.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
+
+            <Label layoutX="623.0" layoutY="15.0" text="Due Amount (Rs.)" textFill="#7f8c8d" />
             
-            <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
-            <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
-            <Button fx:id="btnDelete" layoutX="482.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
-            <Button fx:id="btnClear" layoutX="402.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
-             <Button layoutX="22.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="199.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
+            <Button fx:id="btnSave" layoutX="642.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+            <Button fx:id="btnUpdate" layoutX="562.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnDelete" layoutX="482.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnClear" layoutX="402.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+             <Button layoutX="22.0" layoutY="83.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="199.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
+            <TextField fx:id="txtDue" layoutX="622.0" layoutY="35.0" editable="false" prefHeight="30.0" prefWidth="94.0" promptText="0" style="-fx-background-radius: 5; -fx-background-color: #f0f0f0;" />
          </children>
       </AnchorPane>
       

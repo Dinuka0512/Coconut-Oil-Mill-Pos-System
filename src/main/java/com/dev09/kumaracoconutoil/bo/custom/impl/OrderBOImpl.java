@@ -2,8 +2,10 @@ package com.dev09.kumaracoconutoil.bo.custom.impl;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
+import com.dev09.kumaracoconutoil.bo.custom.DuePaymentBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.OrderDAO;
 import com.dev09.kumaracoconutoil.dao.custom.OrderProductDetailDAO;
 import com.dev09.kumaracoconutoil.dao.custom.impl.OrderDAOImpl;
@@ -12,6 +14,8 @@ import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.entity.CustomerEntity;
+import com.dev09.kumaracoconutoil.entity.DuePaymentEntity;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
 import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 import com.dev09.kumaracoconutoil.entity.ProductEntity;
@@ -27,6 +31,7 @@ public class OrderBOImpl implements OrderBO {
     private final OrderProductDetailDAO orderProductDetailDAO = new OrderProductDetailDAOImpl();
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private final CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
+    private final DuePaymentBO duePaymentBO = (DuePaymentBO) BOFactory.getInstance().getBo(BOFactory.BOType.DUE_PAYMENT);
 
     @Override
     public boolean placeOrder(OrderDto dto) {
@@ -66,7 +71,32 @@ public class OrderBOImpl implements OrderBO {
             }
             entity.setOrderProducts(details);
             
-            return orderDAO.save(entity);
+            boolean saved = orderDAO.save(entity);
+
+            if (saved && dto.getBalance() < 0) {
+                try {
+                    com.dev09.kumaracoconutoil.dao.custom.CustomerDAO customerDAO =
+                        (com.dev09.kumaracoconutoil.dao.custom.CustomerDAO) DAOFactory.getInstance()
+                            .getDAO(DAOFactory.DAOType.CUSTOMER);
+                    CustomerEntity customerEntity = customerDAO.search(dto.getCustomer().getCustId());
+                    if (customerEntity != null) {
+                        customerEntity.setDueAmount(customerEntity.getDueAmount() + Math.abs(dto.getBalance()));
+                        customerDAO.update(customerEntity);
+
+                        DuePaymentEntity duePayment = new DuePaymentEntity();
+                        duePayment.setDate(dto.getDate());
+                        duePayment.setCustomer(customerEntity);
+                        duePayment.setOrder(entity);
+                        duePayment.setAmount(Math.abs(dto.getBalance()));
+                        duePayment.setNote("Due added on order " + dto.getOrderId());
+                        duePaymentBO.saveDuePayment(duePayment);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return saved;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -252,6 +282,31 @@ public class OrderBOImpl implements OrderBO {
                 remaining = 0;
             }
         }
+
+        double paidAmount = amount - remaining;
+        if (paidAmount > 0) {
+            try {
+                com.dev09.kumaracoconutoil.dao.custom.CustomerDAO customerDAO =
+                    (com.dev09.kumaracoconutoil.dao.custom.CustomerDAO) DAOFactory.getInstance()
+                        .getDAO(DAOFactory.DAOType.CUSTOMER);
+                CustomerEntity customerEntity = customerDAO.search(customerId);
+                if (customerEntity != null) {
+                    double newDue = customerEntity.getDueAmount() - paidAmount;
+                    customerEntity.setDueAmount(Math.max(0, newDue));
+                    customerDAO.update(customerEntity);
+
+                    DuePaymentEntity duePayment = new DuePaymentEntity();
+                    duePayment.setDate(LocalDate.now());
+                    duePayment.setCustomer(customerEntity);
+                    duePayment.setAmount(paidAmount);
+                    duePayment.setNote("Due payment received");
+                    duePaymentBO.saveDuePayment(duePayment);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         return remaining;
     }
 }
