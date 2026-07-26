@@ -10,7 +10,7 @@ module com.dev09.kumaracoconutoil {
     opens com.dev09.kumaracoconutoil.dto to javafx.base;
     opens com.dev09.kumaracoconutoil.controller to javafx.fxml;
     opens com.dev09.kumaracoconutoil.config to javafx.fxml, org.hibernate.orm.core;
-    opens com.dev09.kumaracoconutoil.entity to javafx.fxml, org.hibernate.orm.core;
+    opens com.dev09.kumaracoconutoil.entity to javafx.fxml, javafx.base, org.hibernate.orm.core;
     opens com.dev09.kumaracoconutoil.view.tm to javafx.base;
     exports com.dev09.kumaracoconutoil;
 }

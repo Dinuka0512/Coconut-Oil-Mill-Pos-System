@@ -22,5 +22,5 @@ public interface OrderBO extends SuperBo {
     List<LocalDate> getOrderDatesByMonth(int year, int month) throws SQLException, ClassNotFoundException;
     double getTotalDueByCustomer(String customerId) throws SQLException, ClassNotFoundException;
     List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) throws SQLException, ClassNotFoundException;
-    double payCustomerDue(String customerId, double amount) throws SQLException, ClassNotFoundException;
+    double payCustomerDue(String customerId, double amount, String note) throws SQLException, ClassNotFoundException;
 }

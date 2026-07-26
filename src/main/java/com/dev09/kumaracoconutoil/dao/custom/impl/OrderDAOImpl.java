@@ -79,6 +79,10 @@ public class OrderDAOImpl implements OrderDAO {
                   .setParameter("id", id)
                   .executeUpdate();
             
+            session.createNativeQuery("DELETE FROM due_payment WHERE order_id = :id")
+                  .setParameter("id", id)
+                  .executeUpdate();
+            
             session.createNativeQuery("DELETE FROM orders WHERE orderId = :id")
                   .setParameter("id", id)
                   .executeUpdate();

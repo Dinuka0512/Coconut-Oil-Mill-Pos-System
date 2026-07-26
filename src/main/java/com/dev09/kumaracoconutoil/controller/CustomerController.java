@@ -9,13 +9,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +70,9 @@ public class CustomerController implements Initializable {
     @FXML
     private Button btnUpdate;
 
+    @FXML
+    private Button btnPayDue;
+
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private String currentCustomerId;
 
@@ -106,6 +113,8 @@ public class CustomerController implements Initializable {
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+Del)"));
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+Esc)"));
+        btnPayDue.setTooltip(new Tooltip("Pay Due Amount"));
+        btnPayDue.setDisable(true);
 
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
             btnUpdate.setDisable(true);
@@ -133,6 +142,7 @@ public class CustomerController implements Initializable {
                 boolean isClient = DashboardController.userData != null && "client".equals(DashboardController.userData.getRole());
                 btnUpdate.setDisable(isClient);
                 btnDelete.setDisable(isClient);
+                btnPayDue.setDisable(due <= 0 || isClient);
             }
         });
     }
@@ -220,6 +230,50 @@ public class CustomerController implements Initializable {
         }
     }
 
+    //PAY DUE AMOUNT
+    @FXML
+    void btnPayDueOnAction(ActionEvent event) {
+        if (currentCustomerId == null) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a customer!");
+            return;
+        }
+
+        CustomerDto customer = customerBO.searchCustomer(currentCustomerId);
+        if (customer == null) return;
+
+        if (customer.getDueAmount() <= 0) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "This customer has no outstanding due!");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DuePaymentPopup.fxml"));
+            Parent root = loader.load();
+
+            DuePaymentPopupController controller = loader.getController();
+            controller.setCustomerData(customer.getCustId(), customer.getName(), customer.getDueAmount());
+
+            Stage popupStage = new Stage();
+            popupStage.setScene(new Scene(root));
+            popupStage.setTitle("Due Payment - " + customer.getName());
+            popupStage.setResizable(false);
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.showAndWait();
+
+            if (controller.isPaymentMade()) {
+                loadAllCustomers();
+                CustomerDto updated = customerBO.searchCustomer(currentCustomerId);
+                if (updated != null) {
+                    txtDue.setText(updated.getDueAmount() == 0 ? "0" : String.format("%.2f", updated.getDueAmount()));
+                    btnPayDue.setDisable(updated.getDueAmount() <= 0);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error opening due payment: " + e.getMessage());
+        }
+    }
+
     //CLEAR THE TEXT INPUTS
     @FXML
     void btnClearOnAction(ActionEvent event) {
@@ -256,12 +310,14 @@ public class CustomerController implements Initializable {
         txtName.clear();
         txtContact.clear();
         txtDue.clear();
+        btnPayDue.setDisable(true);
     }
 
     private void pageReset() {
         btnSave.setDisable(false);
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
+        btnPayDue.setDisable(true);
     }
 
     //CUSTOMER SEARCH

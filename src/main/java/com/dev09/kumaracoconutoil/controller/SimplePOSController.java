@@ -437,11 +437,18 @@ public class SimplePOSController implements Initializable {
             String totalText = lblNetTotal.getText().replace("Total: Rs. ", "").trim();
             double netTotal = Double.parseDouble(totalText);
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/balance.fxml"));
+            boolean isDemoCustomer = "CUST001".equals(selectedCustomer.getCustId());
+            String fxmlPath = isDemoCustomer ? "/view/BalanceDemoCust.fxml" : "/view/balance.fxml";
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
-            BalanceController balanceController = loader.getController();
 
-            balanceController.setOrderData(obList, selectedCustomer, netTotal);
+            if (isDemoCustomer) {
+                BalanceDemoCustController demoController = loader.getController();
+                demoController.setOrderData(obList, selectedCustomer, netTotal);
+            } else {
+                BalanceController balanceController = loader.getController();
+                balanceController.setOrderData(obList, selectedCustomer, netTotal);
+            }
 
             Stage balanceStage = new Stage();
             balanceStage.setScene(new Scene(root));
@@ -450,7 +457,14 @@ public class SimplePOSController implements Initializable {
             balanceStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             balanceStage.showAndWait();
 
-            if (balanceController.isOrderPlaced()) {
+            boolean orderDone = false;
+            if (isDemoCustomer) {
+                orderDone = ((BalanceDemoCustController) loader.getController()).isOrderPlaced();
+            } else {
+                orderDone = ((BalanceController) loader.getController()).isOrderPlaced();
+            }
+
+            if (orderDone) {
                 Stage stage = (Stage) tblCart.getScene().getWindow();
                 stage.close();
             }

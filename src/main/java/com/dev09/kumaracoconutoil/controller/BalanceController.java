@@ -69,6 +69,12 @@ public class BalanceController implements Initializable {
     private CheckBox chkPayDue;
 
     @FXML
+    private ComboBox<String> duePayType;
+
+    @FXML
+    private Label lblCustomer1;
+
+    @FXML
     private TextField txtTax;
 
     @FXML
@@ -91,6 +97,10 @@ public class BalanceController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         cmbPaymentMethod.getItems().addAll("Cash", "Card", "Credit");
         cmbPaymentMethod.getSelectionModel().selectFirst();
+
+        duePayType.getItems().addAll("Full Payment", "Custom");
+        duePayType.getSelectionModel().selectFirst();
+        duePayType.setDisable(true);
 
         currentTaxRate = loadTaxRate();
         loadedTaxRate = currentTaxRate;
@@ -178,7 +188,15 @@ public class BalanceController implements Initializable {
             }
 
             double amount = Double.parseDouble(amountText);
-            double balance = amount - totalOwed;
+
+            double duePaymentAmount = 0.0;
+            if (!txtPayDueAmount.isDisable() && txtPayDueAmount.getText() != null && !txtPayDueAmount.getText().isEmpty()) {
+                duePaymentAmount = Double.parseDouble(txtPayDueAmount.getText());
+            } else if ("Full Payment".equals(duePayType.getValue())) {
+                duePaymentAmount = existingDue;
+            }
+
+            double balance = (amount + duePaymentAmount) - totalOwed;
 
             if (balance < 0) {
                 lblBalance.setText(String.format("%.2f", Math.abs(balance)) + " Due");
@@ -220,11 +238,33 @@ public class BalanceController implements Initializable {
     @FXML
     void isPayDuePayment() {
         boolean selected = chkPayDue.isSelected();
-        txtPayDueAmount.setDisable(!selected);
+        duePayType.setDisable(!selected);
         if (selected) {
-            txtPayDueAmount.requestFocus();
+            duePayType.getSelectionModel().selectFirst();
+            onDuePayTupe();
         } else {
+            txtPayDueAmount.setDisable(true);
             txtPayDueAmount.clear();
+            duePayType.getSelectionModel().clearSelection();
+            calculateBalance();
+        }
+    }
+
+    @FXML
+    void onDuePayTupe() {
+        String type = duePayType.getValue();
+        if (type == null) return;
+
+        if ("Full Payment".equals(type)) {
+            txtPayDueAmount.setDisable(true);
+            txtPayDueAmount.setText(String.format("%.2f", existingDue));
+            lblBalance.setText("0.00");
+            lblBalance.setStyle("-fx-text-fill: #16a34a;");
+        } else if ("Custom".equals(type)) {
+            txtPayDueAmount.setDisable(false);
+            txtPayDueAmount.clear();
+            txtPayDueAmount.setPromptText("0.00");
+            txtPayDueAmount.requestFocus();
             calculateBalance();
         }
     }
@@ -297,7 +337,7 @@ public class BalanceController implements Initializable {
             }
 
             if (duePaymentAmount > 0) {
-                orderBO.payCustomerDue(customer.getCustId(), duePaymentAmount);
+                orderBO.payCustomerDue(customer.getCustId(), duePaymentAmount, "Due payment received");
             }
 
             double balance = amountPaid - currentTotalWithTax;
@@ -393,19 +433,22 @@ public class BalanceController implements Initializable {
         try {
             double newTax = Double.parseDouble(taxText);
             TaxDto taxDto = taxBO.searchTax("1");
+            boolean updated;
             if (taxDto != null) {
                 taxDto.setTax(newTax);
-                boolean updated = taxBO.updateTax(taxDto);
-                if (updated) {
-                    currentTaxRate = newTax;
-                    loadedTaxRate = newTax;
-                    btnSaveTax.setDisable(true);
-                    btnSaveTax.setText("Update");
-                    recalculate();
-                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Tax updated to " + newTax + "%");
-                } else {
-                    AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update tax!");
-                }
+                updated = taxBO.updateTax(taxDto);
+            } else {
+                updated = taxBO.saveTax(new TaxDto(1, newTax));
+            }
+            if (updated) {
+                currentTaxRate = newTax;
+                loadedTaxRate = newTax;
+                btnSaveTax.setDisable(true);
+                btnSaveTax.setText("Update");
+                recalculate();
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Tax updated to " + newTax + "%");
+            } else {
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update tax!");
             }
         } catch (NumberFormatException e) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Invalid tax rate!");
