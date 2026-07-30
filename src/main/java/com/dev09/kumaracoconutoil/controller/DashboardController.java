@@ -25,6 +25,7 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -66,13 +67,16 @@ public class DashboardController implements Initializable {
     private Label lblWeeklySales;
 
     @FXML
-    private Label lblMonthlySales;
-
-    @FXML
     private Label lblTotalCustomers;
 
     @FXML
     private Label lblTotalProducts;
+
+    @FXML
+    private Label lblTotalDue;
+
+    @FXML
+    private Button btnBackupData;
 
     @FXML
     private TableView<DashboardTM> tblRecentSales;
@@ -155,11 +159,9 @@ public class DashboardController implements Initializable {
     private void loadSalesData() {
         LocalDate today = LocalDate.now();
         LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate monthStart = today.withDayOfMonth(1);
 
         double todaySales = 0;
         double weeklySales = 0;
-        double monthlySales = 0;
 
         for (OrderDto order : cachedOrders) {
             if (order.getDate() != null) {
@@ -170,20 +172,18 @@ public class DashboardController implements Initializable {
                 if (!orderDate.isBefore(weekStart) && !orderDate.isAfter(today)) {
                     weeklySales += order.getAmountPaid();
                 }
-                if (!orderDate.isBefore(monthStart) && !orderDate.isAfter(today)) {
-                    monthlySales += order.getAmountPaid();
-                }
             }
         }
 
         lblSalesToday.setText(String.format("Rs.%,.2f", todaySales));
         lblWeeklySales.setText(String.format("Rs.%,.2f", weeklySales));
-        lblMonthlySales.setText(String.format("Rs.%,.2f", monthlySales));
     }
 
     private void loadCounts() {
         lblTotalCustomers.setText(String.valueOf(cachedCustomers.size()));
         lblTotalProducts.setText(String.valueOf(cachedProducts.size()));
+        double totalDue = cachedCustomers.stream().mapToDouble(CustomerDto::getDueAmount).sum();
+        lblTotalDue.setText(String.format("Rs.%,.2f", totalDue));
     }
 
     private void loadRecentSales() {
@@ -261,6 +261,11 @@ public class DashboardController implements Initializable {
         lineChart.getData().clear();
         lineChart.getData().add(series);
         lineChart.setLegendVisible(false);
+    }
+
+    @FXML
+    void btnBackupDataOnAction(ActionEvent event) {
+        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Backup feature coming soon!");
     }
 
     public void updateUserDisplay() {
