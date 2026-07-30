@@ -168,6 +168,7 @@ public class ProductController implements Initializable {
                     return;
                 }
                 File tempFile = File.createTempFile(fileName, ".pdf");
+                tempFile.deleteOnExit();
                 Files.write(tempFile.toPath(), bytes);
                 Desktop.getDesktop().open(tempFile);
             } catch (Exception e) {
@@ -344,35 +345,38 @@ public class ProductController implements Initializable {
         }
     }
 
+    private ProductDto findProductBySearchTerm(String searchTerm) {
+        if (searchTerm == null || searchTerm.isEmpty()) return null;
+        ObservableList<ProductDto> allProducts = tblProduct.getItems();
+        for (ProductDto dto : allProducts) {
+            String itemcode = dto.getItemcode();
+            if (dto.getId().toLowerCase().equals(searchTerm) ||
+                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
+                    dto.getName().toLowerCase().contains(searchTerm)) {
+                return dto;
+            }
+        }
+        return null;
+    }
+
+    private void selectProduct(ProductDto foundProduct) {
+        if (foundProduct == null) return;
+        currentProductId = foundProduct.getId();
+        txtItemCode.setText(foundProduct.getItemcode());
+        txtName.setText(foundProduct.getName());
+        txtPrice.setText(String.valueOf(foundProduct.getPrice()));
+        txtQty.setText(String.valueOf(foundProduct.getQty()));
+        tblProduct.getSelectionModel().select(foundProduct);
+        tblProduct.scrollTo(foundProduct);
+    }
+
     private void performSearch() {
         String searchTerm = txtSearch.getText().toLowerCase();
         if (searchTerm.isEmpty()) {
             loadAllProducts();
             return;
         }
-
-        ObservableList<ProductDto> allProducts = tblProduct.getItems();
-        ProductDto foundProduct = null;
-
-        for (ProductDto dto : allProducts) {
-            String itemcode = dto.getItemcode();
-            if (dto.getId().toLowerCase().equals(searchTerm) ||
-                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
-                    dto.getName().toLowerCase().contains(searchTerm)) {
-                foundProduct = dto;
-                break;
-            }
-        }
-
-        if (foundProduct != null) {
-            currentProductId = foundProduct.getId();
-            txtItemCode.setText(foundProduct.getItemcode());
-            txtName.setText(foundProduct.getName());
-            txtPrice.setText(String.valueOf(foundProduct.getPrice()));
-            txtQty.setText(String.valueOf(foundProduct.getQty()));
-            tblProduct.getSelectionModel().select(foundProduct);
-            tblProduct.scrollTo(foundProduct);
-        }
+        selectProduct(findProductBySearchTerm(searchTerm));
     }
 
     private void performSearchWithAlert() {
@@ -381,28 +385,9 @@ public class ProductController implements Initializable {
             loadAllProducts();
             return;
         }
-
-        ObservableList<ProductDto> allProducts = tblProduct.getItems();
-        ProductDto foundProduct = null;
-
-        for (ProductDto dto : allProducts) {
-            String itemcode = dto.getItemcode();
-            if (dto.getId().toLowerCase().equals(searchTerm) ||
-                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
-                    dto.getName().toLowerCase().contains(searchTerm)) {
-                foundProduct = dto;
-                break;
-            }
-        }
-
-        if (foundProduct != null) {
-            currentProductId = foundProduct.getId();
-            txtItemCode.setText(foundProduct.getItemcode());
-            txtName.setText(foundProduct.getName());
-            txtPrice.setText(String.valueOf(foundProduct.getPrice()));
-            txtQty.setText(String.valueOf(foundProduct.getQty()));
-            tblProduct.getSelectionModel().select(foundProduct);
-            tblProduct.scrollTo(foundProduct);
+        ProductDto found = findProductBySearchTerm(searchTerm);
+        if (found != null) {
+            selectProduct(found);
         } else {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Inventory not found!");
         }

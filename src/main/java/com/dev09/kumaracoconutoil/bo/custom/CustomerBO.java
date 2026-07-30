@@ -15,4 +15,6 @@ public interface CustomerBO extends SuperBo {
     CustomerDto searchCustomer(String id);
 
     ArrayList<com.dev09.kumaracoconutoil.entity.CustomerEntity> getAllCustomersEntity();
+
+    void reconcileDueAmounts() throws Exception;
 }

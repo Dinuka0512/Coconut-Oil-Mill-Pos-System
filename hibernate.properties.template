@@ -1,0 +1,8 @@
+# Database settings
+hibernate.connection.driver_class=com.mysql.cj.jdbc.Driver
+hibernate.connection.url=jdbc:mysql://localhost:3306/Oil?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+hibernate.connection.username=root
+hibernate.connection.password=YOUR_PASSWORD_HERE
+hibernate.dialect=org.hibernate.dialect.MySQLDialect
+hibernate.hbm2ddl.auto=update
+hibernate.show_sql=true

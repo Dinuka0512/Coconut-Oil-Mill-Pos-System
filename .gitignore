@@ -91,6 +91,28 @@ Thumbs.db
 # *.jpg
 
 ############################
+# Installers
+############################
+*.msi
+
+############################
+# Maven shade plugin output
+############################
+dependency-reduced-pom.xml
+
+############################
+# Java runtime bundle (not source)
+############################
+runtime/
+
+############################
+# Database credentials (contains plaintext password)
+############################
+hibernate.properties
+src/main/resources/hibernate.properties
+
+############################
 # Windows special bug file
 ############################
 nul
+null

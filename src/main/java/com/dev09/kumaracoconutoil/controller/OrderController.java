@@ -1,5 +1,6 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -142,7 +143,7 @@ public class OrderController implements Initializable {
         int index = 0;
         for (CustomerDto dto : currentCustomers) {
             cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
-            if ("CUST001".equals(dto.getCustId())) {
+            if (AppConstants.DEMO_CUSTOMER_ID.equals(dto.getCustId())) {
                 selectedCustomer = dto;
                 cmbCustomerId.getSelectionModel().select(index);
             }
@@ -510,6 +511,7 @@ public class OrderController implements Initializable {
 
                         if (pdfBytes != null) {
                             File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                            tempFile.deleteOnExit();
                             Files.write(tempFile.toPath(), pdfBytes);
                             Desktop.getDesktop().open(tempFile);
                         }

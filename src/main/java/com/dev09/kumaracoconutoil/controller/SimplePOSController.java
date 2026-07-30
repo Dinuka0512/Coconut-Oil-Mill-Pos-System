@@ -1,5 +1,6 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -160,7 +161,7 @@ public class SimplePOSController implements Initializable {
         int index = 0;
         for (CustomerDto dto : currentCustomers) {
             cmbCustomer.getItems().add(dto.getName() + " - " + dto.getContact());
-            if ("CUST001".equals(dto.getCustId())) {
+            if (AppConstants.DEMO_CUSTOMER_ID.equals(dto.getCustId())) {
                 selectedCustomer = dto;
                 cmbCustomer.getSelectionModel().select(index);
             }
@@ -437,7 +438,7 @@ public class SimplePOSController implements Initializable {
             String totalText = lblNetTotal.getText().replace("Total: Rs. ", "").trim();
             double netTotal = Double.parseDouble(totalText);
 
-            boolean isDemoCustomer = "CUST001".equals(selectedCustomer.getCustId());
+            boolean isDemoCustomer = AppConstants.DEMO_CUSTOMER_ID.equals(selectedCustomer.getCustId());
             String fxmlPath = isDemoCustomer ? "/view/BalanceDemoCust.fxml" : "/view/balance.fxml";
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();

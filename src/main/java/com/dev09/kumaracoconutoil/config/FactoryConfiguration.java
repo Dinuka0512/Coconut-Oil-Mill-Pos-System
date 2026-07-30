@@ -10,16 +10,21 @@ public class FactoryConfiguration {
     private static FactoryConfiguration factoryConfiguration;
 
     private FactoryConfiguration(){
-
-        Configuration config = new Configuration()
-                .addAnnotatedClass(UserEntity.class)
-                .addAnnotatedClass(OrderEntity.class)
-                .addAnnotatedClass(OrderProductDetailsEntity.class)
-                .addAnnotatedClass(ProductEntity.class)
-                .addAnnotatedClass(TaxEntity.class)
-                .addAnnotatedClass(CustomerEntity.class)
-                .addAnnotatedClass(DuePaymentEntity.class);
-        sessionFactory = config.buildSessionFactory();
+        try {
+            Configuration config = new Configuration()
+                    .addAnnotatedClass(UserEntity.class)
+                    .addAnnotatedClass(OrderEntity.class)
+                    .addAnnotatedClass(OrderProductDetailsEntity.class)
+                    .addAnnotatedClass(ProductEntity.class)
+                    .addAnnotatedClass(TaxEntity.class)
+                    .addAnnotatedClass(CustomerEntity.class)
+                    .addAnnotatedClass(DuePaymentEntity.class);
+            sessionFactory = config.buildSessionFactory();
+        } catch (Exception e) {
+            System.err.println("Failed to initialize Hibernate SessionFactory: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Cannot initialize database connection. Check hibernate.properties configuration.", e);
+        }
     }
 
     public static FactoryConfiguration getInstance(){return (factoryConfiguration==null)? factoryConfiguration= new FactoryConfiguration() : factoryConfiguration;}

@@ -122,8 +122,9 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.addRect(x, y - 14, w, 14); c.fill();
             c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
             c.beginText(); c.newLineAtOffset(x + 5, y - 10); c.showText("ID"); c.endText();
-            c.beginText(); c.newLineAtOffset(x + 45, y - 10); c.showText("Name"); c.endText();
-            c.beginText(); c.newLineAtOffset(x + w - 80, y - 10); c.showText("Contact"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + 30, y - 10); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 95, y - 10); c.showText("Contact"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 25, y - 10); c.showText("Due"); c.endText();
             y -= 14;
 
             // Table Rows
@@ -136,12 +137,15 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                 }
                 c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
                 String id = customer.getCustId() != null ? customer.getCustId() : "-";
-                String name = truncate(customer.getName() != null ? customer.getName() : "-", 14);
+                String name = truncate(customer.getName() != null ? customer.getName() : "-", 12);
                 String contact = customer.getContact() != null ? customer.getContact() : "-";
+                String due = String.format("%.0f", customer.getDueAmount());
                 c.beginText(); c.newLineAtOffset(x + 5, y - 9); c.showText(id); c.endText();
-                c.beginText(); c.newLineAtOffset(x + 45, y - 9); c.showText(name); c.endText();
+                c.beginText(); c.newLineAtOffset(x + 30, y - 9); c.showText(name); c.endText();
                 float cw = getThermalTextWidth(contact, THERMAL_FONT_8);
-                c.beginText(); c.newLineAtOffset(x + w - 5 - cw, y - 9); c.showText(contact); c.endText();
+                c.beginText(); c.newLineAtOffset(x + w - 95 - cw, y - 9); c.showText(contact); c.endText();
+                float dw = getThermalTextWidth(due, THERMAL_FONT_8);
+                c.beginText(); c.newLineAtOffset(x + w - 5 - dw, y - 9); c.showText(due); c.endText();
                 c.setLineWidth(0.2f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
                 c.moveTo(x, y - 12); c.lineTo(x + w, y - 12); c.stroke();
                 y -= 12;
@@ -182,8 +186,8 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             float m = 40f;
             float w = A4_WIDTH - 2 * m;
             float rowH = 18;
-            float col1 = m + 10, col2 = m + 100, col3 = m + 370;
-            float[] vLines = {m, m + 90, m + 360, A4_WIDTH - m};
+            float col1 = m + 10, col2 = m + 80, col3 = m + 280, col4 = m + 390;
+            float[] vLines = {m, m + 70, m + 270, m + 380, A4_WIDTH - m};
             float threshold = 150;
 
             PDPage page = new PDPage(PDRectangle.A4);
@@ -209,12 +213,14 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
             c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
             c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4 + 5, y - 12); c.showText("Due (LKR)"); c.endText();
             y -= rowH;
 
             // Table Rows
             c.setFont(PDType1Font.HELVETICA, 9);
             int idx = 1;
             int pageNum = 1;
+            double totalDue = 0;
             for (CustomerEntity customer : customers) {
                 if (y < threshold + rowH) {
                     c.setLineWidth(0.5f);
@@ -245,6 +251,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                     c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
                     c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
                     c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col4 + 5, y - 12); c.showText("Due (LKR)"); c.endText();
                     y -= rowH;
                     pageNum++;
                 }
@@ -273,6 +280,12 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
                 String contact = customer.getContact() != null ? customer.getContact() : "-";
                 c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText(contact); c.endText();
 
+                double due = customer.getDueAmount();
+                totalDue += due;
+                String dueStr = String.format("%.2f", due);
+                float dueW = PDType1Font.HELVETICA.getStringWidth(dueStr) / 1000f * 9f;
+                c.beginText(); c.newLineAtOffset(A4_WIDTH - m - 10 - dueW, y - 12); c.showText(dueStr); c.endText();
+
                 y -= rowH;
                 idx++;
             }
@@ -291,6 +304,10 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             String totalStr = String.format("Total Customers: %d", customers.size());
             float tw2 = PDType1Font.HELVETICA.getStringWidth(totalStr) / 1000f * 10f;
             c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totalStr); c.endText();
+            y -= 15;
+            String totalDueStr = String.format("Total Due: LKR %.2f", totalDue);
+            float tw3 = PDType1Font.HELVETICA.getStringWidth(totalDueStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw3, y - 10); c.showText(totalDueStr); c.endText();
 
             drawFooter(c, pageNum);
 
@@ -303,7 +320,275 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     }
 
     // ================================
-    // 3. PRODUCT REPORT - 80mm (Same Text as A4 Page, Centered)
+    // 3. DUE PAYMENT REPORT - 80mm (Thermal)
+    // ================================
+    public static byte[] DuePaymentReportThermal(List<CustomerEntity> customers) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float h = 2 * THERMAL_MARGIN + 80 + customers.size() * 14 + 50;
+            PDPage page = new PDPage(new PDRectangle(THERMAL_WIDTH, Math.max(h, 350)));
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+
+            float y = page.getMediaBox().getHeight() - THERMAL_MARGIN;
+            float x = THERMAL_MARGIN;
+            float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
+
+            // Company Header
+            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            float twH = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twH)/2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            y -= 22;
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 8;
+
+            c.setFont(PDType1Font.HELVETICA, 9);
+            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
+            float twA = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twA)/2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
+            y -= 12;
+            float twP = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twP)/2, y - 9); c.showText(COMPANY_PHONE); c.endText();
+            y -= 15;
+
+            // Title
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            float tw1 = getThermalTextWidth("DUE PAYMENT REPORT", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw1)/2, y - THERMAL_FONT_8); c.showText("DUE PAYMENT REPORT"); c.endText();
+            y -= 16;
+
+            // Total
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_7);
+            String count = "Total Customers with Dues: " + customers.size();
+            float tw2 = getThermalTextWidth(count, THERMAL_FONT_7);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw2)/2, y - THERMAL_FONT_7); c.showText(count); c.endText();
+            y -= 15;
+
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 20;
+
+            // Table Header
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            c.setLineWidth(0f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.setNonStrokingColor(0.2f, 0.2f, 0.4f);
+            c.addRect(x, y - 14, w, 14); c.fill();
+            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            c.beginText(); c.newLineAtOffset(x + 5, y - 10); c.showText("ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + 30, y - 10); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 95, y - 10); c.showText("Contact"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 25, y - 10); c.showText("Due"); c.endText();
+            y -= 14;
+
+            // Table Rows
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            int idx = 1;
+            double totalDue = 0;
+            for (CustomerEntity customer : customers) {
+                if (idx % 2 == 0) {
+                    c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
+                    c.addRect(x, y - 12, w, 12); c.fill();
+                }
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String id = customer.getCustId() != null ? customer.getCustId() : "-";
+                String name = truncate(customer.getName() != null ? customer.getName() : "-", 12);
+                String contact = customer.getContact() != null ? customer.getContact() : "-";
+                String due = String.format("%.0f", customer.getDueAmount());
+                totalDue += customer.getDueAmount();
+                c.beginText(); c.newLineAtOffset(x + 5, y - 9); c.showText(id); c.endText();
+                c.beginText(); c.newLineAtOffset(x + 30, y - 9); c.showText(name); c.endText();
+                float cw = getThermalTextWidth(contact, THERMAL_FONT_8);
+                c.beginText(); c.newLineAtOffset(x + w - 95 - cw, y - 9); c.showText(contact); c.endText();
+                float dw = getThermalTextWidth(due, THERMAL_FONT_8);
+                c.beginText(); c.newLineAtOffset(x + w - 5 - dw, y - 9); c.showText(due); c.endText();
+                c.setLineWidth(0.2f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+                c.moveTo(x, y - 12); c.lineTo(x + w, y - 12); c.stroke();
+                y -= 12;
+                idx++;
+            }
+
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 20;
+
+            // Total Due
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String totalDueStr = String.format("Total Outstanding: Rs. %.2f", totalDue);
+            float tdw = getThermalTextWidth(totalDueStr, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tdw)/2, y - THERMAL_FONT_8); c.showText(totalDueStr); c.endText();
+            y -= 18;
+
+            // Footer
+            c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 10;
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            float twT = getThermalTextWidth("Thank you for your business!", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twT)/2, y - THERMAL_FONT_8); c.showText("Thank you for your business!"); c.endText();
+            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
+            float twG = getThermalTextWidth(gen, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twG)/2, y - 20); c.showText(gen); c.endText();
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating due payment report (thermal)", e);
+        }
+    }
+
+    // ================================
+    // 4. DUE PAYMENT REPORT - A4 (Professional Style)
+    // ================================
+    public static byte[] DuePaymentReportA4Pro(List<CustomerEntity> customers) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float m = 40f;
+            float w = A4_WIDTH - 2 * m;
+            float rowH = 18;
+            float col1 = m + 10, col2 = m + 80, col3 = m + 280, col4 = m + 390;
+            float[] vLines = {m, m + 70, m + 270, m + 380, A4_WIDTH - m};
+            float threshold = 150;
+
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+            float y = A4_HEIGHT - m;
+            drawReportHeader(c, "DUE PAYMENT REPORT", y);
+            y -= 85;
+
+            // Draw table header
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.fill();
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.addRect(m, y - rowH, w, rowH);
+            c.stroke();
+            for (float vl : vLines) {
+                c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+            }
+            c.setNonStrokingColor(1f, 1f, 1f);
+            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4 + 5, y - 12); c.showText("Due (LKR)"); c.endText();
+            y -= rowH;
+
+            // Table Rows
+            c.setFont(PDType1Font.HELVETICA, 9);
+            int idx = 1;
+            int pageNum = 1;
+            double totalDue = 0;
+            for (CustomerEntity customer : customers) {
+                if (y < threshold + rowH) {
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+                    drawFooter(c, pageNum);
+                    c.close();
+
+                    page = new PDPage(PDRectangle.A4);
+                    document.addPage(page);
+                    c = new PDPageContentStream(document, page);
+                    y = A4_HEIGHT - m;
+                    drawReportHeader(c, "DUE PAYMENT REPORT", y);
+                    y -= 85;
+
+                    c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+                    c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                    c.setLineWidth(0.5f);
+                    c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.stroke();
+                    for (float vl : vLines) {
+                        c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                    }
+                    c.setNonStrokingColor(1f, 1f, 1f);
+                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("ID"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Name"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Contact"); c.endText();
+                    c.beginText(); c.newLineAtOffset(col4 + 5, y - 12); c.showText("Due (LKR)"); c.endText();
+                    y -= rowH;
+                    pageNum++;
+                }
+
+                if (idx % 2 == 0) {
+                    c.setNonStrokingColor(0.95f, 0.95f, 0.98f);
+                    c.addRect(m, y - rowH, w, rowH);
+                    c.fill();
+                }
+
+                c.setLineWidth(0.3f);
+                c.setStrokingColor(0.7f, 0.7f, 0.7f);
+                c.addRect(m, y - rowH, w, rowH);
+                c.stroke();
+                for (float vl : vLines) {
+                    c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke();
+                }
+
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String id = customer.getCustId() != null ? customer.getCustId() : "-";
+                c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(id); c.endText();
+
+                String nm = customer.getName() != null ? customer.getName() : "-";
+                c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(nm.length() > 30 ? nm.substring(0, 27) + "..." : nm); c.endText();
+
+                String contact = customer.getContact() != null ? customer.getContact() : "-";
+                c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText(contact); c.endText();
+
+                double due = customer.getDueAmount();
+                totalDue += due;
+                String dueStr = String.format("%.2f", due);
+                float dueW = PDType1Font.HELVETICA.getStringWidth(dueStr) / 1000f * 9f;
+                c.beginText(); c.newLineAtOffset(A4_WIDTH - m - 10 - dueW, y - 12); c.showText(dueStr); c.endText();
+
+                y -= rowH;
+                idx++;
+            }
+
+            // Bottom border
+            c.setLineWidth(0.5f);
+            c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+            y -= 25;
+
+            // Summary
+            float sumX = A4_WIDTH - m - 220;
+            float sumW = 220;
+            c.setFont(PDType1Font.HELVETICA, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String totalStr = String.format("Customers with Dues: %d", customers.size());
+            float tw2 = PDType1Font.HELVETICA.getStringWidth(totalStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totalStr); c.endText();
+            y -= 15;
+            String totalDueStr = String.format("Total Outstanding: LKR %.2f", totalDue);
+            float tw3 = PDType1Font.HELVETICA.getStringWidth(totalDueStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw3, y - 10); c.showText(totalDueStr); c.endText();
+
+            drawFooter(c, pageNum);
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating A4 due payment report", e);
+        }
+    }
+
+    // ================================
+    // 5. PRODUCT REPORT - 80mm
     // ================================
     public static byte[] ProductReportThermal(List<ProductEntity> products) {
         try (PDDocument document = new PDDocument();

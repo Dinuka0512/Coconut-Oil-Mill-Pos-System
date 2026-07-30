@@ -10,6 +10,7 @@ import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.TaxDto;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -331,8 +332,8 @@ public class BalanceController implements Initializable {
                 }
             }
 
-            if ("CUST001".equals(customer.getCustId()) && amountPaid < currentTotalWithTax) {
-                AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer (CUST001) must pay in full!");
+            if (AppConstants.DEMO_CUSTOMER_ID.equals(customer.getCustId()) && amountPaid < currentTotalWithTax) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer (" + AppConstants.DEMO_CUSTOMER_ID + ") must pay in full!");
                 return;
             }
 
@@ -389,6 +390,7 @@ public class BalanceController implements Initializable {
 
                 if (pdfBytes != null) {
                     File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                    tempFile.deleteOnExit();
                     Files.write(tempFile.toPath(), pdfBytes);
                     Desktop.getDesktop().open(tempFile);
                 }

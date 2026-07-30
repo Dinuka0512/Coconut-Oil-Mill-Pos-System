@@ -1,6 +1,8 @@
 package com.dev09.kumaracoconutoil.bo.custom.impl;
 
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
+import com.dev09.kumaracoconutoil.bo.BOFactory;
+import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.CustomerDAO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
@@ -88,5 +90,24 @@ public class CustomerBOImpl implements CustomerBO {
     @Override
     public ArrayList<CustomerEntity> getAllCustomersEntity() {
         return customerDAO.getAll();
+    }
+
+    private OrderBO orderBO;
+
+    private OrderBO getOrderBO() {
+        if (orderBO == null) {
+            orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
+        }
+        return orderBO;
+    }
+
+    @Override
+    public void reconcileDueAmounts() throws Exception {
+        ArrayList<CustomerEntity> customers = customerDAO.getAll();
+        for (CustomerEntity customer : customers) {
+            double totalDue = getOrderBO().getTotalDueByCustomer(customer.getCustId());
+            customer.setDueAmount(totalDue);
+            customerDAO.update(customer);
+        }
     }
 }

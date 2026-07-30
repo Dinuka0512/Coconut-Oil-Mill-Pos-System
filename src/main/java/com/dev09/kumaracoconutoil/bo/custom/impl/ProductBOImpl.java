@@ -45,8 +45,8 @@ public class ProductBOImpl implements ProductBO {
 
     @Override
     public boolean updateProduct(ProductDto dto) {
-        ProductEntity entity = new ProductEntity();
-        entity.setId(dto.getId());
+        ProductEntity entity = productDAO.search(dto.getId());
+        if (entity == null) return false;
         entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
         entity.setQty(dto.getQty());

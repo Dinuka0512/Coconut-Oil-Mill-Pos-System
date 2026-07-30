@@ -257,6 +257,7 @@ public class OrderManageController implements Initializable {
                 }
                 
                 File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                tempFile.deleteOnExit();
                 java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
                 java.awt.Desktop.getDesktop().open(tempFile);
             }

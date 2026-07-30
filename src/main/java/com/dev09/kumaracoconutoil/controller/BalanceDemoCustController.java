@@ -205,6 +205,7 @@ public class BalanceDemoCustController implements Initializable {
 
                 if (pdfBytes != null) {
                     File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                    tempFile.deleteOnExit();
                     Files.write(tempFile.toPath(), pdfBytes);
                     Desktop.getDesktop().open(tempFile);
                 }

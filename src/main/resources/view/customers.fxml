@@ -31,7 +31,6 @@
             <Button fx:id="btnDelete" layoutX="482.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
             <Button fx:id="btnClear" layoutX="402.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
              <Button layoutX="22.0" layoutY="83.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="145.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
-            <Button fx:id="btnPayDue" layoutX="175.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnPayDueOnAction" prefHeight="35.0" prefWidth="95.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Pay Due" />
             <TextField fx:id="txtDue" layoutX="622.0" layoutY="35.0" editable="false" prefHeight="30.0" prefWidth="94.0" promptText="0" style="-fx-background-radius: 5; -fx-background-color: #f0f0f0;" />
          </children>
       </AnchorPane>

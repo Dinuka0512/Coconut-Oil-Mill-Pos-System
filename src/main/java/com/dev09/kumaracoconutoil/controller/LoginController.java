@@ -1,5 +1,6 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -81,7 +82,7 @@ public class LoginController implements Initializable {
         userBo.saveAdmin();
 
         if (customerBO.getAllCustomers().isEmpty()) {
-            customerBO.saveCustomer(new CustomerDto("CUST001", "DEMO Customer", "democust@gmail.com"));
+            customerBO.saveCustomer(new CustomerDto(AppConstants.DEMO_CUSTOMER_ID, "DEMO Customer", "democust@gmail.com"));
         }
     }
 
