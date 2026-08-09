@@ -58,10 +58,9 @@
             </ImageView>
             <Label layoutX="54.0" layoutY="191.0" text="Invoice" />
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="190.0">
-               <imagit status
-                       ge>
+               <image>
                   <Image url="@../asets/order.png" />
-               </imagitge>
+               </image>
             </ImageView>
             <Label layoutX="52.0" layoutY="246.0" text="Quotation" />
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="245.0">

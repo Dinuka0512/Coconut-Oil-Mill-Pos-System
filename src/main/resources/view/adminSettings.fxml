@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
+<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Admin Settings" textFill="#2c3e50">
          <font>

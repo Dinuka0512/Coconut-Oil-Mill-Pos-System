@@ -10,7 +10,7 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="560.0" prefWidth="800.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SimplePOSController">
+<AnchorPane prefHeight="560.0" prefWidth="800.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SimplePOSController">
    <children>
 
       <!-- Title -->

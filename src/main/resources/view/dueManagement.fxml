@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DueManagementController">
+<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DueManagementController">
    <children>
       <!-- Title -->
       <Label layoutX="25.0" layoutY="18.0" text="Due Payment Management" textFill="#1e293b">

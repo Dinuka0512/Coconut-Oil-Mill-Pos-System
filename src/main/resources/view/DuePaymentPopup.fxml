@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="480.0" prefWidth="520.0" style="-fx-background-color: white; -fx-background-radius: 12;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DuePaymentPopupController">
+<AnchorPane prefHeight="480.0" prefWidth="520.0" style="-fx-background-color: white; -fx-background-radius: 12;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DuePaymentPopupController">
    <children>
       <!-- Title -->
       <Label layoutX="25.0" layoutY="20.0" text="Due Payment" textFill="#1e293b">

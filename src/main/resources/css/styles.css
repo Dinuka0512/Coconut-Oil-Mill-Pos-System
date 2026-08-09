@@ -17,6 +17,28 @@
     -fx-border-radius: 6;
     -fx-background-radius: 6;
     -fx-padding: 0;
+    -fx-selection-bar-text: #0f172a;
+    -fx-text-background-color: #0f172a;
+}
+.table-view .table-cell {
+    -fx-text-fill: #0f172a;
+    -fx-text-background-color: #0f172a;
+}
+.table-view .table-row-cell:selected,
+.table-view .table-row-cell:selected:focused,
+.table-view .table-row-cell:odd:selected {
+    -fx-background-color: #eff6ff;
+    -fx-table-cell-border-color: transparent;
+}
+.table-view .table-row-cell:selected .table-cell,
+.table-view .table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #0f172a;
+    -fx-text-background-color: #0f172a;
+    -fx-background-color: #eff6ff;
+}
+.table-view .table-row-cell:selected .table-cell .label,
+.table-view .table-row-cell:selected:focused .table-cell .label {
+    -fx-text-fill: #0f172a;
 }
 .table-view .column-header-background {
     -fx-background-color: #f8fafc;

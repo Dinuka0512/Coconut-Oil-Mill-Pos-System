@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.OrderManageController">
+<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.OrderManageController">
    <children>
        <Label layoutX="32.0" layoutY="21.0" text="Invoice Management" textFill="#2c3e50">
          <font>
