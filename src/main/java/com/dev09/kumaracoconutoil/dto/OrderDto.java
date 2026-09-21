@@ -61,7 +61,7 @@ public class OrderDto {
     }
 
     public double getTotal() {
-        return amountPaid;
+        return amountPaid - balance;
     }
 
     @Override

@@ -169,7 +169,7 @@ public class OrderBOImpl implements OrderBO {
         Transaction transaction = session.beginTransaction();
         try {
             OrderEntity entity = session.createQuery(
-                "SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
+                "SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
                 OrderEntity.class)
                 .setParameter("orderId", dto.getOrderId())
                 .uniqueResult();
@@ -265,6 +265,19 @@ public class OrderBOImpl implements OrderBO {
                 }
             }
 
+            List<Object[]> productQtys = session.createNativeQuery("SELECT product_id, qty FROM order_product_details WHERE order_id = :orderId")
+                    .setParameter("orderId", orderId)
+                    .list();
+            for (Object[] row : productQtys) {
+                String productId = (String) row[0];
+                if (productId == null) continue;
+                double qty = ((Number) row[1]).doubleValue();
+                session.createNativeQuery("UPDATE product SET qty = qty + :qty WHERE id = :productId")
+                        .setParameter("qty", qty)
+                        .setParameter("productId", productId)
+                        .executeUpdate();
+            }
+
             session.createNativeQuery("DELETE FROM due_payment WHERE order_id = :orderId")
                    .setParameter("orderId", orderId)
                    .executeUpdate();
@@ -353,6 +366,7 @@ public class OrderBOImpl implements OrderBO {
                 double payForThisOrder = Math.min(remaining, owed);
 
                 order.setBalance(order.getBalance() + payForThisOrder);
+                order.setAmountPaid(order.getAmountPaid() + payForThisOrder);
                 session.merge(order);
 
                 if (customerEntity != null) {

@@ -74,25 +74,35 @@ public class CustomerController implements Initializable {
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
                 () -> {
+                    if (txtName.getScene() != scene) return;
                     if (!btnSave.isDisabled()) btnSave.fire();
                     else if (!btnUpdate.isDisabled()) btnUpdate.fire();
                 });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
                 () -> {
+                    if (txtName.getScene() != scene) return;
                     if (!btnUpdate.isDisabled()) btnUpdate.fire();
                 });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.DELETE, KeyCombination.CONTROL_DOWN),
                 () -> {
+                    if (txtName.getScene() != scene) return;
                     if (!btnDelete.isDisabled()) btnDelete.fire();
                 });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
-                () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    txtSearch.requestFocus();
+                    txtSearch.selectAll();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.ESCAPE, KeyCombination.CONTROL_DOWN),
-                () -> btnClear.fire());
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    btnClear.fire();
+                });
     }
 
     @Override

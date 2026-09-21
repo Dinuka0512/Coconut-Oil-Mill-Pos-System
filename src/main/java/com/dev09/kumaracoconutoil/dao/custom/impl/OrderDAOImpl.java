@@ -16,7 +16,7 @@ public class OrderDAOImpl implements OrderDAO {
     public ArrayList<OrderEntity> getAll() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            Query<OrderEntity> query = session.createQuery("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product", OrderEntity.class);
+            Query<OrderEntity> query = session.createQuery("SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product", OrderEntity.class);
             List<OrderEntity> list = query.list();
             return new ArrayList<>(list);
         } finally {
@@ -178,7 +178,7 @@ public class OrderDAOImpl implements OrderDAO {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
             Query<OrderEntity> query = session.createQuery(
-                "SELECT o FROM OrderEntity o LEFT JOIN FETCH o.customer c LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
+                "SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.customer c LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
                 OrderEntity.class);
             query.setParameter("orderId", orderId);
             return query.uniqueResult();

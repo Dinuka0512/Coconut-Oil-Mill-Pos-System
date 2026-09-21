@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -35,6 +36,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.DayOfWeek;
@@ -113,6 +115,10 @@ public class DashboardController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateUserDisplay();
+        if (userData != null && "client".equals(userData.getRole())) {
+            subNavigateTo("/view/inventory.fxml");
+            return;
+        }
         setupTable();
         loadDashboardDataFast();
     }
@@ -167,10 +173,10 @@ public class DashboardController implements Initializable {
             if (order.getDate() != null) {
                 LocalDate orderDate = order.getDate();
                 if (orderDate.equals(today)) {
-                    todaySales += order.getAmountPaid();
+                    todaySales += order.getTotal();
                 }
                 if (!orderDate.isBefore(weekStart) && !orderDate.isAfter(today)) {
-                    weeklySales += order.getAmountPaid();
+                    weeklySales += order.getTotal();
                 }
             }
         }
@@ -182,8 +188,10 @@ public class DashboardController implements Initializable {
     private void loadCounts() {
         lblTotalCustomers.setText(String.valueOf(cachedCustomers.size()));
         lblTotalProducts.setText(String.valueOf(cachedProducts.size()));
-        double totalDue = cachedCustomers.stream().mapToDouble(CustomerDto::getDueAmount).sum();
-        lblTotalDue.setText(String.format("Rs.%,.2f", totalDue));
+        if (lblTotalDue != null) {
+            double totalDue = cachedCustomers.stream().mapToDouble(CustomerDto::getDueAmount).sum();
+            lblTotalDue.setText(String.format("Rs.%,.2f", totalDue));
+        }
     }
 
     private void loadRecentSales() {
@@ -204,7 +212,7 @@ public class DashboardController implements Initializable {
                             order.getOrderId(),
                             order.getCustomerName(),
                             totalQty,
-                            order.getAmountPaid()
+                            order.getTotal()
                     ));
                 });
 
@@ -223,7 +231,7 @@ public class DashboardController implements Initializable {
             final LocalDate finalDate = date;
             double daySales = cachedOrders.stream()
                     .filter(o -> o.getDate() != null && o.getDate().equals(finalDate))
-                    .mapToDouble(OrderDto::getAmountPaid)
+                    .mapToDouble(OrderDto::getTotal)
                     .sum();
 
             series.getData().add(new XYChart.Data<>(dayName, daySales));
@@ -252,7 +260,7 @@ public class DashboardController implements Initializable {
                         LocalDate od = o.getDate();
                         return od.getMonthValue() == monthValue && od.getYear() == yearValue;
                     })
-                    .mapToDouble(OrderDto::getAmountPaid)
+                    .mapToDouble(OrderDto::getTotal)
                     .sum();
 
             series.getData().add(new XYChart.Data<>(monthName, monthSales));
@@ -265,7 +273,30 @@ public class DashboardController implements Initializable {
 
     @FXML
     void btnBackupDataOnAction(ActionEvent event) {
-        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Backup feature coming soon!");
+        Task<DatabaseBackupUtil.BackupResult> task = new Task<DatabaseBackupUtil.BackupResult>() {
+            @Override
+            protected DatabaseBackupUtil.BackupResult call() throws Exception {
+                return DatabaseBackupUtil.backupDatabase();
+            }
+        };
+        task.setOnSucceeded(e -> {
+            DatabaseBackupUtil.BackupResult backup = task.getValue();
+            File backupFile = backup.getFile();
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION,
+                    "Full database backup created successfully!\n\n"
+                    + backup.getTableCount() + " tables, " + backup.getRowCount() + " rows exported.\n"
+                    + "File (read-only SQL):\n" + backupFile.getAbsolutePath());
+            try {
+                java.awt.Desktop.getDesktop().open(backupFile.getParentFile());
+            } catch (Exception ignored) {
+                // folder could not be opened, ignore
+            }
+        });
+        task.setOnFailed(e -> {
+            task.getException().printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Backup failed: " + task.getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     public void updateUserDisplay() {

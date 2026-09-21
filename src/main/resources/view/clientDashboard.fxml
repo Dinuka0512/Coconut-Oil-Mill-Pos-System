@@ -49,34 +49,20 @@
       </AnchorPane>
       <AnchorPane layoutY="99.0" prefHeight="517.0" prefWidth="129.0" style="-fx-background-color: #dddcdc;">
          <children>
-            <Label layoutX="57.0" layoutY="27.0" text="Home" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="26.0">
-               <image>
-                  <Image url="@../asets/home.png" />
-               </image>
-            </ImageView>
-            <Button layoutX="10.0" layoutY="17.0" mnemonicParsing="false" onAction="#goToHome" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Label layoutX="55.0" layoutY="82.0" text="Inventory" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="80.0">
+            <Label layoutX="55.0" layoutY="35.0" text="Inventory" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="33.0">
                <image>
                   <Image url="@../asets/product.png" />
                </image>
             </ImageView>
-            <Button layoutX="10.0" layoutY="71.0" mnemonicParsing="false" onAction="#goToInventory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <Label layoutX="54.0" layoutY="137.0" text="Invoice" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="135.0">
+            <Button layoutX="10.0" layoutY="24.0" mnemonicParsing="false" onAction="#goToInventory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Label layoutX="54.0" layoutY="90.0" text="Invoice" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="88.0">
                <image>
                   <Image url="@../asets/order.png" />
                </image>
             </ImageView>
-            <Button layoutX="10.0" layoutY="126.0" mnemonicParsing="false" onAction="#goToOrder" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
-            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="437.0">
-               <image>
-                  <Image url="@../asets/settings.png" />
-               </image>
-            </ImageView>
-            <Label layoutX="54.0" layoutY="439.0" text="Settings" />
-            <Button layoutX="10.0" layoutY="428.0" mnemonicParsing="false" onAction="#goToSettings" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
+            <Button layoutX="10.0" layoutY="79.0" mnemonicParsing="false" onAction="#goToOrder" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
             <Button layoutX="14.0" layoutY="472.0" mnemonicParsing="false" onAction="#logOut" prefHeight="25.0" prefWidth="102.0" style="-fx-background-color: red;" text="Log Out" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="12.0" />

@@ -79,19 +79,35 @@ public class ProductController implements Initializable {
     private void setupShortcuts(Scene scene) {
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
-                () -> btnSave.fire());
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    btnSave.fire();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
-                () -> btnUpdate.fire());
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    btnUpdate.fire();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.D, KeyCombination.CONTROL_DOWN),
-                () -> btnDelete.fire());
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    btnDelete.fire();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
-                () -> { txtSearch.requestFocus(); txtSearch.selectAll(); });
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    txtSearch.requestFocus();
+                    txtSearch.selectAll();
+                });
         scene.getAccelerators().put(
                 new KeyCodeCombination(javafx.scene.input.KeyCode.C, KeyCombination.CONTROL_DOWN),
-                () -> btnClear.fire());
+                () -> {
+                    if (txtName.getScene() != scene) return;
+                    btnClear.fire();
+                });
     }
 
     @Override

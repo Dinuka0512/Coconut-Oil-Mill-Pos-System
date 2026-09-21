@@ -529,27 +529,6 @@ public class UpdatePosController implements Initializable {
                 newCartQty.put(tm.getCode(), tm.getQty());
             }
 
-            for (String prodId : originalCartQty.keySet()) {
-                double originalQty = originalCartQty.get(prodId);
-                double currentQty = newCartQty.getOrDefault(prodId, 0.0);
-                double difference = originalQty - currentQty;
-                if (difference > 0) {
-                    ProductDto prod = productBO.searchProduct(prodId);
-                    if (prod != null) {
-                        prod.setQty(prod.getQty() + difference);
-                        productBO.updateProduct(prod);
-                    }
-                } else if (difference < 0) {
-                    productBO.updateStock(prodId, Math.abs(difference));
-                }
-            }
-
-            for (String prodId : newCartQty.keySet()) {
-                if (!originalCartQty.containsKey(prodId)) {
-                    productBO.updateStock(prodId, newCartQty.get(prodId));
-                }
-            }
-
             ArrayList<OrderProductDetailsDto> orderProducts = new ArrayList<>();
             for (CartTM tm : obList) {
                 ProductDto product = new ProductDto();
@@ -575,6 +554,7 @@ public class UpdatePosController implements Initializable {
 
             boolean success = orderBO.updateOrder(orderDto);
             if (success) {
+                applyStockAdjustments(originalCartQty, newCartQty);
                 AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice updated successfully!");
 
                 Stage stage = (Stage) body.getScene().getWindow();
@@ -585,6 +565,30 @@ public class UpdatePosController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Error updating order: " + e.getMessage());
+        }
+    }
+
+    private void applyStockAdjustments(java.util.Map<String, Double> originalCartQty,
+                                       java.util.Map<String, Double> newCartQty) {
+        for (String prodId : originalCartQty.keySet()) {
+            double originalQty = originalCartQty.get(prodId);
+            double currentQty = newCartQty.getOrDefault(prodId, 0.0);
+            double difference = originalQty - currentQty;
+            if (difference > 0) {
+                ProductDto prod = productBO.searchProduct(prodId);
+                if (prod != null) {
+                    prod.setQty(prod.getQty() + difference);
+                    productBO.updateProduct(prod);
+                }
+            } else if (difference < 0) {
+                productBO.updateStock(prodId, Math.abs(difference));
+            }
+        }
+
+        for (String prodId : newCartQty.keySet()) {
+            if (!originalCartQty.containsKey(prodId)) {
+                productBO.updateStock(prodId, newCartQty.get(prodId));
+            }
         }
     }
 

@@ -112,7 +112,11 @@ public class QuotationController implements Initializable {
             if (scene != null) {
                 scene.getAccelerators().put(
                     new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN),
-                    () -> btnGeneratePdfOnAction(null)
+                    () -> {
+                        if (body.getScene() == scene) {
+                            btnGeneratePdfOnAction(null);
+                        }
+                    }
                 );
             }
         });

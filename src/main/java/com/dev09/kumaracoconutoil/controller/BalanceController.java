@@ -196,6 +196,7 @@ public class BalanceController implements Initializable {
             } else if ("Full Payment".equals(duePayType.getValue())) {
                 duePaymentAmount = existingDue;
             }
+            if (duePaymentAmount > existingDue) duePaymentAmount = existingDue;
 
             double balance = (amount + duePaymentAmount) - totalOwed;
 
@@ -320,14 +321,32 @@ public class BalanceController implements Initializable {
                 amountPaid = Double.parseDouble(amountText);
             }
 
+            String paymentMethod = cmbPaymentMethod.getValue();
+            if (("Cash".equals(paymentMethod) || "Card".equals(paymentMethod)) && amountPaid <= 0) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING,
+                        "Please enter a valid received amount for " + paymentMethod + " payment!");
+                txtAmountPaid.requestFocus();
+                return;
+            }
+
             double duePaymentAmount = 0.0;
-            if (existingDue > 0 && txtPayDueAmount.isVisible() && !txtPayDueAmount.isDisable()) {
-                String dueText = txtPayDueAmount.getText();
-                if (dueText != null && !dueText.isEmpty()) {
-                    duePaymentAmount = Double.parseDouble(dueText);
-                    if (duePaymentAmount > existingDue) {
-                        AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
-                        return;
+            if (existingDue > 0 && chkPayDue.isSelected()) {
+                String type = duePayType.getValue();
+                if ("Full Payment".equals(type)) {
+                    duePaymentAmount = existingDue;
+                } else {
+                    String dueText = txtPayDueAmount.getText();
+                    if (dueText != null && !dueText.isEmpty()) {
+                        try {
+                            duePaymentAmount = Double.parseDouble(dueText);
+                        } catch (NumberFormatException e) {
+                            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid due payment amount!");
+                            return;
+                        }
+                        if (duePaymentAmount > existingDue) {
+                            AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
+                            return;
+                        }
                     }
                 }
             }
@@ -342,7 +361,6 @@ public class BalanceController implements Initializable {
             }
 
             double balance = amountPaid - currentTotalWithTax;
-            String paymentMethod = cmbPaymentMethod.getValue();
 
             ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
             for (CartTM tm : cartItems) {

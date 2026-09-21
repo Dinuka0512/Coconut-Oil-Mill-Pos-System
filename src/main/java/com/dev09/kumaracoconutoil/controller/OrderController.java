@@ -460,23 +460,44 @@ public class OrderController implements Initializable {
         LocalDate date = LocalDate.parse(lblDate.getText());
         CustomerDto customerDto = selectedCustomer;
 
-        double netTotal = 0.0;
-        double discount = 0.0;
-        double taxRate = 0.0;
-        double balance = 0.0;
-
+        double discountPercent;
+        double taxRate;
         try {
             orderId = orderBO.generateNextOrderId();
-            netTotal = Double.parseDouble(lblNetTotal.getText());
-            discount = Double.parseDouble(txtDiscount.getText());
+            String discountText = txtDiscount.getText();
+            discountPercent = (discountText == null || discountText.isEmpty())
+                    ? 0.0
+                    : Double.parseDouble(discountText.replace("%", "").trim());
             taxRate = Double.parseDouble(txtTax.getText());
-            balance = Double.parseDouble(lblBalance.getText());
         } catch (Exception e) {
-            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error processing order: " + e.getMessage());
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error processing order: please enter valid discount and tax values!");
             return;
         }
 
-        double amount = netTotal;
+        double subtotal = 0.0;
+        for (CartTM tm : obList) {
+            subtotal += tm.getTotal();
+        }
+        double discountAmount = subtotal * (discountPercent / 100.0);
+        double totalAfterDiscount = subtotal - discountAmount;
+        double taxAmount = totalAfterDiscount * (taxRate / 100.0);
+        double finalTotal = totalAfterDiscount + taxAmount;
+
+        double amount;
+        String amountText = txtAmount.getText();
+        try {
+            if (amountText == null || amountText.trim().isEmpty() || amountText.equals("-")) {
+                amount = finalTotal;
+            } else {
+                amount = Double.parseDouble(amountText);
+            }
+        } catch (NumberFormatException e) {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error processing order: please enter a valid received amount!");
+            return;
+        }
+
+        double balance = amount - finalTotal;
+        String paymentMethod = balance >= 0 ? "Cash" : "Credit";
 
         ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
         for (CartTM tm : obList) {
@@ -484,7 +505,7 @@ public class OrderController implements Initializable {
             details.add(new OrderProductDetailsDto(null, null, productDto, tm.getQty(), tm.getUnitPrice()));
         }
 
-        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discount, 0, taxRate, balance, null);
+        OrderDto orderDto = new OrderDto(orderId, date, customerDto, details, amount, discountPercent, taxAmount, taxRate, balance, paymentMethod);
         try {
             boolean isPlaced = orderBO.placeOrder(orderDto);
             if (isPlaced) {
