@@ -19,13 +19,18 @@ public class ProductBOImpl implements ProductBO {
         ArrayList<ProductEntity> all = productDAO.getAll();
         ArrayList<ProductDto> dtoList = new ArrayList<>();
         for (ProductEntity entity : all) {
-            dtoList.add(new ProductDto(
+            ProductDto dto = new ProductDto(
                     entity.getId(),
                     entity.getItemcode(),
                     entity.getName(),
                     entity.getQty(),
                     entity.getPrice()
-            ));
+            );
+            dto.setCreatedBy(entity.getCreatedBy());
+            dto.setCreatedAt(entity.getCreatedAt());
+            dto.setUpdatedBy(entity.getUpdatedBy());
+            dto.setUpdatedAt(entity.getUpdatedAt());
+            dtoList.add(dto);
         }
         return dtoList;
     }
@@ -78,13 +83,18 @@ public class ProductBOImpl implements ProductBO {
     public ProductDto searchProduct(String id) {
         ProductEntity entity = productDAO.search(id);
         if (entity != null) {
-            return new ProductDto(
+            ProductDto dto = new ProductDto(
                     entity.getId(),
                     entity.getItemcode(),
                     entity.getName(),
                     entity.getQty(),
                     entity.getPrice()
             );
+            dto.setCreatedBy(entity.getCreatedBy());
+            dto.setCreatedAt(entity.getCreatedAt());
+            dto.setUpdatedBy(entity.getUpdatedBy());
+            dto.setUpdatedAt(entity.getUpdatedAt());
+            return dto;
         }
         return null;
     }

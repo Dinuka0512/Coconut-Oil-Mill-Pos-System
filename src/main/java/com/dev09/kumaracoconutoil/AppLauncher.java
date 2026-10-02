@@ -1,5 +1,6 @@
 package com.dev09.kumaracoconutoil;
 
+import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -23,6 +24,21 @@ public class AppLauncher extends Application {
         }
         
         primaryStage.show();
+        startAutomaticBackup();
+    }
+
+    private static void startAutomaticBackup() {
+        Thread thread = new Thread(() -> {
+            try {
+                DatabaseBackupUtil.BackupResult result = DatabaseBackupUtil.backupDatabase();
+                System.out.println("Automatic startup backup created: " + result.getFile().getName()
+                        + " (" + result.getTableCount() + " tables, " + result.getRowCount() + " rows)");
+            } catch (Exception e) {
+                System.err.println("Automatic startup backup failed: " + e.getMessage());
+            }
+        }, "auto-db-backup");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public static void main(String[] args) {

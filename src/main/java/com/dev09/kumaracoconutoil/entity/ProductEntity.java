@@ -8,7 +8,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "product")
 @SQLDelete(sql = "UPDATE product SET is_deleted = true WHERE id = ?")
 @SQLRestriction("is_deleted = false")
-public class ProductEntity {
+public class ProductEntity extends AuditableEntity {
 
     @Id
     private String id;

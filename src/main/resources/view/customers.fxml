@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.CustomerController">
+<AnchorPane fx:id="rootPane" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.CustomerController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Customer Management" textFill="#2c3e50">
          <font>
@@ -39,9 +39,11 @@
       
       <TableView fx:id="tblCustomer" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
         <columns>
-          <TableColumn fx:id="colName" prefWidth="280.0" text="Name" />
-          <TableColumn fx:id="colContact" prefWidth="260.0" text="Contact" />
-          <TableColumn fx:id="colDue" prefWidth="190.0" text="Due Amount (Rs.)" />
+<TableColumn fx:id="colName" prefWidth="180.0" text="Name" />
+            <TableColumn fx:id="colContact" prefWidth="155.0" text="Contact" />
+            <TableColumn fx:id="colDue" prefWidth="125.0" text="Due Amount (Rs.)" />
+            <TableColumn fx:id="colCreated" prefWidth="115.0" text="Created (By / At)" />
+            <TableColumn fx:id="colUpdated" prefWidth="115.0" text="Updated (By / At)" />
         </columns>
       </TableView>
    </children>

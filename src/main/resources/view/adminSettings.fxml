@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
+<AnchorPane fx:id="rootPane" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Admin Settings" textFill="#2c3e50">
          <font>
@@ -21,16 +21,16 @@
       <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
-            <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" prefHeight="30.0" prefWidth="200.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
-            
-            <Label layoutX="240.0" layoutY="15.0" text="Email" textFill="#7f8c8d" />
-            <TextField fx:id="txtEmail" layoutX="240.0" layoutY="35.0" prefHeight="30.0" prefWidth="200.0" promptText="Enter Email" style="-fx-background-radius: 5;" />
-            
-            <Label layoutX="460.0" layoutY="15.0" text="Password" textFill="#7f8c8d" />
-            <PasswordField fx:id="txtPassword" layoutX="460.0" layoutY="35.0" prefHeight="30.0" prefWidth="150.0" promptText="Password" style="-fx-background-radius: 5;" />
-            
-            <Label layoutX="630.0" layoutY="15.0" text="Role" textFill="#7f8c8d" />
-            <ComboBox fx:id="cmbRole" layoutX="630.0" layoutY="35.0" prefHeight="30.0" prefWidth="82.0" promptText="Select" />
+<TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="200.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
+             
+             <Label layoutX="240.0" layoutY="15.0" text="Email" textFill="#7f8c8d" />
+             <TextField fx:id="txtEmail" layoutX="240.0" layoutY="35.0" onAction="#onEmailAction" prefHeight="30.0" prefWidth="200.0" promptText="Enter Email" style="-fx-background-radius: 5;" />
+             
+             <Label layoutX="460.0" layoutY="15.0" text="Password" textFill="#7f8c8d" />
+             <PasswordField fx:id="txtPassword" layoutX="460.0" layoutY="35.0" onAction="#onPasswordAction" prefHeight="30.0" prefWidth="150.0" promptText="Password" style="-fx-background-radius: 5;" />
+             
+             <Label layoutX="630.0" layoutY="15.0" text="Role" textFill="#7f8c8d" />
+             <ComboBox fx:id="cmbRole" layoutX="630.0" layoutY="35.0" prefHeight="30.0" prefWidth="82.0" promptText="Select" />
             
             <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
             <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
@@ -43,11 +43,13 @@
       
       <TableView fx:id="tblUsers" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
         <columns>
-          <TableColumn fx:id="colId" prefWidth="80.0" text="User ID" />
-          <TableColumn fx:id="colName" prefWidth="180.0" text="Name" />
-          <TableColumn fx:id="colEmail" prefWidth="180.0" text="Email" />
-          <TableColumn fx:id="colPassword" prefWidth="130.0" text="Password" />
-          <TableColumn fx:id="colRole" prefWidth="160.0" text="Role" />
+          <TableColumn fx:id="colId" prefWidth="70.0" text="User ID" />
+          <TableColumn fx:id="colName" prefWidth="135.0" text="Name" />
+          <TableColumn fx:id="colEmail" prefWidth="150.0" text="Email" />
+          <TableColumn fx:id="colPassword" prefWidth="100.0" text="Password" />
+          <TableColumn fx:id="colRole" prefWidth="80.0" text="Role" />
+          <TableColumn fx:id="colCreated" prefWidth="115.0" text="Created (By / At)" />
+          <TableColumn fx:id="colUpdated" prefWidth="115.0" text="Updated (By / At)" />
         </columns>
       </TableView>
    </children>

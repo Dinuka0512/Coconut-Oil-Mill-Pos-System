@@ -1,13 +1,17 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditCell;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
 import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
+import com.dev09.kumaracoconutoil.entity.ProductEntity;
+import com.dev09.kumaracoconutoil.view.tm.ProductSalesTM;
 import com.dev09.kumaracoconutoil.controller.UpdatePosController;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,7 +28,9 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -62,9 +68,47 @@ public class OrderManageController implements Initializable {
     @FXML
     private TableColumn<OrderDto, String> colAction;
 
+    @FXML
+    private TableColumn<OrderDto, String> colCreated;
+
+    @FXML
+    private TableColumn<OrderDto, String> colUpdated;
+
+    @FXML
+    private TableView<ProductSalesTM> tblTdySales;
+
+    @FXML
+    private TableColumn<ProductSalesTM, String> colProductId;
+
+    @FXML
+    private TableColumn<ProductSalesTM, String> colProductName;
+
+    @FXML
+    private TableColumn<ProductSalesTM, Double> colSoldQty;
+
+    @FXML
+    private TableColumn<ProductSalesTM, Double> colSoldTotal;
+
+    @FXML
+    private Button btnViewOption;
+
+    @FXML
+    private Button btnSearch;
+
+    @FXML
+    private Button btnViewBill;
+
+    @FXML
+    private Button btnDelete;
+
+    private static final String ORDERS_VIEW_TEXT = "View Products Sale";
+
+    private static final String PRODUCT_SALES_VIEW_TEXT = "View Invoices";
+
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ArrayList<OrderDto> orderList = new ArrayList<>();
     private final Set<LocalDate> orderDates = new HashSet<>();
+    private boolean productSalesView;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -73,6 +117,15 @@ public class OrderManageController implements Initializable {
         colCustomer.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         colTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+
+        colCreated.setCellValueFactory(new PropertyValueFactory<>("createdInfo"));
+        colUpdated.setCellValueFactory(new PropertyValueFactory<>("updatedInfo"));
+        colCreated.setCellFactory(AuditCell.factory());
+        colUpdated.setCellFactory(AuditCell.factory());
+        boolean canSeeAudit = isAdmin();
+        colCreated.setVisible(canSeeAudit);
+        colUpdated.setVisible(canSeeAudit);
+        tblOrders.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
         colAction.setCellFactory(param -> new TableCell<OrderDto, String>() {
             private final Button btnEdit = new Button("Edit");
@@ -83,7 +136,7 @@ public class OrderManageController implements Initializable {
                     btnEditOnAction(order);
                 });
                 btnEdit.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
-                if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+                if (!canManageInvoices()) {
                     btnEdit.setVisible(false);
                 }
             }
@@ -99,6 +152,13 @@ public class OrderManageController implements Initializable {
             }
         });
         
+        colProductId.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
+        colProductName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colSoldQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
+        colSoldTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        colSoldQty.setCellFactory(createNumberCellFactory());
+        colSoldTotal.setCellFactory(createNumberCellFactory());
+
         datePicker.setValue(LocalDate.now());
         datePicker.setEditable(false);
         datePicker.setShowWeekNumbers(false);
@@ -109,10 +169,77 @@ public class OrderManageController implements Initializable {
             if (selected != null) {
                 loadOrderDatesForMonth(YearMonth.from(selected));
                 loadOrdersByDate(selected);
+                loadProductSalesByDate(selected);
             }
         });
         
         loadOrdersByDate(datePicker.getValue());
+        loadProductSalesByDate(datePicker.getValue());
+        showOrdersView();
+    }
+
+    private Callback<TableColumn<ProductSalesTM, Double>, TableCell<ProductSalesTM, Double>> createNumberCellFactory() {
+        return param -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", item));
+                }
+                setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+            }
+        };
+    }
+
+    private static String currentRole() {
+        return DashboardController.userData == null ? "" : String.valueOf(DashboardController.userData.getRole());
+    }
+
+    private static boolean isManager() {
+        return "manager".equals(currentRole());
+    }
+
+    private static boolean isAdmin() {
+        return "admin".equals(currentRole());
+    }
+
+    private static boolean canManageInvoices() {
+        return isAdmin() || isManager();
+    }
+
+    private void showOrdersView() {
+        productSalesView = false;
+        tblOrders.setVisible(true);
+        tblTdySales.setVisible(false);
+        btnViewOption.setText(ORDERS_VIEW_TEXT);
+        txtSearch.setDisable(false);
+        btnSearch.setDisable(false);
+        btnViewBill.setDisable(false);
+        btnDelete.setDisable(false);
+    }
+
+    private void showProductSalesView() {
+        productSalesView = true;
+        tblOrders.setVisible(false);
+        tblTdySales.setVisible(true);
+        btnViewOption.setText(PRODUCT_SALES_VIEW_TEXT);
+        tblOrders.getSelectionModel().clearSelection();
+        txtSearch.clear();
+        txtSearch.setDisable(true);
+        btnSearch.setDisable(true);
+        btnViewBill.setDisable(true);
+        btnDelete.setDisable(true);
+    }
+
+    @FXML
+    void btnViewOptionOnAction(ActionEvent event) {
+        if (productSalesView) {
+            showOrdersView();
+        } else {
+            showProductSalesView();
+        }
     }
 
     private Callback<DatePicker, DateCell> createDayCellFactory() {
@@ -161,6 +288,51 @@ public class OrderManageController implements Initializable {
         }
     }
 
+    private void loadProductSalesByDate(LocalDate date) {
+        tblTdySales.getSelectionModel().clearSelection();
+        ObservableList<ProductSalesTM> items = tblTdySales.getItems();
+        items.clear();
+        if (date == null) return;
+
+        try {
+            List<OrderProductDetailsEntity> details = orderBO.getProductDetailsByDate(date);
+            if (details == null || details.isEmpty()) return;
+
+            Map<String, double[]> totalsByProduct = new LinkedHashMap<>();
+            Map<String, String> codesByProduct = new LinkedHashMap<>();
+            Map<String, String> namesByProduct = new LinkedHashMap<>();
+
+            for (OrderProductDetailsEntity detail : details) {
+                ProductEntity product = detail.getProduct();
+                if (product == null) continue;
+
+                String key = product.getId();
+                double[] amounts = totalsByProduct.computeIfAbsent(key, k -> new double[2]);
+                amounts[0] += detail.getQuantity();
+                amounts[1] += detail.getQuantity() * detail.getUnitPrice();
+                codesByProduct.putIfAbsent(key, product.getItemcode());
+                namesByProduct.putIfAbsent(key, product.getName());
+            }
+
+            List<ProductSalesTM> sales = new ArrayList<>();
+            for (Map.Entry<String, double[]> entry : totalsByProduct.entrySet()) {
+                String key = entry.getKey();
+                double[] amounts = entry.getValue();
+                sales.add(new ProductSalesTM(
+                        codesByProduct.get(key),
+                        namesByProduct.get(key),
+                        amounts[0],
+                        amounts[1]));
+            }
+
+            sales.sort((a, b) -> Double.compare(b.getTotal(), a.getTotal()));
+            items.addAll(sales);
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading product sales: " + e.getMessage());
+        }
+    }
+
     @FXML
     void btnSearchOnAction(ActionEvent event) {
         performSearch();
@@ -172,6 +344,8 @@ public class OrderManageController implements Initializable {
     }
     
     private void performSearch() {
+        if (productSalesView) return;
+
         String searchText = txtSearch.getText().trim();
         
         if (!searchText.isEmpty()) {
@@ -218,6 +392,8 @@ public class OrderManageController implements Initializable {
 
     @FXML
     void btnViewBillOnAction(ActionEvent event) {
+        if (productSalesView) return;
+
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
         if (selected == null) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an invoice from the table!");
@@ -269,8 +445,10 @@ public class OrderManageController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can delete invoices!");
+        if (productSalesView) return;
+
+        if (!canManageInvoices()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins and managers can delete invoices!");
             return;
         }
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
@@ -291,6 +469,7 @@ public class OrderManageController implements Initializable {
                     AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Invoice deleted successfully!");
                     loadOrderDatesForMonth(YearMonth.from(datePicker.getValue()));
                     loadOrdersByDate(datePicker.getValue());
+                    loadProductSalesByDate(datePicker.getValue());
                 } else {
                     AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete invoice!");
                 }
@@ -306,6 +485,7 @@ public class OrderManageController implements Initializable {
         datePicker.setValue(LocalDate.now());
         loadOrderDatesForMonth(YearMonth.now());
         loadOrdersByDate(datePicker.getValue());
+        loadProductSalesByDate(datePicker.getValue());
         AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Orders refreshed for today!");
     }
 
@@ -325,8 +505,8 @@ public class OrderManageController implements Initializable {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select an invoice to edit!");
             return;
         }
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can edit invoices!");
+        if (!canManageInvoices()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins and managers can edit invoices!");
             return;
         }
         try {
@@ -343,6 +523,7 @@ public class OrderManageController implements Initializable {
             stage.setOnHidden(e -> {
                 loadOrderDatesForMonth(YearMonth.from(datePicker.getValue()));
                 loadOrdersByDate(datePicker.getValue());
+                loadProductSalesByDate(datePicker.getValue());
             });
             stage.show();
         } catch (Exception e) {

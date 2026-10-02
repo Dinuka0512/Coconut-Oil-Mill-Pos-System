@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.bo.custom;
 import com.dev09.kumaracoconutoil.bo.SuperBo;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
+import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -23,4 +24,5 @@ public interface OrderBO extends SuperBo {
     double getTotalDueByCustomer(String customerId) throws SQLException, ClassNotFoundException;
     List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) throws SQLException, ClassNotFoundException;
     double payCustomerDue(String customerId, double amount, String note) throws SQLException, ClassNotFoundException;
+    List<OrderProductDetailsEntity> getProductDetailsByDate(LocalDate date) throws SQLException, ClassNotFoundException;
 }

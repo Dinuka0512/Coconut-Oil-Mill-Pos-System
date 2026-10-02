@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user")
-public class UserEntity {
+public class UserEntity extends AuditableEntity {
     @Id
     private String id;
     @Column(unique = true)

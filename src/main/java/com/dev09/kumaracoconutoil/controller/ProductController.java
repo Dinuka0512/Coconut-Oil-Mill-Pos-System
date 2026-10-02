@@ -1,24 +1,23 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditCell;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ButtonBar;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,6 +31,9 @@ import javafx.scene.control.ChoiceDialog;
 public class ProductController implements Initializable {
 
     @FXML
+    private AnchorPane rootPane;
+
+    @FXML
     private TableColumn<ProductDto, String> colItemCode;
 
     @FXML
@@ -42,6 +44,12 @@ public class ProductController implements Initializable {
 
     @FXML
     private TableColumn<ProductDto, Double> colQty;
+
+    @FXML
+    private TableColumn<ProductDto, String> colCreated;
+
+    @FXML
+    private TableColumn<ProductDto, String> colUpdated;
 
     @FXML
     private TableView<ProductDto> tblProduct;
@@ -76,38 +84,34 @@ public class ProductController implements Initializable {
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentProductId;
 
-    private void setupShortcuts(Scene scene) {
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+    private void setupShortcuts() {
+        rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (!event.isControlDown() || event.isAltDown() || event.isMetaDown()) return;
+            switch (event.getCode()) {
+                case S -> {
+                    event.consume();
                     btnSave.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case U -> {
+                    event.consume();
                     btnUpdate.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.D, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case D -> {
+                    event.consume();
                     btnDelete.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case F -> {
+                    event.consume();
                     txtSearch.requestFocus();
                     txtSearch.selectAll();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.C, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case C -> {
+                    event.consume();
                     btnClear.fire();
-                });
+                }
+                default -> { }
+            }
+        });
     }
 
     @Override
@@ -118,19 +122,25 @@ public class ProductController implements Initializable {
         colPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
 
+        colCreated.setCellValueFactory(new PropertyValueFactory<>("createdInfo"));
+        colUpdated.setCellValueFactory(new PropertyValueFactory<>("updatedInfo"));
+        colCreated.setCellFactory(AuditCell.factory());
+        colUpdated.setCellFactory(AuditCell.factory());
+        boolean canSeeAudit = DashboardController.userData != null && "admin".equals(DashboardController.userData.getRole());
+        colCreated.setVisible(canSeeAudit);
+        colUpdated.setVisible(canSeeAudit);
+        tblProduct.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+        txtSearch.setTooltip(new Tooltip("Search Inventory (Ctrl+F)"));
 
         loadAllProducts();
         generateNextId();
 
-        txtItemCode.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                setupShortcuts(newScene);
-            }
-        });
+        setupShortcuts();
 
         tblProduct.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -201,9 +211,11 @@ public class ProductController implements Initializable {
     }
 
     private void loadAllProducts() {
-        tblProduct.getItems().clear();
+        tblProduct.getSelectionModel().clearSelection();
+        ObservableList<ProductDto> items = tblProduct.getItems();
+        items.clear();
         ArrayList<ProductDto> allProducts = productBO.getAllProducts();
-        tblProduct.setItems(FXCollections.observableArrayList(allProducts));
+        if (allProducts != null) items.addAll(allProducts);
     }
 
     private void generateNextId() {

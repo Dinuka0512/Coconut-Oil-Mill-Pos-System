@@ -1,11 +1,19 @@
 package com.dev09.kumaracoconutoil.dto;
 
+import com.dev09.kumaracoconutoil.util.AuditFormat;
+
+import java.time.LocalDateTime;
+
 public class ProductDto {
     private String id;
     private String itemcode;
     private String name;
     private double qty;
     private double price;
+    private String createdBy;
+    private LocalDateTime createdAt;
+    private String updatedBy;
+    private LocalDateTime updatedAt;
 
     public ProductDto() {}
 
@@ -27,6 +35,17 @@ public class ProductDto {
     public void setQty(double qty) { this.qty = qty; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getCreatedInfo() { return AuditFormat.info(createdBy, createdAt); }
+    public String getUpdatedInfo() { return AuditFormat.info(updatedBy, updatedAt); }
 
     @Override
     public String toString() {

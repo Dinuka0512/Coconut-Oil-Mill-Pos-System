@@ -1,12 +1,13 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditCell;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.util.Validation;
-import javafx.collections.FXCollections;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,13 +15,17 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class AdminSettingsController implements Initializable {
+
+    private static final String MASKED_PASSWORD = "******";
 
     @FXML private TextField txtName;
     @FXML private TextField txtEmail;
@@ -36,50 +41,175 @@ public class AdminSettingsController implements Initializable {
     @FXML private TableColumn<UserDto, String> colName;
     @FXML private TableColumn<UserDto, String> colEmail;
     @FXML private TableColumn<UserDto, String> colPassword;
-    @FXML private TableColumn<UserDto, String> colRole;
+@FXML private TableColumn<UserDto, String> colRole;
 
-    private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
+    @FXML private TableColumn<UserDto, String> colCreated;
+
+    @FXML private TableColumn<UserDto, String> colUpdated;
+
+    @FXML private AnchorPane rootPane;
+
+
+private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
     private String currentUserId;
+
+    private static String currentRole() {
+        return DashboardController.userData == null ? "" : String.valueOf(DashboardController.userData.getRole());
+    }
+
+    private static boolean isAdmin() {
+        return "admin".equals(currentRole());
+    }
+
+    private static boolean canUpdateUsers() {
+        return isAdmin();
+    }
+
+    private static boolean canChangePassword() {
+        return isAdmin();
+    }
+
+    private String visiblePassword(String password) {
+        return canChangePassword() ? password : MASKED_PASSWORD;
+    }
+
+    private void setupShortcuts() {
+        rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER && cmbRole.isFocused()) {
+                event.consume();
+                submitForm();
+                return;
+            }
+
+            if (!event.isControlDown() || event.isAltDown() || event.isMetaDown()) return;
+            switch (event.getCode()) {
+                case S -> {
+                    event.consume();
+                    submitForm();
+                }
+                case U -> {
+                    event.consume();
+                    if (!btnUpdate.isDisabled()) btnUpdate.fire();
+                }
+                case D -> {
+                    event.consume();
+                    if (!btnDelete.isDisabled()) btnDelete.fire();
+                }
+                case C -> {
+                    event.consume();
+                    btnClear.fire();
+                }
+                case F -> {
+                    event.consume();
+                    txtSearch.requestFocus();
+                    txtSearch.selectAll();
+                }
+                default -> { }
+            }
+        });
+    }
+
+    private void submitForm() {
+        if (cmbRole.getValue() == null) {
+            txtName.requestFocus();
+            return;
+        }
+        if (!btnSave.isDisabled()) btnSave.fire();
+        else if (!btnUpdate.isDisabled()) btnUpdate.fire();
+    }
+
+    @FXML
+    void onNameAction(ActionEvent event) {
+        txtEmail.requestFocus();
+    }
+
+    @FXML
+    void onEmailAction(ActionEvent event) {
+        if (!txtPassword.isDisabled()) {
+            txtPassword.requestFocus();
+        } else {
+            cmbRole.requestFocus();
+        }
+    }
+
+    @FXML
+    void onPasswordAction(ActionEvent event) {
+        if (!txtPassword.isDisabled()) {
+            cmbRole.requestFocus();
+        }
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        cmbRole.getItems().addAll("admin", "client");
+        cmbRole.getItems().addAll("admin", "manager", "client");
         
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colPassword.setCellValueFactory(new PropertyValueFactory<>("password"));
+        colPassword.setCellValueFactory(data -> new SimpleStringProperty(visiblePassword(data.getValue().getPassword())));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
+        colCreated.setCellValueFactory(new PropertyValueFactory<>("createdInfo"));
+        colUpdated.setCellValueFactory(new PropertyValueFactory<>("updatedInfo"));
+        colCreated.setCellFactory(AuditCell.factory());
+        colUpdated.setCellFactory(AuditCell.factory());
+        colCreated.setVisible(isAdmin());
+        colUpdated.setVisible(isAdmin());
+        tblUsers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         pageReset();
         loadAllUsers();
         generateNextId();
+
+        btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
+        btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
+        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
+        btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+        txtSearch.setTooltip(new Tooltip("Search User (Ctrl+F)"));
+        setupShortcuts();
 
         tblUsers.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 currentUserId = newValue.getId();
                 txtName.setText(newValue.getName());
                 txtEmail.setText(newValue.getEmail());
-                txtPassword.setText(newValue.getPassword());
                 cmbRole.getSelectionModel().select(newValue.getRole());
+                loadPasswordForEditing(newValue.getPassword());
 
                 btnSave.setDisable(true);
-                btnUpdate.setDisable(false);
+                btnUpdate.setDisable(!canUpdateUsers());
                 btnDelete.setDisable(false);
             }
         });
+    }
+
+    private void loadPasswordForEditing(String password) {
+        if (canChangePassword()) {
+            txtPassword.clear();
+            txtPassword.setPromptText("Password");
+            txtPassword.setDisable(false);
+            txtPassword.setText(password);
+        } else {
+            txtPassword.clear();
+            txtPassword.setPromptText("Only admin can change");
+            txtPassword.setDisable(true);
+        }
     }
 
     private void pageReset() {
         btnSave.setDisable(false);
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
+        txtPassword.clear();
+        txtPassword.setPromptText("Password");
+        txtPassword.setDisable(false);
     }
 
-    private void loadAllUsers() {
-        tblUsers.getItems().clear();
+private void loadAllUsers() {
+        tblUsers.getSelectionModel().clearSelection();
+        ObservableList<UserDto> items = tblUsers.getItems();
+        items.clear();
         ArrayList<UserDto> allUsers = userBo.getAllUsers();
-        tblUsers.setItems(FXCollections.observableArrayList(allUsers));
+        if (allUsers != null) items.addAll(allUsers);
     }
 
     private void generateNextId() {
@@ -121,23 +251,32 @@ public class AdminSettingsController implements Initializable {
         UserDto newUser = new UserDto(currentUserId, name, email, password, role);
         boolean success = userBo.saveUser(newUser);
         if (success) {
-            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User saved successfully!");
-            loadAllUsers();
+AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User saved successfully!");
             clearFields();
         } else {
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save user!");
         }
     }
 
-    @FXML
+@FXML
     void btnUpdateOnAction(ActionEvent event) {
+        if (!canUpdateUsers()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update users!");
+            return;
+        }
+
         String name = txtName.getText().trim();
         String email = txtEmail.getText().trim();
         String password = txtPassword.getText();
         String role = cmbRole.getValue();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || role == null) {
+        if (name.isEmpty() || email.isEmpty() || role == null) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "All fields are required!");
+            return;
+        }
+
+        if (!canChangePassword() && !password.isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update passwords!");
             return;
         }
 
@@ -158,20 +297,34 @@ public class AdminSettingsController implements Initializable {
             return;
         }
 
-        if (password.length() < 5) {
+        if (!password.isEmpty() && password.length() < 5) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Password must be at least 5 characters!");
             return;
         }
 
-        UserDto updatedUser = new UserDto(currentUserId, name, email, password, role);
+        String finalPassword = password.isEmpty() ? existingPassword(currentUserId) : password;
+        if (finalPassword == null || finalPassword.isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to read the current password!");
+            return;
+        }
+
+        UserDto updatedUser = new UserDto(currentUserId, name, email, finalPassword, role);
         boolean success = userBo.updateUser(updatedUser);
         if (success) {
             AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User updated successfully!");
-            loadAllUsers();
             clearFields();
         } else {
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update user!");
         }
+    }
+
+    private String existingPassword(String userId) {
+        for (UserDto dto : userBo.getAllUsers()) {
+            if (dto.getId().equals(userId)) {
+                return dto.getPassword();
+            }
+        }
+        return null;
     }
 
     @FXML
@@ -195,8 +348,7 @@ public class AdminSettingsController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             boolean success = userBo.deleteUser(currentUserId);
             if (success) {
-                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User deleted successfully!");
-                loadAllUsers();
+AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User deleted successfully!");
                 clearFields();
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete user!");
@@ -209,16 +361,20 @@ public class AdminSettingsController implements Initializable {
         clearFields();
     }
 
-    @FXML
+@FXML
     void txtSearchOnKeyReleased(KeyEvent event) {
-        if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+        if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+            txtSearch.clear();
+            rootPane.requestFocus();
+            loadAllUsers();
+        } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
             performSearchWithAlert();
         } else {
             performSearch();
         }
     }
 
-    private void performSearch() {
+private void performSearch() {
         String searchTerm = txtSearch.getText().toLowerCase().trim();
         if (searchTerm.isEmpty()) {
             loadAllUsers();
@@ -226,7 +382,7 @@ public class AdminSettingsController implements Initializable {
         }
 
         ArrayList<UserDto> allUsers = userBo.getAllUsers();
-        ObservableList<UserDto> filtered = FXCollections.observableArrayList();
+        List<UserDto> filtered = new ArrayList<>();
 
         for (UserDto dto : allUsers) {
             if (dto.getId().toLowerCase().contains(searchTerm) ||
@@ -236,7 +392,10 @@ public class AdminSettingsController implements Initializable {
             }
         }
 
-        tblUsers.setItems(filtered);
+        tblUsers.getSelectionModel().clearSelection();
+        ObservableList<UserDto> items = tblUsers.getItems();
+        items.clear();
+        items.addAll(filtered);
     }
 
     private void performSearchWithAlert() {
@@ -258,32 +417,39 @@ public class AdminSettingsController implements Initializable {
             }
         }
 
-        if (found != null) {
+if (found != null) {
             currentUserId = found.getId();
             txtName.setText(found.getName());
             txtEmail.setText(found.getEmail());
-            txtPassword.setText(found.getPassword());
             cmbRole.getSelectionModel().select(found.getRole());
+            loadPasswordForEditing(found.getPassword());
             tblUsers.getSelectionModel().select(found);
             tblUsers.scrollTo(found);
 
-            btnSave.setDisable(true);
-            btnUpdate.setDisable(false);
+btnSave.setDisable(true);
+            btnUpdate.setDisable(!canUpdateUsers());
             btnDelete.setDisable(false);
         } else {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "User not found!");
         }
     }
 
-    private void clearFields() {
-        pageReset();
-        generateNextId();
+private void clearFields() {
         txtName.clear();
         txtEmail.clear();
         txtPassword.clear();
         cmbRole.getSelectionModel().clearSelection();
+        cmbRole.setValue(null);
         txtSearch.clear();
         tblUsers.getSelectionModel().clearSelection();
+
+        pageReset();
+        try {
+            generateNextId();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         loadAllUsers();
+        txtName.requestFocus();
     }
 }

@@ -26,20 +26,31 @@
               <Button fx:id="btnViewBill" layoutX="316.0" layoutY="43.0" mnemonicParsing="false" onAction="#btnViewBillOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="View Bill" />
               <Button fx:id="btnDelete" layoutX="401.0" layoutY="43.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
             
-            <Label layoutX="546.0" layoutY="23.0" text="Select Date" textFill="#7f8c8d" />
-            <DatePicker fx:id="datePicker" layoutX="546.0" layoutY="43.0" prefHeight="30.0" prefWidth="158.0" />
+            <Label layoutX="645.0" layoutY="26.0" text="Select Date" textFill="#7f8c8d" />
+            <DatePicker fx:id="datePicker" layoutX="523.0" layoutY="45.0" prefHeight="30.0" prefWidth="181.0" />
          </children>
       </AnchorPane>
       
-      <TableView fx:id="tblOrders" layoutX="32.0" layoutY="179.0" prefHeight="306.0" prefWidth="732.0" style="-fx-background-radius: 10;">
+      <TableView fx:id="tblOrders" layoutX="33.0" layoutY="180.0" prefHeight="306.0" prefWidth="732.0" style="-fx-background-radius: 10;">
          <columns>
-             <TableColumn fx:id="colOrderId" prefWidth="100.0" text="Invoice ID" />
-            <TableColumn fx:id="colDate" prefWidth="120.0" text="Date" />
-            <TableColumn fx:id="colCustomer" prefWidth="150.0" text="Customer" />
-            <TableColumn fx:id="colContact" prefWidth="110.0" text="Contact" />
-            <TableColumn fx:id="colTotal" prefWidth="120.0" text="Total (LKR)" />
-            <TableColumn fx:id="colAction" prefWidth="129.33331298828125" text="Action" />
+             <TableColumn fx:id="colOrderId" prefWidth="80.0" text="Invoice ID" />
+            <TableColumn fx:id="colDate" prefWidth="80.0" text="Date" />
+            <TableColumn fx:id="colCustomer" prefWidth="100.0" text="Customer" />
+            <TableColumn fx:id="colContact" prefWidth="80.0" text="Contact" />
+            <TableColumn fx:id="colTotal" prefWidth="76.79998779296875" text="Total (LKR)" />
+            <TableColumn fx:id="colAction" prefWidth="64.79995727539062" text="Action" />
+            <TableColumn fx:id="colCreated" prefWidth="129.5999755859375" text="Created (By / At)" />
+            <TableColumn fx:id="colUpdated" prefWidth="120.0" text="Updated (By / At)" />
          </columns>
       </TableView>
-   </children>
+      <TableView fx:id="tblTdySales" layoutX="33.0" layoutY="180.0" prefHeight="306.0" prefWidth="732.0" style="-fx-background-radius: 10;" visible="false">
+         <columns>
+            <TableColumn fx:id="colProductId" prefWidth="115.20003509521484" text="Product ID" />
+            <TableColumn fx:id="colProductName" prefWidth="219.199951171875" text="Product Name" />
+            <TableColumn fx:id="colSoldQty" minWidth="3.2000732421875" prefWidth="168.00003051757812" text="Sell qty" />
+            <TableColumn fx:id="colSoldTotal" prefWidth="225.5999755859375" text="Total (LKR)" />
+         </columns>
+      </TableView>
+<Button fx:id="btnViewOption" layoutX="410.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnViewOptionOnAction" prefHeight="30.0" prefWidth="354.0" text="View Products Sale" />
+      </children>
 </AnchorPane>

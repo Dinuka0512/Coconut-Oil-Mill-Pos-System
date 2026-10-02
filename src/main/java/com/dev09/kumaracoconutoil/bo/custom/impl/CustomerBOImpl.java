@@ -19,12 +19,17 @@ public class CustomerBOImpl implements CustomerBO {
         ArrayList<CustomerEntity> all = customerDAO.getAll();
         ArrayList<CustomerDto> allCustomers = new ArrayList<>();
         for (CustomerEntity customer : all) {
-            allCustomers.add(new CustomerDto(
+            CustomerDto dto = new CustomerDto(
                     customer.getCustId(),
                     customer.getName(),
                     customer.getContact(),
                     customer.getDueAmount()
-            ));
+            );
+            dto.setCreatedBy(customer.getCreatedBy());
+            dto.setCreatedAt(customer.getCreatedAt());
+            dto.setUpdatedBy(customer.getUpdatedBy());
+            dto.setUpdatedAt(customer.getUpdatedAt());
+            allCustomers.add(dto);
         }
         return allCustomers;
     }
@@ -77,12 +82,17 @@ public class CustomerBOImpl implements CustomerBO {
     public CustomerDto searchCustomer(String id) {
         CustomerEntity customer = customerDAO.search(id);
         if (customer != null) {
-            return new CustomerDto(
+            CustomerDto dto = new CustomerDto(
                     customer.getCustId(),
                     customer.getName(),
                     customer.getContact(),
                     customer.getDueAmount()
             );
+            dto.setCreatedBy(customer.getCreatedBy());
+            dto.setCreatedAt(customer.getCreatedAt());
+            dto.setUpdatedBy(customer.getUpdatedBy());
+            dto.setUpdatedAt(customer.getUpdatedAt());
+            return dto;
         }
         return null;
     }

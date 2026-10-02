@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditUtil;
 import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -310,6 +311,7 @@ public class DashboardController implements Initializable {
     void logOut(ActionEvent event) {
         mainNavigateTo("/view/login.fxml");
         userData = null;
+        AuditUtil.clear();
     }
 
     private void mainNavigateTo(String path) {
@@ -337,7 +339,8 @@ public class DashboardController implements Initializable {
     @FXML
     void goToSettings(ActionEvent event) {
         SettingsController.dashboardTemp(body);
-        if (userData != null && "admin".equals(userData.getRole())) {
+        String role = userData == null ? "" : String.valueOf(userData.getRole());
+        if ("admin".equals(role) || "manager".equals(role)) {
             subNavigateTo("/view/adminSettings.fxml");
         } else {
             subNavigateTo("/view/settings.fxml");

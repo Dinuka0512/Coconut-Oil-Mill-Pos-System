@@ -6,7 +6,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "order_product_details")
-public class OrderProductDetailsEntity {
+public class OrderProductDetailsEntity extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

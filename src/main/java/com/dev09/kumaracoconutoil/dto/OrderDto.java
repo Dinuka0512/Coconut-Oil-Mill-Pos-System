@@ -1,6 +1,9 @@
 package com.dev09.kumaracoconutoil.dto;
 
+import com.dev09.kumaracoconutoil.util.AuditFormat;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderDto {
@@ -14,6 +17,10 @@ public class OrderDto {
     private double taxRate; // Tax rate at time of order (e.g., 8.0 for 8%)
     private double balance;
     private String paymentMethod;
+    private String createdBy;
+    private LocalDateTime createdAt;
+    private String updatedBy;
+    private LocalDateTime updatedAt;
 
     public OrderDto() {}
 
@@ -51,6 +58,17 @@ public class OrderDto {
     public void setBalance(double balance) { this.balance = balance; }
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getCreatedInfo() { return AuditFormat.info(createdBy, createdAt); }
+    public String getUpdatedInfo() { return AuditFormat.info(updatedBy, updatedAt); }
 
     public String getCustomerName() {
         return customer != null ? customer.getName() : "";

@@ -124,7 +124,12 @@ public class UserDAOImpl implements UserDAO {
         try {
             List<UserEntity> users = session.createQuery("FROM UserEntity", UserEntity.class).list();
             for (UserEntity u : users) {
-                dtos.add(new UserDto(u.getId(), u.getName(), u.getEmail(), u.getPassword(), u.getRole()));
+                UserDto dto = new UserDto(u.getId(), u.getName(), u.getEmail(), u.getPassword(), u.getRole());
+                dto.setCreatedBy(u.getCreatedBy());
+                dto.setCreatedAt(u.getCreatedAt());
+                dto.setUpdatedBy(u.getUpdatedBy());
+                dto.setUpdatedAt(u.getUpdatedAt());
+                dtos.add(dto);
             }
         } finally {
             session.close();

@@ -4,6 +4,7 @@ import com.dev09.kumaracoconutoil.dao.CrudDAO;
 import com.dev09.kumaracoconutoil.dao.SuperDAO;
 import com.dev09.kumaracoconutoil.entity.CustomerEntity;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
+import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,4 +14,5 @@ public interface OrderDAO extends SuperDAO, CrudDAO<OrderEntity> {
     List<LocalDate> getOrderDatesByMonth(int year, int month);
     double getTotalDueByCustomer(String customerId);
     List<OrderEntity> getUnpaidOrdersByCustomer(String customerId);
+    List<OrderProductDetailsEntity> getOrderProductDetailsByDate(LocalDate date);
 }

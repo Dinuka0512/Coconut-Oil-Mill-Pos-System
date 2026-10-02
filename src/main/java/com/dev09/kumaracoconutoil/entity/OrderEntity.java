@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-public class OrderEntity {
+public class OrderEntity extends AuditableEntity {
 
     @Id
     private String orderId;

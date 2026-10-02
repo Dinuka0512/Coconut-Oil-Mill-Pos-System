@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
@@ -111,6 +112,7 @@ public class SettingsController {
         if (success) {
             DashboardController.userData = updatedUser;
             currentUser = updatedUser;
+            AuditUtil.setCurrentUser(updatedUser.getId(), updatedUser.getName());
             mainNavigateTo("/view/login.fxml");
             AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Profile updated successfully!");
             clearPasswordFields();

@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -55,6 +56,7 @@ public class LoginController implements Initializable {
         }
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
+            AuditUtil.setCurrentUser(userExtraDto.getUserDto().getId(), userExtraDto.getUserDto().getName());
             AlertUtil.showAlert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage());
             if ("client".equals(userExtraDto.getUserDto().getRole())) {
                 mainNavigateTo("/view/clientDashboard.fxml");

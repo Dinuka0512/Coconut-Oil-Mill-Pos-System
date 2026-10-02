@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tax")
-public class TaxEntity {
+public class TaxEntity extends AuditableEntity {
     @Id
     private int id;
     private double tax;

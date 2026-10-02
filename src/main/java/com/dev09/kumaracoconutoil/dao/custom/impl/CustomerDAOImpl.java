@@ -3,11 +3,13 @@ package com.dev09.kumaracoconutoil.dao.custom.impl;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import com.dev09.kumaracoconutoil.dao.custom.CustomerDAO;
 import com.dev09.kumaracoconutoil.entity.CustomerEntity;
+import com.dev09.kumaracoconutoil.util.AuditUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +80,11 @@ public class CustomerDAOImpl implements CustomerDAO {
         Session session = FactoryConfiguration.getInstance().getSession();
         Transaction tx = session.beginTransaction();
         try {
-            String sql = "UPDATE customer SET is_deleted = true WHERE custId = :id";
+            String sql = "UPDATE customer SET is_deleted = true, updated_by = :updatedBy, updated_at = :updatedAt WHERE custId = :id";
             int rowsUpdated = session.createNativeQuery(sql)
                     .setParameter("id", id)
+                    .setParameter("updatedBy", AuditUtil.currentUser())
+                    .setParameter("updatedAt", LocalDateTime.now())
                     .executeUpdate();
             tx.commit();
             return rowsUpdated > 0;

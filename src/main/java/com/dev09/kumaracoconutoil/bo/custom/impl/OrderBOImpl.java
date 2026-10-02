@@ -133,6 +133,10 @@ public class OrderBOImpl implements OrderBO {
             dto.setTaxRate(entity.getTaxRate());
             dto.setBalance(entity.getBalance());
             dto.setPaymentMethod(entity.getPaymentMethod());
+            dto.setCreatedBy(entity.getCreatedBy());
+            dto.setCreatedAt(entity.getCreatedAt());
+            dto.setUpdatedBy(entity.getUpdatedBy());
+            dto.setUpdatedAt(entity.getUpdatedAt());
             
             if (entity.getOrderProducts() != null) {
                 dto.setOrderProducts(new ArrayList<>());
@@ -344,6 +348,12 @@ public class OrderBOImpl implements OrderBO {
     @Override
     public List<OrderEntity> getUnpaidOrdersByCustomer(String customerId) throws SQLException, ClassNotFoundException {
         return orderDAO.getUnpaidOrdersByCustomer(customerId);
+    }
+
+    @Override
+    public List<OrderProductDetailsEntity> getProductDetailsByDate(LocalDate date) throws SQLException, ClassNotFoundException {
+        if (date == null) return new ArrayList<>();
+        return orderDAO.getOrderProductDetailsByDate(date);
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.util.List;
 @Table(name = "customer")
 @SQLDelete(sql = "UPDATE customer SET is_deleted = true WHERE cust_id = ?")
 @SQLRestriction("is_deleted = false")
-public class CustomerEntity {
+public class CustomerEntity extends AuditableEntity {
 
     @Id
     private String custId;

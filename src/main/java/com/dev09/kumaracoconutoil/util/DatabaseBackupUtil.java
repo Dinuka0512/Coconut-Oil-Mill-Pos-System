@@ -4,7 +4,9 @@ import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import org.hibernate.Session;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +28,20 @@ public class DatabaseBackupUtil {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final int ROWS_PER_INSERT = 200;
+
+    private static final String FILE_PREFIX = "backup_";
+    private static final String FILE_SUFFIX = ".sql";
+    private static final String FILE_PATTERN = FILE_PREFIX + "*" + FILE_SUFFIX;
+    private static final DateTimeFormatter FILE_NAME_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    public static final int MAX_BACKUP_FILES = 10;
+
+    public static Path backupDir() {
+        String override = System.getProperty("oilmill.backup.dir");
+        if (override != null && !override.isBlank()) {
+            return Paths.get(override);
+        }
+        return Paths.get(System.getProperty("user.home"), "OilMillBackups");
+    }
 
     public static BackupResult backupDatabase() throws Exception {
         Session session = FactoryConfiguration.getInstance().getSession();
@@ -103,15 +120,21 @@ public class DatabaseBackupUtil {
             sb.append("-- Backup complete. Tables exported: ").append(tableNames.size())
               .append(", total rows exported: ").append(totalRows).append(".\n");
 
-            Path dir = Paths.get(System.getProperty("user.home"), "OilMillBackups");
+            Path dir = backupDir();
             Files.createDirectories(dir);
-            String fileName = "backup_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".sql";
+            String fileName = FILE_PREFIX + LocalDateTime.now().format(FILE_NAME_FMT) + FILE_SUFFIX;
             Path file = dir.resolve(fileName);
             Files.write(file, sb.toString().getBytes(StandardCharsets.UTF_8));
 
             File result = file.toFile();
             result.setWritable(false, true);
             result.setReadOnly();
+
+            int removed = pruneOldBackups();
+            if (removed > 0) {
+                System.out.println("Backup retention: removed " + removed + " old file(s), keeping newest "
+                        + MAX_BACKUP_FILES + " in " + dir);
+            }
             return new BackupResult(result, tableNames.size(), totalRows);
         } finally {
             session.close();
@@ -188,6 +211,57 @@ public class DatabaseBackupUtil {
         }
 
         return "'" + escapeString(String.valueOf(value)) + "'";
+    }
+
+    public static int pruneOldBackups() throws IOException {
+        Path dir = backupDir();
+        if (!Files.isDirectory(dir)) {
+            return 0;
+        }
+
+        List<Path> files = new ArrayList<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, FILE_PATTERN)) {
+            for (Path p : stream) {
+                if (Files.isRegularFile(p)) {
+                    files.add(p);
+                }
+            }
+        }
+
+        files.sort(Comparator.comparing(p -> p.getFileName().toString()));
+
+        int toRemove = files.size() - MAX_BACKUP_FILES;
+        int removed = 0;
+        for (int i = 0; i < toRemove; i++) {
+            Path old = files.get(i);
+            try {
+                old.toFile().setWritable(true, false);
+                old.toFile().setWritable(true, true);
+                if (Files.deleteIfExists(old)) {
+                    removed++;
+                }
+            } catch (IOException e) {
+                System.err.println("Could not remove old backup " + old.getFileName() + ": " + e.getMessage());
+            }
+        }
+        return removed;
+    }
+
+    public static List<Path> listBackupsNewestFirst() throws IOException {
+        Path dir = backupDir();
+        List<Path> files = new ArrayList<>();
+        if (!Files.isDirectory(dir)) {
+            return files;
+        }
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, FILE_PATTERN)) {
+            for (Path p : stream) {
+                if (Files.isRegularFile(p)) {
+                    files.add(p);
+                }
+            }
+        }
+        files.sort(Comparator.comparing((Path p) -> p.getFileName().toString()).reversed());
+        return files;
     }
 
     private static String escapeString(String value) {

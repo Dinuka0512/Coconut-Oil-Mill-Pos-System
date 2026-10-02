@@ -2,21 +2,20 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AuditCell;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +31,9 @@ import java.awt.Desktop;
 public class CustomerController implements Initializable {
 
     @FXML
+    private AnchorPane rootPane;
+
+    @FXML
     private TableColumn<CustomerDto, String> colContact;
 
     @FXML
@@ -39,6 +41,12 @@ public class CustomerController implements Initializable {
 
     @FXML
     private TableColumn<CustomerDto, Double> colDue;
+
+    @FXML
+    private TableColumn<CustomerDto, String> colCreated;
+
+    @FXML
+    private TableColumn<CustomerDto, String> colUpdated;
 
     @FXML
     private TableView<CustomerDto> tblCustomer;
@@ -70,39 +78,35 @@ public class CustomerController implements Initializable {
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private String currentCustomerId;
 
-    private void setupShortcuts(Scene scene) {
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.S, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+    private void setupShortcuts() {
+        rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (!event.isControlDown() || event.isAltDown() || event.isMetaDown()) return;
+            switch (event.getCode()) {
+                case S -> {
+                    event.consume();
                     if (!btnSave.isDisabled()) btnSave.fire();
                     else if (!btnUpdate.isDisabled()) btnUpdate.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.U, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case U -> {
+                    event.consume();
                     if (!btnUpdate.isDisabled()) btnUpdate.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.DELETE, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case D -> {
+                    event.consume();
                     if (!btnDelete.isDisabled()) btnDelete.fire();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.F, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
+                }
+                case C -> {
+                    event.consume();
+                    btnClear.fire();
+                }
+                case F -> {
+                    event.consume();
                     txtSearch.requestFocus();
                     txtSearch.selectAll();
-                });
-        scene.getAccelerators().put(
-                new KeyCodeCombination(javafx.scene.input.KeyCode.ESCAPE, KeyCombination.CONTROL_DOWN),
-                () -> {
-                    if (txtName.getScene() != scene) return;
-                    btnClear.fire();
-                });
+                }
+                default -> { }
+            }
+        });
     }
 
     @Override
@@ -113,10 +117,20 @@ public class CustomerController implements Initializable {
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         colDue.setCellValueFactory(new PropertyValueFactory<>("dueAmount"));
 
+        colCreated.setCellValueFactory(new PropertyValueFactory<>("createdInfo"));
+        colUpdated.setCellValueFactory(new PropertyValueFactory<>("updatedInfo"));
+        colCreated.setCellFactory(AuditCell.factory());
+        colUpdated.setCellFactory(AuditCell.factory());
+        boolean canSeeAudit = DashboardController.userData != null && "admin".equals(DashboardController.userData.getRole());
+        colCreated.setVisible(canSeeAudit);
+        colUpdated.setVisible(canSeeAudit);
+        tblCustomer.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
-        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+Del)"));
-        btnClear.setTooltip(new Tooltip("Clear (Ctrl+Esc)"));
+        btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
+        btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+        txtSearch.setTooltip(new Tooltip("Search Customer (Ctrl+F)"));
         if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
@@ -125,11 +139,7 @@ public class CustomerController implements Initializable {
         loadAllCustomers();
         generateNextId();
 
-        txtName.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                setupShortcuts(newScene);
-            }
-        });
+        setupShortcuts();
 
         tblCustomer.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -149,9 +159,11 @@ public class CustomerController implements Initializable {
 
     //GET THE ALL CUSTOMERS ....
     private void loadAllCustomers() {
-        tblCustomer.getItems().clear();
+        tblCustomer.getSelectionModel().clearSelection();
+        ObservableList<CustomerDto> items = tblCustomer.getItems();
+        items.clear();
         ArrayList<CustomerDto> allCustomers = customerBO.getAllCustomers();
-        tblCustomer.setItems(FXCollections.observableArrayList(allCustomers));
+        if (allCustomers != null) items.addAll(allCustomers);
     }
 
     //GET THE NEXT CUSTOMER ID

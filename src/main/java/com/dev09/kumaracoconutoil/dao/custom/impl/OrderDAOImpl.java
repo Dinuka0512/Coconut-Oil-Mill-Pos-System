@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.dao.custom.impl;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import com.dev09.kumaracoconutoil.dao.custom.OrderDAO;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
+import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
@@ -173,15 +174,32 @@ public class OrderDAOImpl implements OrderDAO {
         }
     }
 
-    @Override
+@Override
     public OrderEntity searchWithProducts(String orderId) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
             Query<OrderEntity> query = session.createQuery(
-                "SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.customer c LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
-                OrderEntity.class);
+                    "SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.customer c LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.orderId = :orderId",
+                    OrderEntity.class);
             query.setParameter("orderId", orderId);
             return query.uniqueResult();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public List<OrderProductDetailsEntity> getOrderProductDetailsByDate(LocalDate date) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<OrderProductDetailsEntity> query = session.createQuery(
+                    "SELECT od FROM OrderProductDetailsEntity od "
+                            + "JOIN FETCH od.order o JOIN FETCH od.product p "
+                            + "WHERE o.date = :date AND o.isDeleted = false AND od.isDeleted = false "
+                            + "ORDER BY o.orderId ASC",
+                    OrderProductDetailsEntity.class);
+            query.setParameter("date", date);
+            return new ArrayList<>(query.list());
         } finally {
             session.close();
         }
