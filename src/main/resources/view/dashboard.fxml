@@ -16,7 +16,7 @@
 
 <AnchorPane fx:id="body" prefHeight="616.0" prefWidth="873.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.DashboardController">
     <children>
-      <AnchorPane prefHeight="99.0" prefWidth="925.0" style="-fx-background-color: #f0edee;">
+      <AnchorPane prefHeight="99.0" style="-fx-background-color: #f0edee;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
 
                <!-- Tagline -->
@@ -48,7 +48,7 @@
                 </font></Label>
           </children>
       </AnchorPane>
-      <AnchorPane layoutY="99.0" prefHeight="517.0" prefWidth="129.0" style="-fx-background-color: #dddcdc;">
+      <AnchorPane prefWidth="129.0" style="-fx-background-color: #dddcdc;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="99.0">
          <children>
             <Label layoutX="55.0" layoutY="137.0" text="Inventory" />
             <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="135.0">
@@ -117,9 +117,9 @@
             </ImageView>
             <Button layoutX="10.0" layoutY="349.0" mnemonicParsing="false" onAction="#goToPrevious" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
-      <ScrollPane hbarPolicy="NEVER" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white; -fx-border-color: transparent; -fx-padding: 0;">
+      <ScrollPane hbarPolicy="NEVER" style="-fx-background-color: white; -fx-border-color: transparent; -fx-padding: 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="99.0">
          <content>
-            <AnchorPane fx:id="bodyContent" prefWidth="776.0" style="-fx-background-color: white;">
+            <AnchorPane fx:id="bodyContent" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="99.0">
                <children>
                   <!-- Header -->
                   <Label layoutX="25.0" layoutY="16.0" text="Dashboard" textFill="#0f172a" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
