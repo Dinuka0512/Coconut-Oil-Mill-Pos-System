@@ -141,7 +141,14 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        cmbRole.getItems().addAll("admin", "manager", "client");
+        String cr = currentRole();
+        if (isAdmin()) {
+            cmbRole.getItems().addAll("admin", "manager", "casheer");
+        } else if ("manager".equals(cr)) {
+            cmbRole.getItems().addAll("casheer");
+        } else {
+            cmbRole.getItems().addAll("casheer");
+        }
         
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -223,6 +230,12 @@ private void loadAllUsers() {
         String password = txtPassword.getText();
         String role = cmbRole.getValue();
 
+        String cr = currentRole();
+        if ("manager".equals(cr) && role != null && !"casheer".equals(role)) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Managers can only create Casheer accounts!");
+            return;
+        }
+
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || role == null) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "All fields are required!");
             return;
@@ -269,6 +282,12 @@ AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User saved successfully!");
         String email = txtEmail.getText().trim();
         String password = txtPassword.getText();
         String role = cmbRole.getValue();
+
+        String cr = currentRole();
+        if ("manager".equals(cr) && role != null && !"casheer".equals(role)) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Managers can only update Casheer accounts!");
+            return;
+        }
 
         if (name.isEmpty() || email.isEmpty() || role == null) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "All fields are required!");
