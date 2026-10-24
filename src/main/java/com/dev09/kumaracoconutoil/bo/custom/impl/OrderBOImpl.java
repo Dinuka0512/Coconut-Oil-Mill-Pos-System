@@ -204,12 +204,15 @@ public class OrderBOImpl implements OrderBO {
             entity.setBalance(dto.getBalance());
             entity.setPaymentMethod(dto.getPaymentMethod());
 
-            if (entity.getOrderProducts() != null) {
-                entity.getOrderProducts().clear();
+            List<OrderProductDetailsEntity> orderProducts = entity.getOrderProducts();
+            if (orderProducts == null) {
+                orderProducts = new ArrayList<>();
+                entity.setOrderProducts(orderProducts);
+            } else {
+                orderProducts.clear();
             }
 
             if (dto.getOrderProducts() != null) {
-                ArrayList<OrderProductDetailsEntity> details = new ArrayList<>();
                 for (OrderProductDetailsDto detail : dto.getOrderProducts()) {
                     OrderProductDetailsEntity detailEntity = new OrderProductDetailsEntity();
                     detailEntity.setOrder(entity);
@@ -219,9 +222,8 @@ public class OrderBOImpl implements OrderBO {
 
                     detailEntity.setQuantity(detail.getQuantity());
                     detailEntity.setUnitPrice(detail.getUnitPrice());
-                    details.add(detailEntity);
+                    orderProducts.add(detailEntity);
                 }
-                entity.setOrderProducts(details);
             }
 
             session.merge(entity);

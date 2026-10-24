@@ -68,6 +68,13 @@
                   <Font name="System Bold" size="12.0" />
                </font>
             </Button>
+            <Label layoutX="54.0" layoutY="152.0" text="History" />
+            <ImageView fitHeight="20.0" fitWidth="23.0" layoutX="24.0" layoutY="150.0">
+               <image>
+                  <Image url="@../asets/icons8-history-50.png" />
+               </image>
+            </ImageView>
+            <Button layoutX="10.0" layoutY="141.0" mnemonicParsing="false" onAction="#goToHistory" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
       <AnchorPane fx:id="bodyContent" layoutX="129.0" layoutY="99.0" prefHeight="517.0" prefWidth="796.0">
          <children>

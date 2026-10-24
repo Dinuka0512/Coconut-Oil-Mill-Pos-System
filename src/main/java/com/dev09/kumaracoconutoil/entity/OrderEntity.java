@@ -5,6 +5,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,7 +33,7 @@ public class OrderEntity extends AuditableEntity {
     private boolean isDeleted = false;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderProductDetailsEntity> orderProducts;
+    private List<OrderProductDetailsEntity> orderProducts = new ArrayList<>();
 
     public OrderEntity() {}
 

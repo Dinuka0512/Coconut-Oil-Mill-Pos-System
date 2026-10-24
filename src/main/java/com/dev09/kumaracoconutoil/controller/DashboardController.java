@@ -388,6 +388,11 @@ public class DashboardController implements Initializable {
     }
 
     @FXML
+    void goToHistory(ActionEvent event) {
+        subNavigateTo("/view/OrderManage.fxml");
+    }
+
+    @FXML
     void goToDueManagement(ActionEvent event) {
         subNavigateTo("/view/dueManagement.fxml");
     }
