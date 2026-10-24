@@ -175,6 +175,7 @@ public class OrderManageController implements Initializable {
         
         loadOrdersByDate(datePicker.getValue());
         loadProductSalesByDate(datePicker.getValue());
+        btnDelete.setDisable(!canDeleteInvoices());
         showOrdersView();
     }
 
@@ -209,6 +210,10 @@ public class OrderManageController implements Initializable {
         return isAdmin() || isManager();
     }
 
+    private static boolean canDeleteInvoices() {
+        return isAdmin();
+    }
+
     private void showOrdersView() {
         productSalesView = false;
         tblOrders.setVisible(true);
@@ -217,7 +222,7 @@ public class OrderManageController implements Initializable {
         txtSearch.setDisable(false);
         btnSearch.setDisable(false);
         btnViewBill.setDisable(false);
-        btnDelete.setDisable(false);
+        btnDelete.setDisable(!canDeleteInvoices());
     }
 
     private void showProductSalesView() {
@@ -447,8 +452,8 @@ public class OrderManageController implements Initializable {
     void btnDeleteOnAction(ActionEvent event) {
         if (productSalesView) return;
 
-        if (!canManageInvoices()) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins and managers can delete invoices!");
+        if (!canDeleteInvoices()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admin can delete invoices!");
             return;
         }
         OrderDto selected = tblOrders.getSelectionModel().getSelectedItem();
