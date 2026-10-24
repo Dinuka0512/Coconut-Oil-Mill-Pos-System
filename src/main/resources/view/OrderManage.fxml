@@ -51,6 +51,6 @@
             <TableColumn fx:id="colSoldTotal" prefWidth="225.5999755859375" text="Total (LKR)" />
          </columns>
       </TableView>
-<Button fx:id="btnViewOption" layoutX="410.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnViewOptionOnAction" prefHeight="30.0" prefWidth="354.0" text="View Products Sale" />
+<Button fx:id="btnViewOption" layoutX="410.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnViewOptionOnAction" prefHeight="30.0" prefWidth="354.0" text="View Summary" />
       </children>
 </AnchorPane>

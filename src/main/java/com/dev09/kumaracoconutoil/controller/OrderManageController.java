@@ -101,9 +101,9 @@ public class OrderManageController implements Initializable {
     @FXML
     private Button btnDelete;
 
-    private static final String ORDERS_VIEW_TEXT = "View Products Sale";
+    private static final String ORDERS_VIEW_TEXT = "View Products Sales";
 
-    private static final String PRODUCT_SALES_VIEW_TEXT = "View Invoices";
+    private static final String PRODUCT_SALES_VIEW_TEXT = "View Summary";
 
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ArrayList<OrderDto> orderList = new ArrayList<>();
