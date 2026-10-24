@@ -15,8 +15,7 @@ public class AppLauncher extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/view/loading.fxml"));
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("Dilshan Oil Mill");
-        primaryStage.setResizable(true);
-        primaryStage.setMaximized(true);
+        primaryStage.setResizable(false);
         
         try {
             primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/asets/logo.png")));
