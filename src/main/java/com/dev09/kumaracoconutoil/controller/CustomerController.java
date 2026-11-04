@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -131,7 +132,7 @@ public class CustomerController implements Initializable {
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
         txtSearch.setTooltip(new Tooltip("Search Customer (Ctrl+F)"));
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+        if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
         }
@@ -150,7 +151,7 @@ public class CustomerController implements Initializable {
                 txtDue.setText(due == 0 ? "0" : String.format("%.2f", due));
 
                 btnSave.setDisable(true);
-                boolean isClient = DashboardController.userData != null && "client".equals(DashboardController.userData.getRole());
+                boolean isClient = DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole());
                 btnUpdate.setDisable(isClient);
                 btnDelete.setDisable(isClient);
             }

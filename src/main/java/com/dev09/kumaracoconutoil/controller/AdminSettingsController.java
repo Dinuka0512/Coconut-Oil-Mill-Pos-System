@@ -6,6 +6,7 @@ import com.dev09.kumaracoconutoil.util.AuditCell;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
+import com.dev09.kumaracoconutoil.util.RoleUtil;
 import com.dev09.kumaracoconutoil.util.Validation;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -179,7 +180,7 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
                 currentUserId = newValue.getId();
                 txtName.setText(newValue.getName());
                 txtEmail.setText(newValue.getEmail());
-                cmbRole.getSelectionModel().select(newValue.getRole());
+                cmbRole.getSelectionModel().select(RoleUtil.normalize(newValue.getRole()));
                 loadPasswordForEditing(newValue.getPassword());
 
                 btnSave.setDisable(true);

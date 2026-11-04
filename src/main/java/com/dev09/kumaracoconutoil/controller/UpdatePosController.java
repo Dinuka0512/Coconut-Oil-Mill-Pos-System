@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -495,7 +496,7 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void btnUpdateOrderOnAction(ActionEvent event) {
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+        if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update invoices!");
             return;
         }

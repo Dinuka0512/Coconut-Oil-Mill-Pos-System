@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditUtil;
 import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
+import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -116,7 +117,7 @@ public class DashboardController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateUserDisplay();
-        if (userData != null && "client".equals(userData.getRole())) {
+        if (userData != null && RoleUtil.isCashier(userData.getRole())) {
             subNavigateTo("/view/inventory.fxml");
             return;
         }

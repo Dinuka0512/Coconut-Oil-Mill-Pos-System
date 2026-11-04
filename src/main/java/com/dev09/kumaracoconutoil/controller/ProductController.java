@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
@@ -150,7 +151,7 @@ public class ProductController implements Initializable {
                 txtPrice.setText(String.valueOf(newValue.getPrice()));
                 txtQty.setText(String.valueOf(newValue.getQty()));
 
-                if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+                if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
                     btnDelete.setDisable(true);
                     btnUpdate.setDisable(true);
                 } else {
@@ -164,7 +165,7 @@ public class ProductController implements Initializable {
 
     @FXML
     void exportAllItems(ActionEvent event) {
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+        if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "You don't have permission to export reports!");
             return;
         }
@@ -260,7 +261,7 @@ public class ProductController implements Initializable {
 
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+        if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can update inventory!");
             return;
         }
@@ -300,7 +301,7 @@ public class ProductController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
-        if (DashboardController.userData != null && "client".equals(DashboardController.userData.getRole())) {
+        if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can delete inventory!");
             return;
         }
