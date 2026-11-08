@@ -3,6 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditUtil;
 import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
+import com.dev09.kumaracoconutoil.util.IdleMonitor;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -37,6 +38,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
@@ -117,6 +119,7 @@ public class DashboardController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateUserDisplay();
+        IdleMonitor.start(this::performIdleLogout);
         if (userData != null && RoleUtil.isCashier(userData.getRole())) {
             subNavigateTo("/view/inventory.fxml");
             return;
@@ -310,9 +313,33 @@ public class DashboardController implements Initializable {
 
     @FXML
     void logOut(ActionEvent event) {
+        IdleMonitor.stop();
         mainNavigateTo("/view/login.fxml");
         userData = null;
         AuditUtil.clear();
+    }
+
+    private void performIdleLogout() {
+        IdleMonitor.stop();
+        Platform.runLater(() -> {
+            try {
+                Window mainWindow = body != null && body.getScene() != null ? body.getScene().getWindow() : null;
+                for (Window w : new ArrayList<>(Window.getWindows())) {
+                    if (w != mainWindow && w.isShowing()) {
+                        if (w instanceof Stage) {
+                            ((Stage) w).close();
+                        } else {
+                            w.hide();
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+            userData = null;
+            AuditUtil.clear();
+            mainNavigateTo("/view/login.fxml");
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "You were logged out due to 1 minute of inactivity.");
+        });
     }
 
     private void mainNavigateTo(String path) {

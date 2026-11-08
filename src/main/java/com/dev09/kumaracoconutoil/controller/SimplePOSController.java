@@ -226,16 +226,89 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbCustomerOnAction(ActionEvent event) {
+        resolveSelectedCustomer();
+    }
+
+    private void resolveSelectedCustomer() {
+        if (currentCustomers == null) {
+            selectedCustomer = null;
+            checkCustomerDue();
+            return;
+        }
+
         String selection = cmbCustomer.getValue();
-        if (selection != null && currentCustomers != null) {
-            for (CustomerDto dto : currentCustomers) {
-                if ((dto.getName() + " - " + dto.getContact()).equals(selection)) {
-                    selectedCustomer = dto;
-                    checkCustomerDue();
-                    break;
-                }
+        String editorText = cmbCustomer.getEditor() != null ? cmbCustomer.getEditor().getText() : null;
+
+        java.util.ArrayList<String> candidates = new java.util.ArrayList<>();
+        if (editorText != null && !editorText.trim().isEmpty()) candidates.add(editorText.trim());
+        if (selection != null && !selection.trim().isEmpty() && !candidates.contains(selection.trim())) candidates.add(selection.trim());
+
+        if (candidates.isEmpty()) {
+            selectedCustomer = null;
+            checkCustomerDue();
+            return;
+        }
+
+        for (String candidate : candidates) {
+            CustomerDto exact = findExactCustomerMatch(candidate);
+            if (exact != null) {
+                selectedCustomer = exact;
+                checkCustomerDue();
+                return;
             }
         }
+
+        for (String candidate : candidates) {
+            CustomerDto unique = findUniquePartialCustomerMatch(candidate);
+            if (unique != null) {
+                selectedCustomer = unique;
+                if (cmbCustomer.getEditor() != null) {
+                    cmbCustomer.getEditor().setText(unique.getName() + " - " + (unique.getContact() != null ? unique.getContact() : ""));
+                }
+                checkCustomerDue();
+                return;
+            }
+        }
+
+        selectedCustomer = null;
+        checkCustomerDue();
+    }
+
+    private String customerDisplay(CustomerDto dto) {
+        String name = dto.getName() != null ? dto.getName() : "";
+        String contact = dto.getContact() != null ? dto.getContact() : "";
+        return name + " - " + contact;
+    }
+
+    private CustomerDto findExactCustomerMatch(String candidate) {
+        for (CustomerDto dto : currentCustomers) {
+            if (customerDisplay(dto).equalsIgnoreCase(candidate)) return dto;
+        }
+        for (CustomerDto dto : currentCustomers) {
+            if (dto.getName() != null && dto.getName().equalsIgnoreCase(candidate)) return dto;
+        }
+        for (CustomerDto dto : currentCustomers) {
+            if (dto.getContact() != null && dto.getContact().equalsIgnoreCase(candidate)) return dto;
+        }
+        return null;
+    }
+
+    private CustomerDto findUniquePartialCustomerMatch(String candidate) {
+        String c = candidate.toLowerCase();
+        CustomerDto found = null;
+        for (CustomerDto dto : currentCustomers) {
+            String display = customerDisplay(dto).toLowerCase();
+            String name = dto.getName() != null ? dto.getName().toLowerCase() : "";
+            String contact = dto.getContact() != null ? dto.getContact().toLowerCase() : "";
+            boolean matches = display.contains(c) || name.contains(c) || contact.contains(c);
+            if (matches) {
+                if (found != null && !found.getCustId().equals(dto.getCustId())) {
+                    return null;
+                }
+                found = dto;
+            }
+        }
+        return found;
     }
 
     private void checkCustomerDue() {
@@ -424,8 +497,9 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void btnPlaceOrderOnAction(ActionEvent event) {
+        resolveSelectedCustomer();
         if (selectedCustomer == null) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a customer first!");
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a valid customer from the list first!");
             return;
         }
 
