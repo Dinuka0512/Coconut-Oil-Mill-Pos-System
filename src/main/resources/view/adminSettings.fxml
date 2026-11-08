@@ -52,6 +52,6 @@
           <TableColumn fx:id="colUpdated" prefWidth="115.0" text="Updated (By / At)" />
         </columns>
       </TableView>
-      <Button fx:id="userLogs" layoutX="637.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnOpenUserLogs" prefHeight="30.0" prefWidth="126.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="Open Logs" />
+      <Button fx:id="userLogs" layoutX="637.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnOpenUserLogs" prefHeight="30.0" prefWidth="126.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="User Logs" />
    </children>
 </AnchorPane>
