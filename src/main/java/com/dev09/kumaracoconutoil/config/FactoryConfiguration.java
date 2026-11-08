@@ -18,7 +18,8 @@ public class FactoryConfiguration {
                     .addAnnotatedClass(ProductEntity.class)
                     .addAnnotatedClass(TaxEntity.class)
                     .addAnnotatedClass(CustomerEntity.class)
-                    .addAnnotatedClass(DuePaymentEntity.class);
+                    .addAnnotatedClass(DuePaymentEntity.class)
+                    .addAnnotatedClass(UserLogEntity.class);
             sessionFactory = config.buildSessionFactory();
         } catch (Exception e) {
             System.err.println("Failed to initialize Hibernate SessionFactory: " + e.getMessage());

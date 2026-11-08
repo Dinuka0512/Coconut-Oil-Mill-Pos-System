@@ -57,7 +57,9 @@ public class LoginController implements Initializable {
         }
         if(userExtraDto.isLogin()){
             DashboardController.userData = userExtraDto.getUserDto();
-            AuditUtil.setCurrentUser(userExtraDto.getUserDto().getId(), userExtraDto.getUserDto().getName());
+            AuditUtil.setCurrentUser(userExtraDto.getUserDto().getId(), userExtraDto.getUserDto().getName(), userExtraDto.getUserDto().getRole());
+            com.dev09.kumaracoconutoil.util.UserLogUtil.record("LOGIN");
+            com.dev09.kumaracoconutoil.util.UserLogUtil.purgeOlderThanOneWeek();
             AlertUtil.showAlert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage());
             if (RoleUtil.isCashier(userExtraDto.getUserDto().getRole())) {
                 mainNavigateTo("/view/clientDashboard.fxml");

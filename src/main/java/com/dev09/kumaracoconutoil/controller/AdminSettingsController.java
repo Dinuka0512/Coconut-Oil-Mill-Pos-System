@@ -12,12 +12,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +43,7 @@ public class AdminSettingsController implements Initializable {
     @FXML private Button btnUpdate;
     @FXML private Button btnDelete;
     @FXML private Button btnClear;
+    @FXML private Button userLogs;
     @FXML private TableView<UserDto> tblUsers;
     @FXML private TableColumn<UserDto, String> colId;
     @FXML private TableColumn<UserDto, String> colName;
@@ -162,6 +169,10 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
         colUpdated.setCellFactory(AuditCell.factory());
         colCreated.setVisible(isAdmin());
         colUpdated.setVisible(isAdmin());
+        if (userLogs != null) {
+            userLogs.setVisible(isAdmin());
+            userLogs.setManaged(isAdmin());
+        }
         tblUsers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         pageReset();
@@ -379,6 +390,29 @@ AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User deleted successfully!");
     @FXML
     void btnClearOnAction(ActionEvent event) {
         clearFields();
+    }
+
+    @FXML
+    void btnOpenUserLogs(ActionEvent event) {
+        if (!isAdmin()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can view user logs.");
+            return;
+        }
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/view/userLogs.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("User Logs");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            if (rootPane != null && rootPane.getScene() != null) {
+                stage.initOwner(rootPane.getScene().getWindow());
+            }
+            stage.setResizable(false);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open user logs: " + e.getMessage());
+        }
     }
 
 @FXML

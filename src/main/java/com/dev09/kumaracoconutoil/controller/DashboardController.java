@@ -313,6 +313,7 @@ public class DashboardController implements Initializable {
 
     @FXML
     void logOut(ActionEvent event) {
+        com.dev09.kumaracoconutoil.util.UserLogUtil.record("LOGOUT");
         IdleMonitor.stop();
         mainNavigateTo("/view/login.fxml");
         userData = null;
@@ -322,6 +323,7 @@ public class DashboardController implements Initializable {
     private void performIdleLogout() {
         IdleMonitor.stop();
         Platform.runLater(() -> {
+            com.dev09.kumaracoconutoil.util.UserLogUtil.record("AUTO_LOGOUT");
             try {
                 Window mainWindow = body != null && body.getScene() != null ? body.getScene().getWindow() : null;
                 for (Window w : new ArrayList<>(Window.getWindows())) {

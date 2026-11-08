@@ -11,7 +11,7 @@ public class DAOFactory {
     }
 
     public enum DAOType{
-        CUSTOMER, ORDER, ORDER_PRODUCT_DETAIL, PRODUCT, TAX, USER, DUE_PAYMENT
+        CUSTOMER, ORDER, ORDER_PRODUCT_DETAIL, PRODUCT, TAX, USER, DUE_PAYMENT, USER_LOG
     }
 
     public SuperDAO getDAO(DAOType type){
@@ -30,6 +30,8 @@ public class DAOFactory {
                 return new OrderProductDetailDAOImpl();
             case DUE_PAYMENT:
                 return new DuePaymentDAOImpl();
+            case USER_LOG:
+                return new UserLogDAOImpl();
             default:
                 return null;
         }

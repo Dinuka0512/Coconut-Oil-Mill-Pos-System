@@ -16,13 +16,22 @@ public class AppLauncher extends Application {
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("Dilshan Oil Mill");
         primaryStage.setResizable(false);
-        
+
         try {
             primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/asets/logo.png")));
         } catch (Exception e) {
             System.out.println("App icon not found");
         }
-        
+
+        primaryStage.setOnCloseRequest(event -> {
+            try {
+                if (com.dev09.kumaracoconutoil.controller.DashboardController.userData != null) {
+                    com.dev09.kumaracoconutoil.util.UserLogUtil.record("CLOSE_APP");
+                }
+            } catch (Exception ignored) {
+            }
+        });
+
         primaryStage.show();
         startAutomaticBackup();
     }
