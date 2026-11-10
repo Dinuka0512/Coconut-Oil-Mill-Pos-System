@@ -10,59 +10,59 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="body" prefHeight="560.0" prefWidth="800.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.QuotationController">
+<AnchorPane fx:id="body" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.QuotationController">
    <children>
 
-      <Label layoutX="33.0" layoutY="24.0" text="Quotation" textFill="#2c3e50">
+      <Label layoutX="39.0" layoutY="29.0" text="Quotation" textFill="#2c3e50">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
 
-      <AnchorPane layoutX="474.0" layoutY="152.0" prefHeight="238.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="594.0" layoutY="167.0" prefHeight="268.0" prefWidth="306.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
-            <Label layoutX="15.0" layoutY="12.0" text="Inventory" textFill="#7f8c8d" />
-            <ComboBox fx:id="cmbProductId" editable="true" layoutX="13.0" layoutY="31.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type product name..." />
+            <Label layoutX="15.0" layoutY="22.0" text="Inventory" textFill="#7f8c8d" />
+            <ComboBox fx:id="cmbProductId" editable="true" layoutX="13.0" layoutY="41.0" onAction="#cmbProductOnAction" onKeyReleased="#cmbProductOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type product name..." />
 
-            <Label layoutX="17.0" layoutY="131.0" text="Qty (Kg)" textFill="#7f8c8d" />
-            <TextField fx:id="txtQty" layoutX="17.0" layoutY="149.0" onAction="#btnAddToCartOnAction" prefHeight="26.0" prefWidth="119.0" text="1" />
+            <Label layoutX="17.0" layoutY="141.0" text="Qty (Kg)" textFill="#7f8c8d" />
+            <TextField fx:id="txtQty" layoutX="17.0" layoutY="159.0" onAction="#btnAddToCartOnAction" prefHeight="26.0" prefWidth="119.0" text="1" />
 
-            <Button layoutX="16.0" layoutY="193.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="32.0" prefWidth="246.0" style="-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="WHITE" />
-            <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
-            <Label layoutX="17.0" layoutY="68.0" text="Qty On Hand" textFill="#7f8c8d" />
-            <Label fx:id="lblQtyOnHand" layoutX="18.0" layoutY="81.0" text="0Kg" textFill="#7f8c8d">
+            <Button layoutX="16.0" layoutY="203.0" mnemonicParsing="false" onAction="#btnAddToCartOnAction" prefHeight="35.0" prefWidth="278.0" style="-fx-background-color: #3a4b6b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Add to Cart" textFill="WHITE" />
+            <Button layoutX="238.0" layoutY="40.0" mnemonicParsing="false" onAction="#btnNewProductOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
+            <Label layoutX="17.0" layoutY="78.0" text="Qty On Hand" textFill="#7f8c8d" />
+            <Label fx:id="lblQtyOnHand" layoutX="18.0" layoutY="91.0" text="0Kg" textFill="#7f8c8d">
                <font>
                   <Font name="System Bold" size="23.0" />
                </font>
             </Label>
-            <Label layoutX="143.0" layoutY="131.0" text="Unit Price (Rs.)" textFill="#7f8c8d" />
-            <TextField fx:id="txtUnitPrice" layoutX="143.0" layoutY="149.0" prefHeight="26.0" prefWidth="119.0" />
-            <Line endX="147.800048828125" layoutX="114.0" layoutY="124.0" startX="-100.0" stroke="#00000043" />
+            <Label layoutX="143.0" layoutY="141.0" text="Unit Price (Rs.)" textFill="#7f8c8d" />
+            <TextField fx:id="txtUnitPrice" layoutX="143.0" layoutY="159.0" prefHeight="26.0" prefWidth="146.0" />
+            <Line endX="170.0" layoutX="114.0" layoutY="134.0" startX="-100.0" stroke="#00000043" />
          </children>
       </AnchorPane>
 
-      <TableView fx:id="tblCart" layoutX="33.0" layoutY="67.0" prefHeight="393.0" prefWidth="426.0">
+      <TableView fx:id="tblCart" layoutX="40.0" layoutY="72.0" prefHeight="445.0" prefWidth="533.0">
          <columns>
-            <TableColumn fx:id="colDescription" prefWidth="139.20004272460938" text="Inventory" />
-            <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="67.199951171875" text="Qty (Kg)" />
-            <TableColumn fx:id="colUnitPrice" prefWidth="78.4000244140625" text="Unit Price" />
-            <TableColumn fx:id="colTotal" prefWidth="67.199951171875" text="Total" />
-            <TableColumn fx:id="colAction" prefWidth="80.800048828125" text="Remove" />
+            <TableColumn fx:id="colDescription" prefWidth="153.0" text="Inventory" />
+            <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="74.0" text="Qty (Kg)" />
+            <TableColumn fx:id="colUnitPrice" prefWidth="100.0" text="Unit Price" />
+            <TableColumn fx:id="colTotal" prefWidth="103.0" text="Total" />
+            <TableColumn fx:id="colAction" prefWidth="102.0" text="Remove" />
          </columns>
       </TableView>
-      <AnchorPane layoutX="474.0" layoutY="68.0" prefHeight="70.0" prefWidth="278.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="594.0" layoutY="72.0" prefHeight="81.0" prefWidth="306.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
-            <Label layoutX="12.0" layoutY="11.0" text="Customer" textFill="#7f8c8d" />
-            <ComboBox fx:id="cmbCustomerId" editable="true" layoutX="12.0" layoutY="31.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type customer name..." />
-            <Button layoutX="238.0" layoutY="30.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
+            <Label layoutX="12.0" layoutY="13.0" text="Customer" textFill="#7f8c8d" />
+            <ComboBox fx:id="cmbCustomerId" editable="true" layoutX="12.0" layoutY="33.0" onAction="#cmbCustomerOnAction" onKeyReleased="#cmbCustomerOnKeyReleased" prefHeight="26.0" prefWidth="221.0" promptText="Type customer name..." />
+            <Button layoutX="238.0" layoutY="32.0" mnemonicParsing="false" onAction="#btnNewCustomerOnAction" prefHeight="27.0" prefWidth="28.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+" />
          </children>
       </AnchorPane>
-      <Button layoutX="474.0" layoutY="403.0" mnemonicParsing="false" onAction="#btnGeneratePdfOnAction" prefHeight="58.0" prefWidth="278.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GENERATE PDF (Ctrl+Enter)">
+      <Button layoutX="594.0" layoutY="450.0" mnemonicParsing="false" onAction="#btnGeneratePdfOnAction" prefHeight="67.0" prefWidth="306.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="GENERATE PDF (Ctrl+Enter)">
          <font>
             <Font size="17.0" />
          </font>
       </Button>
-      <Label fx:id="lblNetTotal" layoutX="33.0" layoutY="463.0" text="Total: Rs. 0.00" textFill="#d41200">
+      <Label fx:id="lblNetTotal" layoutX="40.0" layoutY="526.0" text="Total: Rs. 0.00" textFill="#d41200">
          <font>
             <Font name="System Bold" size="22.0" />
          </font>

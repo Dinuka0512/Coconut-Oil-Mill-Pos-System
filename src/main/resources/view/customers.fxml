@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.CustomerController">
+<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.CustomerController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Customer Management" textFill="#2c3e50">
          <font>
@@ -16,34 +16,34 @@
          </font>
       </Label>
       
-      <AnchorPane layoutX="32.0" layoutY="74.0" prefHeight="135.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="32.0" layoutY="74.0" prefHeight="135.0" prefWidth="878.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
-             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="346.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
+             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="412.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
             
-            <Label layoutX="381.0" layoutY="15.0" text="Contact Number" textFill="#7f8c8d" />
-            <TextField fx:id="txtContact" layoutX="381.0" layoutY="35.0" onAction="#onContactAction" prefHeight="30.0" prefWidth="226.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
+            <Label layoutX="451.0" layoutY="15.0" text="Contact Number" textFill="#7f8c8d" />
+            <TextField fx:id="txtContact" layoutX="451.0" layoutY="35.0" onAction="#onContactAction" prefHeight="30.0" prefWidth="278.0" promptText="07XXXXXXXX" style="-fx-background-radius: 5;" />
 
-            <Label layoutX="623.0" layoutY="15.0" text="Due Amount (Rs.)" textFill="#7f8c8d" />
+            <Label layoutX="751.0" layoutY="15.0" text="Due Amount (Rs.)" textFill="#7f8c8d" />
             
-            <Button fx:id="btnSave" layoutX="642.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
-            <Button fx:id="btnUpdate" layoutX="562.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
-            <Button fx:id="btnDelete" layoutX="482.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
-            <Button fx:id="btnClear" layoutX="402.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
-             <Button layoutX="22.0" layoutY="83.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="145.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
-            <TextField fx:id="txtDue" layoutX="622.0" layoutY="35.0" editable="false" prefHeight="30.0" prefWidth="94.0" promptText="0" style="-fx-background-radius: 5; -fx-background-color: #f0f0f0;" />
+            <Button fx:id="btnSave" layoutX="774.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+            <Button fx:id="btnUpdate" layoutX="694.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnDelete" layoutX="614.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnClear" layoutX="534.0" layoutY="83.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+             <Button layoutX="22.0" layoutY="83.0" mnemonicParsing="false" onAction="#exportCustomer" prefHeight="35.0" prefWidth="227.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
+            <TextField fx:id="txtDue" editable="false" layoutX="750.0" layoutY="35.0" prefHeight="30.0" prefWidth="94.0" promptText="0" style="-fx-background-radius: 5; -fx-background-color: #f0f0f0;" />
          </children>
       </AnchorPane>
       
-      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search Customer by ID, Name or Contact..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="878.0" promptText="Search Customer by ID, Name or Contact..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
-      <TableView fx:id="tblCustomer" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
+      <TableView fx:id="tblCustomer" layoutX="32.0" layoutY="275.0" prefHeight="284.0" prefWidth="878.0" style="-fx-background-radius: 5;">
         <columns>
-<TableColumn fx:id="colName" prefWidth="180.0" text="Name" />
-            <TableColumn fx:id="colContact" prefWidth="155.0" text="Contact" />
-            <TableColumn fx:id="colDue" prefWidth="125.0" text="Due Amount (Rs.)" />
-            <TableColumn fx:id="colCreated" prefWidth="115.0" text="Created (By / At)" />
-            <TableColumn fx:id="colUpdated" prefWidth="115.0" text="Updated (By / At)" />
+<TableColumn fx:id="colName" prefWidth="177.0" text="Name" />
+            <TableColumn fx:id="colContact" prefWidth="159.0" text="Contact" />
+            <TableColumn fx:id="colDue" prefWidth="169.0" text="Due Amount (Rs.)" />
+            <TableColumn fx:id="colCreated" prefWidth="183.0" text="Created (By / At)" />
+            <TableColumn fx:id="colUpdated" prefWidth="188.0" text="Updated (By / At)" />
         </columns>
       </TableView>
    </children>

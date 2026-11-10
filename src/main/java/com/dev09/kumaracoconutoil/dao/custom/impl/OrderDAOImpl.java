@@ -17,7 +17,7 @@ public class OrderDAOImpl implements OrderDAO {
     public ArrayList<OrderEntity> getAll() {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
-            Query<OrderEntity> query = session.createQuery("SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product", OrderEntity.class);
+            Query<OrderEntity> query = session.createQuery("SELECT DISTINCT o FROM OrderEntity o LEFT JOIN FETCH o.customer LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product", OrderEntity.class);
             List<OrderEntity> list = query.list();
             return new ArrayList<>(list);
         } finally {

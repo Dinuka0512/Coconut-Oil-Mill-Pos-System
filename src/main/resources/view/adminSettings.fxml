@@ -10,48 +10,48 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
+<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
    <children>
-      <Label layoutX="32.0" layoutY="21.0" text="Admin Settings" textFill="#2c3e50">
+      <Label layoutX="32.0" layoutY="24.0" text="Admin Settings" textFill="#2c3e50">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
       
-      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="895.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
-<TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="200.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
+<TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="273.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
              
-             <Label layoutX="240.0" layoutY="15.0" text="Email" textFill="#7f8c8d" />
-             <TextField fx:id="txtEmail" layoutX="240.0" layoutY="35.0" onAction="#onEmailAction" prefHeight="30.0" prefWidth="200.0" promptText="Enter Email" style="-fx-background-radius: 5;" />
+             <Label layoutX="303.0" layoutY="14.0" text="Email" textFill="#7f8c8d" />
+             <TextField fx:id="txtEmail" layoutX="303.0" layoutY="34.0" onAction="#onEmailAction" prefHeight="30.0" prefWidth="246.0" promptText="Enter Email" style="-fx-background-radius: 5;" />
              
-             <Label layoutX="460.0" layoutY="15.0" text="Password" textFill="#7f8c8d" />
-             <PasswordField fx:id="txtPassword" layoutX="460.0" layoutY="35.0" onAction="#onPasswordAction" prefHeight="30.0" prefWidth="150.0" promptText="Password" style="-fx-background-radius: 5;" />
+             <Label layoutX="557.0" layoutY="14.0" text="Password" textFill="#7f8c8d" />
+             <PasswordField fx:id="txtPassword" layoutX="557.0" layoutY="34.0" onAction="#onPasswordAction" prefHeight="30.0" prefWidth="190.0" promptText="Password" style="-fx-background-radius: 5;" />
              
-             <Label layoutX="630.0" layoutY="15.0" text="Role" textFill="#7f8c8d" />
-             <ComboBox fx:id="cmbRole" layoutX="630.0" layoutY="35.0" prefHeight="30.0" prefWidth="82.0" promptText="Select" />
+             <Label layoutX="758.0" layoutY="15.0" text="Role" textFill="#7f8c8d" />
+             <ComboBox fx:id="cmbRole" layoutX="758.0" layoutY="35.0" prefHeight="30.0" prefWidth="110.0" promptText="Select" />
             
-            <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
-            <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
-            <Button fx:id="btnDelete" layoutX="482.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
-            <Button fx:id="btnClear" layoutX="402.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+            <Button fx:id="btnSave" layoutX="799.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+            <Button fx:id="btnUpdate" layoutX="719.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnDelete" layoutX="639.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnClear" layoutX="559.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+            <Button fx:id="userLogs" layoutX="20.0" layoutY="88.0" mnemonicParsing="false" onAction="#btnOpenUserLogs" prefHeight="30.0" prefWidth="264.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="User Logs" />
          </children>
       </AnchorPane>
       
-      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search User by ID, Name or Email..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="895.0" promptText="Search User by ID, Name or Email..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
-      <TableView fx:id="tblUsers" layoutX="32.0" layoutY="275.0" prefHeight="220.0" prefWidth="732.0" style="-fx-background-radius: 5;">
+      <TableView fx:id="tblUsers" layoutX="32.0" layoutY="275.0" prefHeight="286.0" prefWidth="895.0" style="-fx-background-radius: 5;">
         <columns>
-          <TableColumn fx:id="colId" prefWidth="70.0" text="User ID" />
-          <TableColumn fx:id="colName" prefWidth="135.0" text="Name" />
-          <TableColumn fx:id="colEmail" prefWidth="150.0" text="Email" />
-          <TableColumn fx:id="colPassword" prefWidth="100.0" text="Password" />
-          <TableColumn fx:id="colRole" prefWidth="80.0" text="Role" />
-          <TableColumn fx:id="colCreated" prefWidth="115.0" text="Created (By / At)" />
-          <TableColumn fx:id="colUpdated" prefWidth="115.0" text="Updated (By / At)" />
+          <TableColumn fx:id="colId" prefWidth="74.0" text="User ID" />
+          <TableColumn fx:id="colName" prefWidth="151.0" text="Name" />
+          <TableColumn fx:id="colEmail" prefWidth="156.0" text="Email" />
+          <TableColumn fx:id="colPassword" prefWidth="96.0" text="Password" />
+          <TableColumn fx:id="colRole" prefWidth="107.0" text="Role" />
+          <TableColumn fx:id="colCreated" prefWidth="149.0" text="Created (By / At)" />
+          <TableColumn fx:id="colUpdated" prefWidth="161.0" text="Updated (By / At)" />
         </columns>
       </TableView>
-      <Button fx:id="userLogs" layoutX="637.0" layoutY="23.0" mnemonicParsing="false" onAction="#btnOpenUserLogs" prefHeight="30.0" prefWidth="126.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="User Logs" />
    </children>
 </AnchorPane>

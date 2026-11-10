@@ -55,17 +55,11 @@ public class LoadingController {
         new Thread(() -> {
             try {
                 updateStatus("Connecting to database...");
-                Thread.sleep(500);
-
                 updateStatus("Initializing Hibernate...");
                 FactoryConfiguration.getInstance().getSession().close();
-                Thread.sleep(500);
 
                 updateStatus("Loading application...");
-                Thread.sleep(500);
-
                 updateStatus("Ready!");
-                Thread.sleep(300);
 
                 Platform.runLater(() -> {
                     if (lineAnimation != null) {
@@ -76,6 +70,10 @@ public class LoadingController {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                Platform.runLater(() -> {
+                    if (lineAnimation != null) lineAnimation.stop();
+                    updateStatus("Startup failed: " + e.getMessage());
+                });
             }
         }).start();
     }

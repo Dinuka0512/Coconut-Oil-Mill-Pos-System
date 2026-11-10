@@ -11,74 +11,74 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="body" prefHeight="609.0" prefWidth="924.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.LoginController">
+<AnchorPane fx:id="body" prefHeight="687.0" prefWidth="1122.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.LoginController">
     <children>
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#f5f5f5" height="618.0" layoutX="484.0" stroke="#ffffff00" strokeType="INSIDE" width="447.0" />
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#f5f5f5" height="687.0" layoutX="492.0" stroke="#ffffff00" strokeType="INSIDE" width="630.0" />
 
         <!-- Coconut Image -->
-        <ImageView fitHeight="416.0" fitWidth="381.0" layoutY="190.4" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="190.0">
+        <ImageView fitHeight="481.0" fitWidth="443.0" layoutY="198.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="198.0">
             <image>
                 <Image url="@../asets/s.jpg" />
             </image>
         </ImageView>
         <!-- Login Label (top right) -->
-        <Label layoutX="576.0" layoutY="200.0" text="Login" AnchorPane.rightAnchor="292.0" AnchorPane.topAnchor="200.0">
+        <Label layoutX="670.0" layoutY="199.0" text="Login" AnchorPane.rightAnchor="396.0" AnchorPane.topAnchor="199.0">
             <font>
                 <Font name="System Bold" size="21.0" />
             </font>
         </Label>
 
         <!-- Username Label -->
-        <Label layoutX="584.3333333333334" layoutY="243.33333333333334" text="Username" AnchorPane.rightAnchor="284.33333333333326" AnchorPane.topAnchor="243.33333333333334">
+        <Label layoutX="671.0" layoutY="242.0" text="Username" AnchorPane.rightAnchor="388.0" AnchorPane.topAnchor="242.0">
             <font>
                 <Font size="14.0" />
             </font>
         </Label>
 
         <!-- Username Field (styled) -->
-        <TextField fx:id="txtUsername" layoutX="576.0" layoutY="263.0" onAction="#onUsernameAction" prefHeight="26.0" prefWidth="266.0" promptText="Username" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="263.0" />
+        <TextField fx:id="txtUsername" layoutX="670.0" layoutY="262.0" onAction="#onUsernameAction" prefHeight="26.0" prefWidth="266.0" promptText="Username" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="186.0" AnchorPane.topAnchor="262.0" />
 
         <!-- Password Label -->
-        <Label layoutX="584.3333333333334" layoutY="312.6666666666667" text="Password" AnchorPane.rightAnchor="288.33333333333326" AnchorPane.topAnchor="312.6666666666667">
+        <Label layoutX="671.0" layoutY="312.0" text="Password" AnchorPane.rightAnchor="392.0" AnchorPane.topAnchor="312.0">
             <font>
                 <Font size="14.0" />
             </font>
         </Label>
 
         <!-- Password Field (styled) -->
-        <PasswordField fx:id="txtPassword" layoutX="576.0" layoutY="331.0" onAction="#onPasswordAction" prefHeight="26.0" prefWidth="266.0" promptText="Password" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="82.0" AnchorPane.topAnchor="331.0" />
+        <PasswordField fx:id="txtPassword" layoutX="670.0" layoutY="330.0" onAction="#onPasswordAction" prefHeight="26.0" prefWidth="266.0" promptText="Password" style="-fx-background-color: #f9f9f9; -fx-border-color: #ddd; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8; -fx-font-size: 14px;" AnchorPane.rightAnchor="186.0" AnchorPane.topAnchor="330.0" />
 
         <!-- Login Button -->
-        <Button layoutX="582.4000000000001" layoutY="386.6" mnemonicParsing="false" onAction="#login" prefHeight="38.0" prefWidth="266.0" style="-fx-background-color: #ffc000; -fx-background-radius: 20;" text="LogIn" textFill="WHITE" AnchorPane.rightAnchor="82.39999999999998" AnchorPane.topAnchor="386.6">
+        <Button layoutX="670.0" layoutY="386.0" mnemonicParsing="false" onAction="#login" prefHeight="38.0" prefWidth="266.0" style="-fx-background-color: #ffc000; -fx-background-radius: 20;" text="LogIn" textFill="WHITE" AnchorPane.rightAnchor="186.0" AnchorPane.topAnchor="386.0">
             <font>
                 <Font size="15.0" />
             </font>
         </Button>
 
         <!-- Company Name (left) -->
-        <Label layoutX="58.0" layoutY="39.0" text="Dilshan Oil Mill" textFill="#3b3b3b" AnchorPane.leftAnchor="58.0" AnchorPane.topAnchor="39.0">
+        <Label layoutX="81.0" layoutY="55.0" text="Dilshan Oil Mill" textFill="#3b3b3b" AnchorPane.leftAnchor="81.0" AnchorPane.topAnchor="55.0">
             <font>
                 <Font name="Bebas Neue Regular" size="60.0" />
             </font>
         </Label>
 
         <!-- Tagline -->
-        <Label layoutX="58.0" layoutY="98.0" text="Your Trusted Partner in Coconut Products" textFill="#3b3b3b" AnchorPane.leftAnchor="58.0" AnchorPane.topAnchor="98.0">
+        <Label layoutX="81.0" layoutY="114.0" text="Your Trusted Partner in Coconut Products" textFill="#3b3b3b" AnchorPane.leftAnchor="81.0" AnchorPane.topAnchor="114.0">
             <font>
                 <Font size="17.0" />
             </font>
         </Label>
 
         <!-- Description Text -->
-        <Text fill="#616161" layoutX="58.0" layoutY="165.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dilshan Oil Mill is a trusted producer of high-quality coconut oil, committed to delivering pure and natural products while maintaining traditional values and modern standards." wrappingWidth="346.223388671875" AnchorPane.leftAnchor="58.0" AnchorPane.topAnchor="152.05078125" />
+        <Text fill="#616161" layoutX="81.0" layoutY="181.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Dilshan Oil Mill is a trusted producer of high-quality coconut oil, committed to delivering pure and natural products while maintaining traditional values and modern standards." wrappingWidth="346.223388671875" AnchorPane.leftAnchor="81.0" AnchorPane.topAnchor="168.0" />
 
         <!-- Footer Copyright -->
-        <Label layoutX="601.0" layoutY="512.0" text="© 2026 Dilshan Oil Mill. All Rights Reserved." textFill="#3b3b3b" AnchorPane.bottomAnchor="81.20000000000005" AnchorPane.leftAnchor="601.0">
+        <Label layoutX="685.0" layoutY="567.0" text="© 2026 Dilshan Oil Mill. All Rights Reserved." textFill="#3b3b3b" AnchorPane.bottomAnchor="104.0" AnchorPane.leftAnchor="685.0">
             <font>
                 <Font size="11.0" />
             </font>
         </Label>
-        <Label layoutX="645.0" layoutY="528.0" text="Developed by DEV09 Company." textFill="#3b3b3b" AnchorPane.bottomAnchor="67.60000000000002" AnchorPane.leftAnchor="645.0">
+        <Label layoutX="729.0" layoutY="583.0" text="Developed by DEV09 Company." textFill="#3b3b3b" AnchorPane.bottomAnchor="91.0" AnchorPane.leftAnchor="729.0">
             <font>
                 <Font size="9.0" />
             </font>

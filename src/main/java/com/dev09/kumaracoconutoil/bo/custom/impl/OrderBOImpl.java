@@ -115,16 +115,18 @@ public class OrderBOImpl implements OrderBO {
             dto.setDate(entity.getDate());
             
             if (entity.getCustomer() != null) {
-                CustomerDto customerDto = customerBO.searchCustomer(entity.getCustomer().getCustId());
-                if (customerDto != null) {
-                    dto.setCustomer(customerDto);
-                } else {
-                    CustomerDto deletedCustomer = new CustomerDto();
-                    deletedCustomer.setCustId(entity.getCustomer().getCustId());
-                    deletedCustomer.setName("Unknown");
-                    deletedCustomer.setContact("N/A");
-                    dto.setCustomer(deletedCustomer);
-                }
+                CustomerEntity c = entity.getCustomer();
+                CustomerDto customerDto = new CustomerDto(
+                        c.getCustId(),
+                        c.getName(),
+                        c.getContact(),
+                        c.getDueAmount()
+                );
+                customerDto.setCreatedBy(c.getCreatedBy());
+                customerDto.setCreatedAt(c.getCreatedAt());
+                customerDto.setUpdatedBy(c.getUpdatedBy());
+                customerDto.setUpdatedAt(c.getUpdatedAt());
+                dto.setCustomer(customerDto);
             }
             
             dto.setAmountPaid(entity.getAmountPaid());

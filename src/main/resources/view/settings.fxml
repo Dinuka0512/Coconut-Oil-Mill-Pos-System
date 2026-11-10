@@ -7,12 +7,12 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="body" prefHeight="517.0" prefWidth="796.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SettingsController">
+<AnchorPane fx:id="body" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: #dddcdc;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SettingsController">
 
     <children>
 
         <!-- Card Background -->
-        <AnchorPane layoutX="142.0" layoutY="39.0" prefHeight="440.0" prefWidth="440.0" style="-fx-background-color: #dddcdc; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15,0,0,5);">
+        <AnchorPane layoutX="260.0" layoutY="74.0" prefHeight="440.0" prefWidth="440.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15,0,0,5);">
 
             <children>
 

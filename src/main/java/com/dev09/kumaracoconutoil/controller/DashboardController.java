@@ -426,4 +426,8 @@ public class DashboardController implements Initializable {
     void goToDueManagement(ActionEvent event) {
         subNavigateTo("/view/dueManagement.fxml");
     }
+
+    @FXML
+    void goToSuppliers(ActionEvent event) {
+    }
 }

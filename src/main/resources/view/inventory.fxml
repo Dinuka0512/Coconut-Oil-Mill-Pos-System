@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="517.0" prefWidth="796.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.ProductController">
+<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.ProductController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Inventory Management" textFill="#2c3e50">
          <font>
@@ -16,38 +16,38 @@
          </font>
       </Label>
       
-      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="136.0" prefWidth="732.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="136.0" prefWidth="891.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
              <Label layoutX="20.0" layoutY="15.0" text="Item Code" textFill="#7f8c8d" />
-             <TextField fx:id="txtItemCode" layoutX="20.0" layoutY="35.0" onAction="#onItemCodeAction" prefHeight="30.0" prefWidth="200.0" promptText="Enter Item Code" style="-fx-background-radius: 5;" />
+             <TextField fx:id="txtItemCode" layoutX="20.0" layoutY="35.0" onAction="#onItemCodeAction" prefHeight="30.0" prefWidth="244.0" promptText="Enter Item Code" style="-fx-background-radius: 5;" />
 
-             <Label layoutX="240.0" layoutY="15.0" text="Inventory Name" textFill="#7f8c8d" />
-             <TextField fx:id="txtName" layoutX="240.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="230.0" promptText="Enter Inventory Name" style="-fx-background-radius: 5;" />
+             <Label layoutX="287.0" layoutY="15.0" text="Inventory Name" textFill="#7f8c8d" />
+             <TextField fx:id="txtName" layoutX="287.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="289.0" promptText="Enter Inventory Name" style="-fx-background-radius: 5;" />
             
-            <Label layoutX="490.0" layoutY="15.0" text="Unit Price (LKR)" textFill="#7f8c8d" />
-            <TextField fx:id="txtPrice" layoutX="490.0" layoutY="35.0" onAction="#onPriceAction" prefHeight="30.0" prefWidth="110.0" promptText="0.00" style="-fx-background-radius: 5;" />
+            <Label layoutX="600.0" layoutY="15.0" text="Unit Price (LKR)" textFill="#7f8c8d" />
+            <TextField fx:id="txtPrice" layoutX="600.0" layoutY="35.0" onAction="#onPriceAction" prefHeight="30.0" prefWidth="134.0" promptText="0.00" style="-fx-background-radius: 5;" />
 
-            <Label layoutX="620.0" layoutY="15.0" text="Qty (Kg)" textFill="#7f8c8d" />
-            <TextField fx:id="txtQty" layoutX="620.0" layoutY="35.0" onAction="#onQtyAction" prefHeight="30.0" prefWidth="90.0" promptText="0" style="-fx-background-radius: 5;" />
+            <Label layoutX="757.0" layoutY="15.0" text="Qty (Kg)" textFill="#7f8c8d" />
+            <TextField fx:id="txtQty" layoutX="757.0" layoutY="35.0" onAction="#onQtyAction" prefHeight="30.0" prefWidth="110.0" promptText="0" style="-fx-background-radius: 5;" />
             
-            <Button fx:id="btnSave" layoutX="642.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
-            <Button fx:id="btnUpdate" layoutX="562.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
-            <Button fx:id="btnDelete" layoutX="482.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
-            <Button fx:id="btnClear" layoutX="402.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
-             <Button layoutX="20.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportAllItems" prefHeight="35.0" prefWidth="199.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
+            <Button fx:id="btnSave" layoutX="796.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+            <Button fx:id="btnUpdate" layoutX="716.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnDelete" layoutX="636.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnClear" layoutX="556.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+             <Button layoutX="20.0" layoutY="85.0" mnemonicParsing="false" onAction="#exportAllItems" prefHeight="35.0" prefWidth="279.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate PDF" />
          </children>
       </AnchorPane>
       
-       <TextField fx:id="txtSearch" layoutX="32.0" layoutY="218.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="732.0" promptText="Search Inventory by ID, Item Code or Name..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+       <TextField fx:id="txtSearch" layoutX="32.0" layoutY="218.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="891.0" promptText="Search Inventory by ID, Item Code or Name..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
-      <TableView fx:id="tblProduct" layoutX="32.0" layoutY="265.0" prefHeight="228.0" prefWidth="732.0" style="-fx-background-radius: 5;">
+      <TableView fx:id="tblProduct" layoutX="32.0" layoutY="265.0" prefHeight="297.0" prefWidth="891.0" style="-fx-background-radius: 5;">
         <columns>
-<TableColumn fx:id="colItemCode" prefWidth="95.0" text="Item Code" />
-            <TableColumn fx:id="colName" prefWidth="185.0" text="Inventory Name" />
-            <TableColumn fx:id="colPrice" prefWidth="120.0" text="Unit Price (LKR)" />
-            <TableColumn fx:id="colQty" prefWidth="115.0" text="Qty On Hand (Kg)" />
-            <TableColumn fx:id="colCreated" prefWidth="110.0" text="Created (By / At)" />
-            <TableColumn fx:id="colUpdated" prefWidth="110.0" text="Updated (By / At)" />
+<TableColumn fx:id="colItemCode" prefWidth="119.20001602172852" text="Item Code" />
+            <TableColumn fx:id="colName" prefWidth="216.7999725341797" text="Inventory Name" />
+            <TableColumn fx:id="colPrice" prefWidth="144.00006103515625" text="Unit Price (LKR)" />
+            <TableColumn fx:id="colQty" prefWidth="116.79998779296875" text="Qty On Hand (Kg)" />
+            <TableColumn fx:id="colCreated" prefWidth="145.60003662109375" text="Created (By / At)" />
+            <TableColumn fx:id="colUpdated" prefWidth="147.99993896484375" text="Updated (By / At)" />
         </columns>
       </TableView>
    </children>
