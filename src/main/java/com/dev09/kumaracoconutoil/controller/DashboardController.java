@@ -388,6 +388,11 @@ public class DashboardController implements Initializable {
     }
 
     @FXML
+    void goToSuppliers(ActionEvent event) {
+        subNavigateTo("/view/suppliers.fxml");
+    }
+
+    @FXML
     void goToInventory(ActionEvent event) {
         subNavigateTo("/view/inventory.fxml");
     }
@@ -425,9 +430,5 @@ public class DashboardController implements Initializable {
     @FXML
     void goToDueManagement(ActionEvent event) {
         subNavigateTo("/view/dueManagement.fxml");
-    }
-
-    @FXML
-    void goToSuppliers(ActionEvent event) {
     }
 }

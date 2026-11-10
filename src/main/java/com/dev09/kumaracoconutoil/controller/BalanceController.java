@@ -11,6 +11,7 @@ import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.TaxDto;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AppConstants;
+import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -107,6 +108,9 @@ public class BalanceController implements Initializable {
         loadedTaxRate = currentTaxRate;
         txtTax.setText(String.valueOf(currentTaxRate));
         btnSaveTax.setDisable(true);
+
+        ComboBoxUtil.enableArrowSelection(cmbPaymentMethod);
+        ComboBoxUtil.enableArrowSelection(duePayType);
 
         Platform.runLater(() -> txtAmountPaid.requestFocus());
     }

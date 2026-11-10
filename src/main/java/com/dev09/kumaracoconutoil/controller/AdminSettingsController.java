@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
@@ -185,6 +186,7 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
         txtSearch.setTooltip(new Tooltip("Search User (Ctrl+F)"));
         setupShortcuts();
+        ComboBoxUtil.enableArrowSelection(cmbRole);
 
         tblUsers.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {

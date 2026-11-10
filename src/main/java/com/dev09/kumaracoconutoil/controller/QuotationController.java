@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -103,6 +104,9 @@ public class QuotationController implements Initializable {
         loadProductIds();
         setQuotationId();
 
+        ComboBoxUtil.enableArrowSelection(cmbProductId);
+        ComboBoxUtil.enableArrowSelection(cmbCustomerId);
+
         txtQty.setOnAction(e -> txtUnitPrice.requestFocus());
         txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
 
@@ -200,6 +204,7 @@ public class QuotationController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbCustomerId.getItems().clear();
@@ -254,6 +259,7 @@ public class QuotationController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbProductId.getItems().clear();

@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -149,6 +150,9 @@ public class UpdatePosController implements Initializable {
             txtUnitPrice.requestFocus();
         });
 
+        ComboBoxUtil.enableArrowSelection(cmbProductId);
+        ComboBoxUtil.enableArrowSelection(cmbCustomerId);
+
         txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
 
         Platform.runLater(() -> {
@@ -196,6 +200,7 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbCustomerId.getItems().clear();
@@ -250,6 +255,7 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbProductId.getItems().clear();

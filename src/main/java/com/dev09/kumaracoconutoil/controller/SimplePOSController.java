@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
@@ -138,6 +139,9 @@ public class SimplePOSController implements Initializable {
 
         cmbProduct.requestFocus();
 
+        ComboBoxUtil.enableArrowSelection(cmbProduct);
+        ComboBoxUtil.enableArrowSelection(cmbCustomer);
+
         javafx.application.Platform.runLater(() -> {
             javafx.scene.Scene scene = tblCart.getScene();
             if (scene != null) {
@@ -191,6 +195,7 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProduct.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbProduct.getItems().clear();
@@ -325,6 +330,7 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomer.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbCustomer.getItems().clear();
