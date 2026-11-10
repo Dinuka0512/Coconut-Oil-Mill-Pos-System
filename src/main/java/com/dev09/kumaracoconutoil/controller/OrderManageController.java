@@ -141,6 +141,15 @@ public class OrderManageController implements Initializable {
         colCreated.setVisible(canSeeAudit);
         colUpdated.setVisible(canSeeAudit);
         tblOrders.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblOrders.setRowFactory(tv -> {
+            TableRow<OrderDto> row = new TableRow<>();
+            row.setOnMousePressed(e -> {
+                if (row.isEmpty()) {
+                    tv.getSelectionModel().clearSelection();
+                }
+            });
+            return row;
+        });
         
         colAction.setCellFactory(param -> new TableCell<OrderDto, String>() {
             private final Button btnEdit = new Button("Edit");
@@ -204,10 +213,15 @@ public class OrderManageController implements Initializable {
 
         if (rootPane != null) {
             rootPane.setOnMousePressed(event -> {
-                if (!productSalesView || tblTdySales == null) return;
                 javafx.scene.Node target = event.getPickResult() == null ? null : event.getPickResult().getIntersectedNode();
-                if (!isNodeWithin(target, tblTdySales)) {
-                    tblTdySales.getSelectionModel().clearSelection();
+                if (productSalesView) {
+                    if (tblTdySales != null && !isNodeWithin(target, tblTdySales)) {
+                        tblTdySales.getSelectionModel().clearSelection();
+                    }
+                } else {
+                    if (tblOrders != null && !isNodeWithin(target, tblOrders)) {
+                        tblOrders.getSelectionModel().clearSelection();
+                    }
                 }
             });
         }
