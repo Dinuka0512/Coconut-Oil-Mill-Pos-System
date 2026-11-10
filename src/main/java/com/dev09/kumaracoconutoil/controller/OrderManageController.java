@@ -101,6 +101,21 @@ public class OrderManageController implements Initializable {
     @FXML
     private Button btnDelete;
 
+    @FXML
+    private Button btnSummaryReport;
+
+    @FXML
+    private javafx.scene.layout.AnchorPane tdySummary;
+
+    @FXML
+    private javafx.scene.layout.AnchorPane rootPane;
+
+    @FXML
+    private Label lblSummaryTotal;
+
+    @FXML
+    private Label lblSummarySoldCount;
+
     private static final String ORDERS_VIEW_TEXT = "View Products Sales";
 
     private static final String PRODUCT_SALES_VIEW_TEXT = "View Summary";
@@ -158,6 +173,15 @@ public class OrderManageController implements Initializable {
         colSoldTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
         colSoldQty.setCellFactory(createNumberCellFactory());
         colSoldTotal.setCellFactory(createNumberCellFactory());
+        tblTdySales.setRowFactory(tv -> {
+            TableRow<ProductSalesTM> row = new TableRow<>();
+            row.setOnMousePressed(e -> {
+                if (row.isEmpty()) {
+                    tv.getSelectionModel().clearSelection();
+                }
+            });
+            return row;
+        });
 
         datePicker.setValue(LocalDate.now());
         datePicker.setEditable(false);
@@ -177,6 +201,16 @@ public class OrderManageController implements Initializable {
         loadProductSalesByDate(datePicker.getValue());
         btnDelete.setDisable(!canDeleteInvoices());
         showOrdersView();
+
+        if (rootPane != null) {
+            rootPane.setOnMousePressed(event -> {
+                if (!productSalesView || tblTdySales == null) return;
+                javafx.scene.Node target = event.getPickResult() == null ? null : event.getPickResult().getIntersectedNode();
+                if (!isNodeWithin(target, tblTdySales)) {
+                    tblTdySales.getSelectionModel().clearSelection();
+                }
+            });
+        }
     }
 
     private Callback<TableColumn<ProductSalesTM, Double>, TableCell<ProductSalesTM, Double>> createNumberCellFactory() {
@@ -218,6 +252,8 @@ public class OrderManageController implements Initializable {
         productSalesView = false;
         tblOrders.setVisible(true);
         tblTdySales.setVisible(false);
+        if (tdySummary != null) tdySummary.setVisible(false);
+        if (btnSummaryReport != null) btnSummaryReport.setVisible(false);
         btnViewOption.setText(ORDERS_VIEW_TEXT);
         txtSearch.setDisable(false);
         btnSearch.setDisable(false);
@@ -229,6 +265,9 @@ public class OrderManageController implements Initializable {
         productSalesView = true;
         tblOrders.setVisible(false);
         tblTdySales.setVisible(true);
+        if (tdySummary != null) tdySummary.setVisible(true);
+        if (btnSummaryReport != null) btnSummaryReport.setVisible(true);
+        updateSummaryLabels();
         btnViewOption.setText(PRODUCT_SALES_VIEW_TEXT);
         tblOrders.getSelectionModel().clearSelection();
         txtSearch.clear();
@@ -297,11 +336,17 @@ public class OrderManageController implements Initializable {
         tblTdySales.getSelectionModel().clearSelection();
         ObservableList<ProductSalesTM> items = tblTdySales.getItems();
         items.clear();
-        if (date == null) return;
+        if (date == null) {
+            updateSummaryLabels();
+            return;
+        }
 
         try {
             List<OrderProductDetailsEntity> details = orderBO.getProductDetailsByDate(date);
-            if (details == null || details.isEmpty()) return;
+            if (details == null || details.isEmpty()) {
+                updateSummaryLabels();
+                return;
+            }
 
             Map<String, double[]> totalsByProduct = new LinkedHashMap<>();
             Map<String, String> codesByProduct = new LinkedHashMap<>();
@@ -335,6 +380,92 @@ public class OrderManageController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading product sales: " + e.getMessage());
+        } finally {
+            updateSummaryLabels();
+        }
+    }
+
+    private boolean isNodeWithin(javafx.scene.Node node, javafx.scene.Node container) {
+        javafx.scene.Node current = node;
+        while (current != null) {
+            if (current == container) return true;
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private void updateSummaryLabels() {
+        if (lblSummaryTotal == null || lblSummarySoldCount == null) return;
+        double total = 0.0;
+        double soldQty = 0.0;
+        if (tblTdySales != null && tblTdySales.getItems() != null) {
+            for (ProductSalesTM item : tblTdySales.getItems()) {
+                if (item == null) continue;
+                total += item.getTotal();
+                soldQty += item.getQty();
+            }
+        }
+        lblSummaryTotal.setText(String.format("Total : Rs.%,.2f", total));
+        if (Math.abs(soldQty - Math.rint(soldQty)) < 0.000001) {
+            lblSummarySoldCount.setText(String.format("Sold product count : %d", (long) Math.rint(soldQty)));
+        } else {
+            lblSummarySoldCount.setText(String.format("Sold product count : %.2f", soldQty));
+        }
+    }
+
+    @FXML
+    void btnGenerateSelectedDateSummary(ActionEvent event) {
+        if (!productSalesView) return;
+        LocalDate date = datePicker.getValue();
+        if (date == null) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please select a date!");
+            return;
+        }
+        List<ProductSalesTM> sales = new ArrayList<>(tblTdySales.getItems());
+        if (sales.isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "No sales data to generate summary for the selected date!");
+            return;
+        }
+        double total = 0.0;
+        double soldQty = 0.0;
+        for (ProductSalesTM item : sales) {
+            total += item.getTotal();
+            soldQty += item.getQty();
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Generate Summary Report");
+        alert.setHeaderText("Generate summary report for " + date);
+        alert.setContentText("Select PDF format(s):");
+
+        ButtonType a4Btn = new ButtonType("A4 PDF");
+        ButtonType smallBtn = new ButtonType("80mm PDF");
+        ButtonType bothBtn = new ButtonType("Both");
+        ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(a4Btn, smallBtn, bothBtn, cancelBtn);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (!result.isPresent() || result.get() == cancelBtn) return;
+
+        try {
+            String dateStr = date.toString();
+            if (result.get() == a4Btn || result.get() == bothBtn) {
+                byte[] pdf = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportA4Pro(date, sales, total, soldQty);
+                File f = File.createTempFile("SalesSummary_A4_" + dateStr + "_", ".pdf");
+                f.deleteOnExit();
+                java.nio.file.Files.write(f.toPath(), pdf);
+                java.awt.Desktop.getDesktop().open(f);
+            }
+            if (result.get() == smallBtn || result.get() == bothBtn) {
+                byte[] pdf = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportThermal(date, sales, total, soldQty);
+                File f = File.createTempFile("SalesSummary_80mm_" + dateStr + "_", ".pdf");
+                f.deleteOnExit();
+                java.nio.file.Files.write(f.toPath(), pdf);
+                java.awt.Desktop.getDesktop().open(f);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating summary report: " + e.getMessage());
         }
     }
 

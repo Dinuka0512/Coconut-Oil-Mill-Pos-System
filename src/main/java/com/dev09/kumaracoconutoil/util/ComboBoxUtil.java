@@ -24,35 +24,67 @@ public final class ComboBoxUtil {
 
     public static void enableArrowSelection(ComboBox<?> comboBox) {
         if (comboBox == null) return;
+
         comboBox.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
+
+            if (code == KeyCode.ENTER) {
+                // If popup is open, let the popup/list handle Enter to confirm the highlighted value
+                if (comboBox.isShowing()) {
+                    return;
+                }
+                // If closed, keep default behavior (form submit handlers etc.)
+                return;
+            }
+
             if (code != KeyCode.UP && code != KeyCode.DOWN) return;
-            // Let editable combo's popup/editor handle arrows in their natural way when showing
-            if (comboBox.isEditable() && comboBox.isShowing()) return;
 
             int size = comboBox.getItems() == null ? 0 : comboBox.getItems().size();
             if (size == 0) return;
 
-            int index = comboBox.getSelectionModel().getSelectedIndex();
-            if (code == KeyCode.DOWN) {
-                int next = index < 0 ? 0 : Math.min(index + 1, size - 1);
-                comboBox.getSelectionModel().select(next);
-                comboBox.getEditor();
-                if (comboBox.isEditable() && comboBox.getEditor() != null && comboBox.getValue() != null) {
-                    comboBox.getEditor().setText(String.valueOf(comboBox.getValue()));
-                    comboBox.getEditor().positionCaret(comboBox.getEditor().getText().length());
-                }
-                event.consume();
-            } else if (code == KeyCode.UP) {
-                int prev = index <= 0 ? 0 : index - 1;
-                if (index < 0) prev = 0;
-                comboBox.getSelectionModel().select(prev);
-                if (comboBox.isEditable() && comboBox.getEditor() != null && comboBox.getValue() != null) {
-                    comboBox.getEditor().setText(String.valueOf(comboBox.getValue()));
-                    comboBox.getEditor().positionCaret(comboBox.getEditor().getText().length());
-                }
-                event.consume();
+            // When popup is already showing, let the dropdown list handle arrow navigation/selection
+            if (comboBox.isShowing()) {
+                return;
             }
+
+            // Show the list so the user can see all/available options when navigating by arrow keys
+            comboBox.show();
+
+            int index = comboBox.getSelectionModel().getSelectedIndex();
+            if (index < 0) {
+                // try to infer from current editor/value if possible
+                Object value = comboBox.getValue();
+                if (value == null && comboBox.isEditable() && comboBox.getEditor() != null) {
+                    value = comboBox.getEditor().getText();
+                }
+                if (value != null) {
+                    String v = String.valueOf(value);
+                    for (int i = 0; i < size; i++) {
+                        Object item = comboBox.getItems().get(i);
+                        if (item != null && String.valueOf(item).equalsIgnoreCase(v)) {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            int target;
+            if (code == KeyCode.DOWN) {
+                target = index < 0 ? 0 : Math.min(index + 1, size - 1);
+            } else {
+                target = index <= 0 ? 0 : index - 1;
+                if (index < 0) target = 0;
+            }
+
+            comboBox.getSelectionModel().select(target);
+            if (comboBox.isEditable() && comboBox.getEditor() != null && comboBox.getValue() != null) {
+                comboBox.getEditor().setText(String.valueOf(comboBox.getValue()));
+                comboBox.getEditor().positionCaret(comboBox.getEditor().getText().length());
+            }
+
+            // Keep focus behavior consistent; let popup remain open for visibility/confirmation with Enter
+            event.consume();
         });
     }
 }

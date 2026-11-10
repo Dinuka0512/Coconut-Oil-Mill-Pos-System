@@ -6,6 +6,7 @@ import com.dev09.kumaracoconutoil.entity.ProductEntity;
 import com.dev09.kumaracoconutoil.entity.OrderEntity;
 import com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
+import com.dev09.kumaracoconutoil.view.tm.ProductSalesTM;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -2266,5 +2267,252 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         c.beginText(); c.newLineAtOffset(col4 + 15, y - 12); c.showText("Rate (LKR)"); c.endText();
         c.beginText(); c.newLineAtOffset(col5 + 20, y - 12); c.showText("Amount (LKR)"); c.endText();
         return y - rowH;
+    }
+
+    // ================================
+    // SALES SUMMARY REPORT - 80mm (Thermal)
+    // ================================
+    public static byte[] SalesSummaryReportThermal(LocalDate date, List<ProductSalesTM> sales, double totalAmount, double totalQty) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            int rows = sales == null ? 0 : sales.size();
+            float h = 2 * THERMAL_MARGIN + 120 + rows * 14 + 90;
+            PDPage page = new PDPage(new PDRectangle(THERMAL_WIDTH, Math.max(h, 350)));
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+
+            float y = page.getMediaBox().getHeight() - THERMAL_MARGIN;
+            float x = THERMAL_MARGIN;
+            float w = THERMAL_WIDTH - 2 * THERMAL_MARGIN;
+
+            c.setFont(PDType1Font.HELVETICA_BOLD, 18);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            float twH = PDType1Font.HELVETICA_BOLD.getStringWidth(COMPANY_NAME) / 1000f * 18f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twH) / 2, y - 18); c.showText(COMPANY_NAME); c.endText();
+            y -= 22;
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 8;
+
+            c.setFont(PDType1Font.HELVETICA, 9);
+            c.setNonStrokingColor(0.3f, 0.3f, 0.3f);
+            float twA = PDType1Font.HELVETICA.getStringWidth(COMPANY_ADDRESS) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twA) / 2, y - 9); c.showText(COMPANY_ADDRESS); c.endText();
+            y -= 12;
+            float twP = PDType1Font.HELVETICA.getStringWidth(COMPANY_PHONE) / 1000f * 9f;
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twP) / 2, y - 9); c.showText(COMPANY_PHONE); c.endText();
+            y -= 15;
+
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.3f);
+            float tw1 = getThermalTextWidth("SALES SUMMARY REPORT", THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - tw1) / 2, y - THERMAL_FONT_8); c.showText("SALES SUMMARY REPORT"); c.endText();
+            y -= 14;
+
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            String dateText = "Date: " + (date != null ? date.toString() : "-");
+            float twD = getThermalTextWidth(dateText, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twD) / 2, y - THERMAL_FONT_8); c.showText(dateText); c.endText();
+            y -= 14;
+
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 18;
+
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.2f, 0.2f, 0.4f);
+            c.addRect(x, y - 14, w, 14); c.fill();
+            c.setNonStrokingColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
+            c.beginText(); c.newLineAtOffset(x + 3, y - 10); c.showText("Code"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + 35, y - 10); c.showText("Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 55, y - 10); c.showText("Qty"); c.endText();
+            c.beginText(); c.newLineAtOffset(x + w - 5 - getThermalTextWidth("Total", THERMAL_FONT_8), y - 10); c.showText("Total"); c.endText();
+            y -= 14;
+
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            int idx = 1;
+            if (sales != null) {
+                for (ProductSalesTM item : sales) {
+                    if (idx % 2 == 0) {
+                        c.setNonStrokingColor(0.95f, 0.95f, 1.0f);
+                        c.addRect(x, y - 12, w, 12); c.fill();
+                    }
+                    c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                    String code = truncate(item.getItemCode() != null ? item.getItemCode() : "-", 8);
+                    String name = truncate(item.getName() != null ? item.getName() : "-", 10);
+                    String qty = formatQty(item.getQty());
+                    String total = String.format("%.2f", item.getTotal());
+                    c.beginText(); c.newLineAtOffset(x + 3, y - 9); c.showText(code); c.endText();
+                    c.beginText(); c.newLineAtOffset(x + 35, y - 9); c.showText(name); c.endText();
+                    float qtw = getThermalTextWidth(qty, THERMAL_FONT_8);
+                    c.beginText(); c.newLineAtOffset(x + w - 55 - qtw, y - 9); c.showText(qty); c.endText();
+                    float ttw = getThermalTextWidth(total, THERMAL_FONT_8);
+                    c.beginText(); c.newLineAtOffset(x + w - 5 - ttw, y - 9); c.showText(total); c.endText();
+                    c.setLineWidth(0.2f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+                    c.moveTo(x, y - 12); c.lineTo(x + w, y - 12); c.stroke();
+                    y -= 12;
+                    idx++;
+                }
+            }
+
+            c.setLineWidth(1f); c.setStrokingColor(0.1f, 0.1f, 0.3f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 16;
+
+            c.setFont(THERMAL_FONT_BOLD, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String soldStr = "Sold product count: " + formatQty(totalQty);
+            String totStr = "Total: Rs. " + String.format("%.2f", totalAmount);
+            c.beginText(); c.newLineAtOffset(x, y - THERMAL_FONT_8); c.showText(soldStr); c.endText();
+            y -= 12;
+            c.beginText(); c.newLineAtOffset(x, y - THERMAL_FONT_8); c.showText(totStr); c.endText();
+            y -= 16;
+
+            c.setLineWidth(0.3f); c.setStrokingColor(0.8f, 0.8f, 0.8f);
+            c.moveTo(x, y); c.lineTo(x + w, y); c.stroke();
+            y -= 10;
+            c.setFont(THERMAL_FONT, THERMAL_FONT_8);
+            c.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+            String gen = "Generated: " + LocalDateTime.now().format(DATE_FORMAT);
+            float twG = getThermalTextWidth(gen, THERMAL_FONT_8);
+            c.beginText(); c.newLineAtOffset((THERMAL_WIDTH - twG) / 2, y - THERMAL_FONT_8); c.showText(gen); c.endText();
+
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating sales summary thermal report", e);
+        }
+    }
+
+    // ================================
+    // SALES SUMMARY REPORT - A4 (Professional Style)
+    // ================================
+    public static byte[] SalesSummaryReportA4Pro(LocalDate date, List<ProductSalesTM> sales, double totalAmount, double totalQty) {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            float m = 40f;
+            float w = A4_WIDTH - 2 * m;
+            float rowH = 18;
+            float col1 = m + 10, col2 = m + 80, col3 = m + 320, col4 = m + 400;
+            float[] vLines = {m, m + 70, m + 310, m + 390, A4_WIDTH - m};
+            float threshold = 150;
+
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            PDPageContentStream c = new PDPageContentStream(document, page);
+            float y = A4_HEIGHT - m;
+            drawReportHeader(c, "SALES SUMMARY REPORT", y);
+            y -= 70;
+            c.setFont(PDType1Font.HELVETICA, 10);
+            c.setNonStrokingColor(0.2f, 0.2f, 0.2f);
+            String dateText = "Date: " + (date != null ? date.toString() : "-");
+            c.beginText(); c.newLineAtOffset(m, y); c.showText(dateText); c.endText();
+            y -= 20;
+
+            c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+            c.addRect(m, y - rowH, w, rowH); c.fill();
+            c.setLineWidth(0.5f); c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.addRect(m, y - rowH, w, rowH); c.stroke();
+            for (float vl : vLines) { c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke(); }
+            c.setNonStrokingColor(1f, 1f, 1f);
+            c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("Code"); c.endText();
+            c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Product Name"); c.endText();
+            c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Sold Qty"); c.endText();
+            c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Total (LKR)"); c.endText();
+            y -= rowH;
+
+            c.setFont(PDType1Font.HELVETICA, 9);
+            int idx = 1;
+            int pageNum = 1;
+            if (sales != null) {
+                for (ProductSalesTM item : sales) {
+                    if (y < threshold + rowH) {
+                        c.setLineWidth(0.5f); c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                        c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+                        drawFooter(c, pageNum);
+                        c.close();
+                        page = new PDPage(PDRectangle.A4);
+                        document.addPage(page);
+                        c = new PDPageContentStream(document, page);
+                        y = A4_HEIGHT - m;
+                        drawReportHeader(c, "SALES SUMMARY REPORT", y);
+                        y -= 70;
+                        c.setFont(PDType1Font.HELVETICA, 10);
+                        c.setNonStrokingColor(0.2f, 0.2f, 0.2f);
+                        c.beginText(); c.newLineAtOffset(m, y); c.showText(dateText); c.endText();
+                        y -= 20;
+
+                        c.setFont(PDType1Font.HELVETICA_BOLD, 9);
+                        c.setNonStrokingColor(0.15f, 0.15f, 0.4f);
+                        c.addRect(m, y - rowH, w, rowH); c.fill();
+                        c.setLineWidth(0.5f); c.setStrokingColor(0.5f, 0.5f, 0.5f);
+                        c.addRect(m, y - rowH, w, rowH); c.stroke();
+                        for (float vl : vLines) { c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke(); }
+                        c.setNonStrokingColor(1f, 1f, 1f);
+                        c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText("Code"); c.endText();
+                        c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText("Product Name"); c.endText();
+                        c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText("Sold Qty"); c.endText();
+                        c.beginText(); c.newLineAtOffset(col4, y - 12); c.showText("Total (LKR)"); c.endText();
+                        y -= rowH;
+                        pageNum++;
+                    }
+
+                    if (idx % 2 == 0) {
+                        c.setNonStrokingColor(0.95f, 0.95f, 0.98f);
+                        c.addRect(m, y - rowH, w, rowH); c.fill();
+                    }
+                    c.setLineWidth(0.3f); c.setStrokingColor(0.7f, 0.7f, 0.7f);
+                    c.addRect(m, y - rowH, w, rowH); c.stroke();
+                    for (float vl : vLines) { c.moveTo(vl, y); c.lineTo(vl, y - rowH); c.stroke(); }
+                    c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+
+                    String code = item.getItemCode() != null ? item.getItemCode() : "-";
+                    String name = item.getName() != null ? item.getName() : "-";
+                    String qty = formatQty(item.getQty());
+                    String total = String.format("%.2f", item.getTotal());
+                    c.beginText(); c.newLineAtOffset(col1, y - 12); c.showText(truncate(code, 12)); c.endText();
+                    c.beginText(); c.newLineAtOffset(col2, y - 12); c.showText(truncate(name, 35)); c.endText();
+                    c.beginText(); c.newLineAtOffset(col3, y - 12); c.showText(qty); c.endText();
+                    float tw = PDType1Font.HELVETICA.getStringWidth(total) / 1000f * 9f;
+                    c.beginText(); c.newLineAtOffset(A4_WIDTH - m - 10 - tw, y - 12); c.showText(total); c.endText();
+                    y -= rowH;
+                    idx++;
+                }
+            }
+
+            c.setLineWidth(0.5f); c.setStrokingColor(0.5f, 0.5f, 0.5f);
+            c.moveTo(m, y); c.lineTo(A4_WIDTH - m, y); c.stroke();
+            y -= 25;
+
+            float sumX = A4_WIDTH - m - 260;
+            float sumW = 260;
+            c.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+            String soldStr = "Sold product count: " + formatQty(totalQty);
+            float tw1 = PDType1Font.HELVETICA_BOLD.getStringWidth(soldStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw1, y - 10); c.showText(soldStr); c.endText();
+            y -= 15;
+            String totStr = "Total: LKR " + String.format("%.2f", totalAmount);
+            float tw2 = PDType1Font.HELVETICA_BOLD.getStringWidth(totStr) / 1000f * 10f;
+            c.beginText(); c.newLineAtOffset(sumX + sumW - tw2, y - 10); c.showText(totStr); c.endText();
+
+            drawFooter(c, pageNum);
+            c.close();
+            document.save(baos);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error generating A4 sales summary report", e);
+        }
+    }
+
+    private static String formatQty(double qty) {
+        if (Math.abs(qty - Math.rint(qty)) < 0.000001) {
+            return String.valueOf((long) Math.rint(qty));
+        }
+        return String.format("%.2f", qty);
     }
 }

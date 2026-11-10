@@ -141,6 +141,7 @@ public class CustomerController implements Initializable {
         generateNextId();
 
         setupShortcuts();
+        javafx.application.Platform.runLater(() -> txtName.requestFocus());
 
         tblCustomer.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -279,6 +280,7 @@ public class CustomerController implements Initializable {
         txtName.clear();
         txtContact.clear();
         txtDue.clear();
+        txtName.requestFocus();
     }
 
     private void pageReset() {

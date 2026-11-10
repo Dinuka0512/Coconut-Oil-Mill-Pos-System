@@ -360,6 +360,10 @@ public class DashboardController implements Initializable {
             AnchorPane pane = FXMLLoader.load(getClass().getResource(path));
             bodyContent.getChildren().clear();
             bodyContent.getChildren().add(pane);
+            AnchorPane.setTopAnchor(pane, 0.0);
+            AnchorPane.setBottomAnchor(pane, 0.0);
+            AnchorPane.setLeftAnchor(pane, 0.0);
+            AnchorPane.setRightAnchor(pane, 0.0);
         } catch (IOException e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");

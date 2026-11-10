@@ -102,6 +102,7 @@ public class SupplierController implements Initializable {
         loadAllSuppliers();
         generateNextId();
         setupShortcuts();
+        javafx.application.Platform.runLater(() -> txtName.requestFocus());
 
         tblSupplier.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {

@@ -187,6 +187,7 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
         txtSearch.setTooltip(new Tooltip("Search User (Ctrl+F)"));
         setupShortcuts();
         ComboBoxUtil.enableArrowSelection(cmbRole);
+        javafx.application.Platform.runLater(() -> txtName.requestFocus());
 
         tblUsers.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {

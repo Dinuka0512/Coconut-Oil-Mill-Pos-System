@@ -124,114 +124,118 @@
             </ImageView>
             <Button layoutX="24.0" layoutY="173.0" mnemonicParsing="false" onAction="#goToSuppliers" opacity="0.0" prefHeight="38.0" prefWidth="109.0" />
          </children></AnchorPane>
-      <ScrollPane hbarPolicy="NEVER" layoutX="158.0" layoutY="99.0" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white; -fx-border-color: transparent; -fx-padding: 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="158.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="99.0">
-         <content>
-            <AnchorPane fx:id="bodyContent" prefHeight="688.0" prefWidth="951.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="99.0">
-               <children>
-                  <!-- Header -->
-                  <Label layoutX="45.0" layoutY="16.0" style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Dashboard" textFill="#0f172a" />
-                  <Label layoutX="45.0" layoutY="48.0" prefHeight="3.0" prefWidth="40.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 2;" />
-                  <Label layoutX="88.0" layoutY="48.0" prefHeight="3.0" prefWidth="16.0" style="-fx-background-color: #f59e0b; -fx-background-radius: 2;" />
-      
-                  <!-- Row 1: Metric Cards with left accent bar -->
-                  <AnchorPane layoutX="45.0" layoutY="64.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+      <AnchorPane fx:id="bodyContent" layoutX="158.0" layoutY="99.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="158.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="99.0">
+         <children>
+            <ScrollPane fx:id="homeScrollPane" hbarPolicy="NEVER" style="-fx-background-color: white; -fx-border-color: transparent; -fx-padding: 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <content>
+                  <AnchorPane fx:id="homeContent" prefHeight="688.0" prefWidth="951.0" style="-fx-background-color: white;">
                      <children>
-                        <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 10 0 0 10;" />
-                        <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="SALES TODAY" textFill="#3b82f6" />
-                        <Label fx:id="lblSalesToday" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
-                        <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="Today's revenue" textFill="#94a3b8" />
+                        <!-- Header -->
+                        <Label layoutX="45.0" layoutY="16.0" style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Dashboard" textFill="#0f172a" />
+                        <Label layoutX="45.0" layoutY="48.0" prefHeight="3.0" prefWidth="40.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 2;" />
+                        <Label layoutX="88.0" layoutY="48.0" prefHeight="3.0" prefWidth="16.0" style="-fx-background-color: #f59e0b; -fx-background-radius: 2;" />
+            
+                        <!-- Row 1: Metric Cards with left accent bar -->
+                        <AnchorPane layoutX="45.0" layoutY="64.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 10 0 0 10;" />
+                              <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="SALES TODAY" textFill="#3b82f6" />
+                              <Label fx:id="lblSalesToday" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
+                              <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="Today's revenue" textFill="#94a3b8" />
+                           </children>
+                        </AnchorPane>
+            
+                        <AnchorPane layoutX="334.0" layoutY="66.0" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #22c55e; -fx-background-radius: 10 0 0 10;" />
+                              <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="WEEKLY SALES" textFill="#22c55e" />
+                              <Label fx:id="lblWeeklySales" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
+                              <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="This week's total" textFill="#94a3b8" />
+                           </children>
+                        </AnchorPane>
+            
+                        <AnchorPane layoutX="626.0" layoutY="66.0" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #ef4444; -fx-background-radius: 10 0 0 10;" />
+                              <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="TOTAL DUE" textFill="#ef4444" />
+                              <Label fx:id="lblTotalDue" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
+                              <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="Outstanding payments" textFill="#94a3b8" />
+                           </children>
+                        </AnchorPane>
+            
+                        <!-- Row 2: Secondary Cards -->
+                        <AnchorPane layoutX="45.0" layoutY="154.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #8b5cf6; -fx-background-radius: 10 0 0 10;" />
+                              <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="CUSTOMERS" textFill="#8b5cf6" />
+                              <Label fx:id="lblTotalCustomers" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 26px; -fx-font-weight: bold;" text="0" textFill="#0f172a" />
+                              <Label layoutX="16.0" layoutY="54.0" style="-fx-font-size: 10px;" text="Registered accounts" textFill="#94a3b8" />
+                           </children>
+                        </AnchorPane>
+            
+                        <AnchorPane layoutX="334.0" layoutY="154.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #06b6d4; -fx-background-radius: 10 0 0 10;" />
+                              <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="INVENTORY" textFill="#06b6d4" />
+                              <Label fx:id="lblTotalProducts" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 26px; -fx-font-weight: bold;" text="0" textFill="#0f172a" />
+                              <Label layoutX="16.0" layoutY="54.0" style="-fx-font-size: 10px;" text="Products in stock" textFill="#94a3b8" />
+                           </children>
+                        </AnchorPane>
+            
+                        <Button fx:id="btnBackupData" layoutX="626.0" layoutY="154.0" mnemonicParsing="false" onAction="#btnBackupDataOnAction" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: #1e293b; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="Backup Order Data" />
+            
+                        <!-- Section: Sales Analytics -->
+                        <Label layoutX="45.0" layoutY="239.0" prefHeight="16.0" prefWidth="4.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 2;" />
+                        <Label layoutX="56.0" layoutY="237.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Sales Analytics" textFill="#1e293b" />
+            
+                        <!-- Charts -->
+                        <AnchorPane layoutX="45.0" layoutY="260.0" prefHeight="180.0" prefWidth="410.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="14.0" layoutY="10.0" style="-fx-font-size: 12px; -fx-font-weight: bold;" text="Weekly Sales Overview" textFill="#475569" />
+                              <BarChart fx:id="barChart" animated="false" layoutX="5.0" layoutY="28.0" prefHeight="150.0" prefWidth="398.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 6;">
+                                 <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                 </xAxis>
+                                 <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                 </yAxis>
+                              </BarChart>
+                           </children>
+                        </AnchorPane>
+            
+                        <AnchorPane layoutX="479.0" layoutY="260.0" prefHeight="180.0" prefWidth="410.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
+                           <children>
+                              <Label layoutX="14.0" layoutY="10.0" style="-fx-font-size: 12px; -fx-font-weight: bold;" text="Monthly Sales Trend" textFill="#475569" />
+                              <LineChart fx:id="lineChart" animated="false" layoutX="5.0" layoutY="28.0" prefHeight="150.0" prefWidth="380.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 6;">
+                                 <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                 </xAxis>
+                                 <yAxis>
+                                    <NumberAxis side="LEFT" />
+                                 </yAxis>
+                              </LineChart>
+                           </children>
+                        </AnchorPane>
+            
+                        <!-- Section: Recent Transactions -->
+                        <Label layoutX="45.0" layoutY="452.0" prefHeight="16.0" prefWidth="4.0" style="-fx-background-color: #f59e0b; -fx-background-radius: 2;" />
+                        <Label layoutX="56.0" layoutY="450.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Recent Transactions" textFill="#1e293b" />
+            
+                        <!-- Table -->
+                        <TableView fx:id="tblRecentSales" layoutX="45.0" layoutY="472.0" prefHeight="195.0" prefWidth="844.0" style="-fx-background-radius: 6;">
+                           <columns>
+                              <TableColumn fx:id="colDate" prefWidth="130.0" text="Date" />
+                              <TableColumn fx:id="colOrderId" prefWidth="122.0" text="Invoice Id" />
+                              <TableColumn fx:id="colCustomer" prefWidth="170.0" text="Customer" />
+                              <TableColumn fx:id="colQty" prefWidth="175.0" text="Qty (Kg)" />
+                              <TableColumn fx:id="colTotal" prefWidth="246.0" text="Total (LKR)" />
+                           </columns>
+                        </TableView>
                      </children>
                   </AnchorPane>
-      
-                  <AnchorPane layoutX="334.0" layoutY="66.0" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #22c55e; -fx-background-radius: 10 0 0 10;" />
-                        <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="WEEKLY SALES" textFill="#22c55e" />
-                        <Label fx:id="lblWeeklySales" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
-                        <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="This week's total" textFill="#94a3b8" />
-                     </children>
-                  </AnchorPane>
-      
-                  <AnchorPane layoutX="626.0" layoutY="66.0" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #ef4444; -fx-background-radius: 10 0 0 10;" />
-                        <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="TOTAL DUE" textFill="#ef4444" />
-                        <Label fx:id="lblTotalDue" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Rs.0.00" textFill="#0f172a" />
-                        <Label layoutX="16.0" layoutY="50.0" style="-fx-font-size: 10px;" text="Outstanding payments" textFill="#94a3b8" />
-                     </children>
-                  </AnchorPane>
-      
-                  <!-- Row 2: Secondary Cards -->
-                  <AnchorPane layoutX="45.0" layoutY="154.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #8b5cf6; -fx-background-radius: 10 0 0 10;" />
-                        <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="CUSTOMERS" textFill="#8b5cf6" />
-                        <Label fx:id="lblTotalCustomers" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 26px; -fx-font-weight: bold;" text="0" textFill="#0f172a" />
-                        <Label layoutX="16.0" layoutY="54.0" style="-fx-font-size: 10px;" text="Registered accounts" textFill="#94a3b8" />
-                     </children>
-                  </AnchorPane>
-      
-                  <AnchorPane layoutX="334.0" layoutY="154.0" prefHeight="74.0" prefWidth="260.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="0.0" layoutY="0.0" prefHeight="72.0" prefWidth="4.0" style="-fx-background-color: #06b6d4; -fx-background-radius: 10 0 0 10;" />
-                        <Label layoutX="16.0" layoutY="10.0" style="-fx-font-size: 9px; -fx-font-weight: bold;" text="INVENTORY" textFill="#06b6d4" />
-                        <Label fx:id="lblTotalProducts" layoutX="16.0" layoutY="26.0" style="-fx-font-size: 26px; -fx-font-weight: bold;" text="0" textFill="#0f172a" />
-                        <Label layoutX="16.0" layoutY="54.0" style="-fx-font-size: 10px;" text="Products in stock" textFill="#94a3b8" />
-                     </children>
-                  </AnchorPane>
-      
-                  <Button fx:id="btnBackupData" layoutX="626.0" layoutY="154.0" mnemonicParsing="false" onAction="#btnBackupDataOnAction" prefHeight="72.0" prefWidth="260.0" style="-fx-background-color: #1e293b; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-cursor: hand;" text="Backup Order Data" />
-      
-                  <!-- Section: Sales Analytics -->
-                  <Label layoutX="45.0" layoutY="239.0" prefHeight="16.0" prefWidth="4.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 2;" />
-                  <Label layoutX="56.0" layoutY="237.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Sales Analytics" textFill="#1e293b" />
-      
-                  <!-- Charts -->
-                  <AnchorPane layoutX="45.0" layoutY="260.0" prefHeight="180.0" prefWidth="410.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="14.0" layoutY="10.0" style="-fx-font-size: 12px; -fx-font-weight: bold;" text="Weekly Sales Overview" textFill="#475569" />
-                        <BarChart fx:id="barChart" animated="false" layoutX="5.0" layoutY="28.0" prefHeight="150.0" prefWidth="398.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 6;">
-                           <xAxis>
-                              <CategoryAxis side="BOTTOM" />
-                           </xAxis>
-                           <yAxis>
-                              <NumberAxis side="LEFT" />
-                           </yAxis>
-                        </BarChart>
-                     </children>
-                  </AnchorPane>
-      
-                  <AnchorPane layoutX="479.0" layoutY="260.0" prefHeight="180.0" prefWidth="410.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
-                     <children>
-                        <Label layoutX="14.0" layoutY="10.0" style="-fx-font-size: 12px; -fx-font-weight: bold;" text="Monthly Sales Trend" textFill="#475569" />
-                        <LineChart fx:id="lineChart" animated="false" layoutX="5.0" layoutY="28.0" prefHeight="150.0" prefWidth="380.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 6;">
-                           <xAxis>
-                              <CategoryAxis side="BOTTOM" />
-                           </xAxis>
-                           <yAxis>
-                              <NumberAxis side="LEFT" />
-                           </yAxis>
-                        </LineChart>
-                     </children>
-                  </AnchorPane>
-      
-                  <!-- Section: Recent Transactions -->
-                  <Label layoutX="45.0" layoutY="452.0" prefHeight="16.0" prefWidth="4.0" style="-fx-background-color: #f59e0b; -fx-background-radius: 2;" />
-                  <Label layoutX="56.0" layoutY="450.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Recent Transactions" textFill="#1e293b" />
-      
-                  <!-- Table -->
-                  <TableView fx:id="tblRecentSales" layoutX="45.0" layoutY="472.0" prefHeight="195.0" prefWidth="844.0" style="-fx-background-radius: 6;">
-                     <columns>
-                        <TableColumn fx:id="colDate" prefWidth="130.0" text="Date" />
-                        <TableColumn fx:id="colOrderId" prefWidth="122.0" text="Invoice Id" />
-                        <TableColumn fx:id="colCustomer" prefWidth="170.0" text="Customer" />
-                        <TableColumn fx:id="colQty" prefWidth="175.0" text="Qty (Kg)" />
-                        <TableColumn fx:id="colTotal" prefWidth="246.0" text="Total (LKR)" />
-                     </columns>
-                  </TableView>
-               </children>
-            </AnchorPane>
-         </content>
-      </ScrollPane>
+               </content>
+            </ScrollPane>
+         </children>
+      </AnchorPane>
     </children>
 </AnchorPane>

@@ -142,6 +142,7 @@ public class ProductController implements Initializable {
         generateNextId();
 
         setupShortcuts();
+        javafx.application.Platform.runLater(() -> txtItemCode.requestFocus());
 
         tblProduct.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
@@ -360,6 +361,7 @@ public class ProductController implements Initializable {
         txtName.clear();
         txtPrice.clear();
         txtQty.clear();
+        txtItemCode.requestFocus();
     }
 
     @FXML
