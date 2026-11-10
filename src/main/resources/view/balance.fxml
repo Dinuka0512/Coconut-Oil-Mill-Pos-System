@@ -73,22 +73,22 @@
                </font>
             </Label>
             <Separator layoutX="13.0" layoutY="293.0" prefHeight="3.0" prefWidth="406.0" />
-            <TextField fx:id="txtPayDueAmount" alignment="CENTER_RIGHT" disable="true" layoutX="276.0" layoutY="322.0" onAction="#onDueAmountAction" prefHeight="27.0" prefWidth="137.0" promptText="0.00" style="-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+            <TextField fx:id="txtPayDueAmount" alignment="CENTER_RIGHT" disable="true" layoutX="276.0" layoutY="322.0" onAction="#onDueAmountAction" onKeyReleased="#onDueAmountChanged" prefHeight="27.0" prefWidth="137.0" promptText="0.00" style="-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
             <Label layoutX="286.0" layoutY="304.0" text="Paying Due Ammount : " textFill="#64748b" />
             <Label fx:id="lblCustomer1" layoutX="17.0" layoutY="305.0" prefHeight="19.0" prefWidth="102.0" text="Due Payments - " textFill="#1e293b">
                <font>
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <CheckBox fx:id="chkPayDue" layoutX="18.0" layoutY="328.0" mnemonicParsing="false" onAction="#isPayDuePayment" text="Pay Due Payment " />
+            <CheckBox fx:id="chkPayDue" layoutX="18.0" layoutY="328.0" mnemonicParsing="false" onAction="#isPayDuePayment" text="Pay Due Payment (Ctrl+D)" />
             <ComboBox fx:id="duePayType" layoutX="143.0" layoutY="322.0" onAction="#onDuePayTupe" prefHeight="27.0" prefWidth="126.0" style="-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
             <Label layoutX="143.0" layoutY="304.0" text="Type :" textFill="#64748b" />
          </children>
       </AnchorPane>
 
       <!-- Buttons -->
-      <Button layoutX="246.0" layoutY="572.0" mnemonicParsing="false" onAction="#btnConfirmOnAction" prefHeight="36.0" prefWidth="210.0" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Complete Sale" />
-      <Button layoutX="25.0" layoutY="572.0" mnemonicParsing="false" onAction="#btnCancelOnAction" prefHeight="36.0" prefWidth="210.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Cancel" />
+      <Button fx:id="btnCompleteSale" layoutX="246.0" layoutY="572.0" mnemonicParsing="false" onAction="#btnConfirmOnAction" prefHeight="36.0" prefWidth="210.0" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Complete Sale" />
+      <Button fx:id="btnCancel" layoutX="25.0" layoutY="572.0" mnemonicParsing="false" onAction="#btnCancelOnAction" prefHeight="36.0" prefWidth="210.0" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Cancel" />
       <AnchorPane layoutX="35.0" layoutY="267.0" prefHeight="82.0" prefWidth="127.0" style="-fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10;">
          <children>
             <Label layoutX="15.0" layoutY="17.0" text="Tax :" textFill="#64748b" />

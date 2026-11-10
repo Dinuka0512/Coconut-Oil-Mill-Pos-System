@@ -137,10 +137,18 @@ public class SimplePOSController implements Initializable {
 
         txtUnitPriceDisplay.setOnAction(e -> btnAddToCartOnAction(null));
 
-        cmbProduct.requestFocus();
-
         ComboBoxUtil.enableArrowSelection(cmbProduct);
         ComboBoxUtil.enableArrowSelection(cmbCustomer);
+
+        javafx.application.Platform.runLater(() -> {
+            if (cmbProduct.getEditor() != null) {
+                cmbProduct.getEditor().requestFocus();
+            } else {
+                cmbProduct.requestFocus();
+            }
+        });
+
+        installFocusFlowHandlers();
 
         javafx.application.Platform.runLater(() -> {
             javafx.scene.Scene scene = tblCart.getScene();
@@ -232,6 +240,15 @@ public class SimplePOSController implements Initializable {
     @FXML
     void cmbCustomerOnAction(ActionEvent event) {
         resolveSelectedCustomer();
+        if (selectedCustomer != null) {
+            javafx.application.Platform.runLater(() -> {
+                if (cmbProduct.getEditor() != null) {
+                    cmbProduct.getEditor().requestFocus();
+                } else {
+                    cmbProduct.requestFocus();
+                }
+            });
+        }
     }
 
     private void resolveSelectedCustomer() {
@@ -325,6 +342,42 @@ public class SimplePOSController implements Initializable {
             } else {
                 lblDueWarning.setVisible(false);
             }
+        }
+    }
+
+    private void installFocusFlowHandlers() {
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> productShiftTab = event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.TAB && event.isShiftDown()) {
+                event.consume();
+                if (cmbCustomer.getEditor() != null) {
+                    cmbCustomer.getEditor().requestFocus();
+                } else {
+                    cmbCustomer.requestFocus();
+                }
+            }
+        };
+        cmbProduct.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, productShiftTab);
+        if (cmbProduct.getEditor() != null) {
+            cmbProduct.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, productShiftTab);
+        }
+
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> customerToProduct = event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                // let selection handlers resolve; then move to product if a customer is selected
+                javafx.application.Platform.runLater(() -> {
+                    if (selectedCustomer != null) {
+                        if (cmbProduct.getEditor() != null) {
+                            cmbProduct.getEditor().requestFocus();
+                        } else {
+                            cmbProduct.requestFocus();
+                        }
+                    }
+                });
+            }
+        };
+        cmbCustomer.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, customerToProduct);
+        if (cmbCustomer.getEditor() != null) {
+            cmbCustomer.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, customerToProduct);
         }
     }
 

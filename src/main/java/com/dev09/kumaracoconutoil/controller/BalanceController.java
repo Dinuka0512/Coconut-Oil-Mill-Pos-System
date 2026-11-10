@@ -82,6 +82,12 @@ public class BalanceController implements Initializable {
     @FXML
     private Button btnSaveTax;
 
+    @FXML
+    private Button btnCompleteSale;
+
+    @FXML
+    private Button btnCancel;
+
     private final TaxBO taxBO = (TaxBO) BOFactory.getInstance().getBo(BOFactory.BOType.TAX);
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
@@ -112,7 +118,58 @@ public class BalanceController implements Initializable {
         ComboBoxUtil.enableArrowSelection(cmbPaymentMethod);
         ComboBoxUtil.enableArrowSelection(duePayType);
 
+        styleComboSelectionVisible(cmbPaymentMethod);
+        styleComboSelectionVisible(duePayType);
+
         Platform.runLater(() -> txtAmountPaid.requestFocus());
+
+        cmbPaymentMethod.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && !cmbPaymentMethod.isShowing()) {
+                focusAfterPaymentMethod();
+                event.consume();
+            }
+        });
+        if (cmbPaymentMethod.getEditor() != null) {
+            cmbPaymentMethod.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == KeyCode.ENTER) {
+                    focusAfterPaymentMethod();
+                    event.consume();
+                }
+            });
+        }
+
+        chkPayDue.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                if (!chkPayDue.isSelected()) {
+                    // move forward without enabling due pay
+                    if (btnCompleteSale != null) btnCompleteSale.requestFocus();
+                } else {
+                    if (duePayType != null && !duePayType.isDisable()) {
+                        duePayType.requestFocus();
+                    } else if (btnCompleteSale != null) {
+                        btnCompleteSale.requestFocus();
+                    }
+                }
+                event.consume();
+            }
+        });
+
+        duePayType.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && !duePayType.isShowing()) {
+                String type = duePayType.getValue();
+                if ("Custom".equals(type) && txtPayDueAmount != null && !txtPayDueAmount.isDisable()) {
+                    txtPayDueAmount.requestFocus();
+                } else if (btnCompleteSale != null) {
+                    btnCompleteSale.requestFocus();
+                }
+                event.consume();
+            }
+        });
+
+        txtPayDueAmount.setOnAction(e -> {
+            onDueAmountAction();
+            if (btnCompleteSale != null) btnCompleteSale.requestFocus();
+        });
     }
 
     private double loadTaxRate() {
@@ -226,6 +283,10 @@ public class BalanceController implements Initializable {
         try {
             Double.parseDouble(text);
             cmbPaymentMethod.requestFocus();
+            if (cmbPaymentMethod != null && !cmbPaymentMethod.isShowing()) {
+                // open list so user can immediately navigate/select
+                // cmbPaymentMethod.show(); // optional, keep simple
+            }
         } catch (NumberFormatException e) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number for the amount!");
         }
@@ -234,6 +295,71 @@ public class BalanceController implements Initializable {
     @FXML
     void onPaymentMethodAction() {
         calculateBalance();
+    }
+
+    private boolean hasDuePaymentSection() {
+        return chkPayDue != null && !chkPayDue.isDisable() && existingDue > 0;
+    }
+
+    private void focusAfterPaymentMethod() {
+        if (hasDuePaymentSection()) {
+            chkPayDue.requestFocus();
+        } else if (btnCompleteSale != null) {
+            btnCompleteSale.requestFocus();
+        }
+    }
+
+    private void styleComboSelectionVisible(ComboBox<String> combo) {
+        if (combo == null) return;
+        final String baseStyle = "-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5; -fx-border-width: 1;";
+        final String focusStyle = "-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #3b82f6; -fx-border-radius: 5; -fx-border-width: 2;";
+        final String selectedStyle = "-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #60a5fa; -fx-border-radius: 5; -fx-border-width: 1.5;";
+
+        combo.setButtonCell(new javafx.scene.control.ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(combo.getPromptText());
+                    setStyle("-fx-text-fill: #94a3b8;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: #1e293b; -fx-font-weight: bold;");
+                }
+            }
+        });
+        combo.setCellFactory(listView -> new javafx.scene.control.ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setStyle(empty ? "" : "-fx-text-fill: #1e293b;");
+            }
+        });
+
+        Runnable updateBorder = () -> {
+            if (combo.isFocused()) {
+                combo.setStyle(focusStyle);
+            } else if (combo.getValue() != null && !String.valueOf(combo.getValue()).isBlank()) {
+                combo.setStyle(selectedStyle);
+            } else {
+                combo.setStyle(baseStyle);
+            }
+        };
+
+        combo.focusedProperty().addListener((obs, oldV, newV) -> updateBorder.run());
+        combo.valueProperty().addListener((obs, oldV, newV) -> updateBorder.run());
+        combo.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> updateBorder.run());
+
+        // refresh display if a value is already selected
+        String value = combo.getValue();
+        if (value == null && combo.getSelectionModel() != null) {
+            value = combo.getSelectionModel().getSelectedItem();
+        }
+        if (value != null) {
+            combo.setValue(value);
+        }
+        updateBorder.run();
     }
 
     @FXML
@@ -264,8 +390,7 @@ public class BalanceController implements Initializable {
         if ("Full Payment".equals(type)) {
             txtPayDueAmount.setDisable(true);
             txtPayDueAmount.setText(String.format("%.2f", existingDue));
-            lblBalance.setText("0.00");
-            lblBalance.setStyle("-fx-text-fill: #16a34a;");
+            calculateBalance();
         } else if ("Custom".equals(type)) {
             txtPayDueAmount.setDisable(false);
             txtPayDueAmount.clear();
@@ -290,16 +415,59 @@ public class BalanceController implements Initializable {
                 txtPayDueAmount.clear();
             }
         }
+        calculateBalance();
     }
+
+    @FXML
+    void onDueAmountChanged() {
+        calculateBalance();
+    }
+
+    private boolean shortcutsInstalled = false;
 
     private void setupKeyboardHandlers() {
         txtAmountPaid.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
+            if (newScene != null && !shortcutsInstalled) {
+                shortcutsInstalled = true;
+
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.ENTER, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        this::btnConfirmOnAction
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.ESCAPE),
+                        this::btnCancelOnAction
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.S, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> {
+                            if (btnSaveTax != null && !btnSaveTax.isDisable()) {
+                                btnUpdateAction();
+                            }
+                        }
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.D, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> {
+                            if (chkPayDue != null && !chkPayDue.isDisable()) {
+                                chkPayDue.setSelected(!chkPayDue.isSelected());
+                                isPayDuePayment();
+                                if (chkPayDue.isSelected()) {
+                                    if (duePayType != null && !duePayType.isDisable()) {
+                                        duePayType.requestFocus();
+                                    }
+                                } else if (btnCompleteSale != null) {
+                                    btnCompleteSale.requestFocus();
+                                }
+                            }
+                        }
+                );
+
                 newScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-                    if (event.getCode() == KeyCode.ENTER && !txtAmountPaid.isFocused() && !cmbPaymentMethod.isFocused()) {
+                    if (event.getCode() == KeyCode.ENTER && !event.isControlDown()
+                            && !txtAmountPaid.isFocused() && !cmbPaymentMethod.isFocused()
+                            && !txtPayDueAmount.isFocused() && !txtTax.isFocused()) {
                         btnConfirmOnAction();
-                    } else if (event.getCode() == KeyCode.ESCAPE) {
-                        btnCancelOnAction();
                     }
                 });
             }
