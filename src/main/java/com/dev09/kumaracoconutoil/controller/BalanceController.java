@@ -547,7 +547,7 @@ public class BalanceController implements Initializable {
 
             if (isPlaced) {
                 orderPlaced = true;
-                showPrintDialog(orderId);
+                showPrintDialog(orderId, duePaymentAmount);
                 closeStage();
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invoice Placement Failed!");
@@ -558,7 +558,7 @@ public class BalanceController implements Initializable {
         }
     }
 
-    private void showPrintDialog(String orderId) {
+    private void showPrintDialog(String orderId, double duePaymentAmount) {
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
         printAlert.setTitle("Print Bill");
         printAlert.setHeaderText("Invoice Placed Successfully!");
@@ -572,10 +572,14 @@ public class BalanceController implements Initializable {
         if (result.isPresent()) {
             try {
                 byte[] pdfBytes;
+                com.dev09.kumaracoconutoil.entity.OrderEntity order = orderBO.getOrderWithProducts(orderId);
+                java.util.List<com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity> details =
+                        order != null && order.getOrderProducts() != null ? order.getOrderProducts() : new java.util.ArrayList<>();
+
                 if (result.get() == smallBtn) {
-                    pdfBytes = orderBO.generateOrderBill80mm(orderId);
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount);
                 } else {
-                    pdfBytes = orderBO.generateOrderBillA4(orderId);
+                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount);
                 }
 
                 if (pdfBytes != null) {

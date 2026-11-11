@@ -80,9 +80,14 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <CheckBox fx:id="chkPayDue" layoutX="18.0" layoutY="328.0" mnemonicParsing="false" onAction="#isPayDuePayment" text="Pay Due Payment (Ctrl+D)" />
+            <CheckBox fx:id="chkPayDue" layoutX="18.0" layoutY="328.0" mnemonicParsing="false" onAction="#isPayDuePayment" prefWidth="138.0" text="Pay Due Payment" />
             <ComboBox fx:id="duePayType" layoutX="143.0" layoutY="322.0" onAction="#onDuePayTupe" prefHeight="27.0" prefWidth="126.0" style="-fx-background-radius: 5; -fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
             <Label layoutX="143.0" layoutY="304.0" text="Type :" textFill="#64748b" />
+            <Label layoutX="11.0" layoutY="345.0" text="(Ctrl+D)">
+               <font>
+                  <Font size="8.0" />
+               </font>
+            </Label>
          </children>
       </AnchorPane>
 
@@ -94,7 +99,7 @@
             <Label layoutX="15.0" layoutY="17.0" text="Tax :" textFill="#64748b" />
             <CheckBox fx:id="chkPayDue1" layoutX="200.0" layoutY="50.0" managed="false" text="Pay Due" visible="false" />
             <TextField fx:id="txtTax" layoutX="46.0" layoutY="12.0" onKeyReleased="#onTaxChanged" prefHeight="26.0" prefWidth="66.0" />
-            <Button fx:id="btnSaveTax" layoutX="12.0" layoutY="44.0" disable="true" mnemonicParsing="false" onAction="#btnUpdateAction" prefHeight="26.0" prefWidth="102.0" style="-fx-background-color: #393E46; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Update" />
+            <Button fx:id="btnSaveTax" disable="true" layoutX="12.0" layoutY="44.0" mnemonicParsing="false" onAction="#btnUpdateAction" prefHeight="26.0" prefWidth="102.0" style="-fx-background-color: #393E46; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" text="Update" />
          </children>
       </AnchorPane>
    </children>

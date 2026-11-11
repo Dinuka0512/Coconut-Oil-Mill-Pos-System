@@ -107,6 +107,17 @@ public class QuotationController implements Initializable {
         ComboBoxUtil.enableArrowSelection(cmbProductId);
         ComboBoxUtil.enableArrowSelection(cmbCustomerId);
 
+        cmbProductId.showingProperty().addListener((obs, was, showing) -> {
+            if (showing && cmbProductId.getEditor() != null && cmbProductId.getEditor().getText().trim().isEmpty()) {
+                repopulateAllProducts();
+            }
+        });
+        cmbCustomerId.showingProperty().addListener((obs, was, showing) -> {
+            if (showing && cmbCustomerId.getEditor() != null && cmbCustomerId.getEditor().getText().trim().isEmpty()) {
+                repopulateAllCustomers();
+            }
+        });
+
         txtQty.setOnAction(e -> txtUnitPrice.requestFocus());
         txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
 
@@ -190,10 +201,20 @@ public class QuotationController implements Initializable {
     @FXML
     void cmbCustomerOnAction(ActionEvent event) {
         String selection = cmbCustomerId.getValue();
+        if ((selection == null || selection.trim().isEmpty()) && cmbCustomerId.getEditor() != null) {
+            selection = cmbCustomerId.getEditor().getText();
+        }
         if (selection != null && currentCustomers != null) {
             for (CustomerDto dto : currentCustomers) {
-                if ((dto.getName() + " - " + dto.getContact()).equals(selection)) {
+                String display = dto.getName() + " - " + dto.getContact();
+                if (display.equalsIgnoreCase(selection.trim())) {
                     selectedCustomer = dto;
+                    cmbCustomerId.setValue(display);
+                    if (cmbCustomerId.getEditor() != null) {
+                        cmbCustomerId.getEditor().setText(display);
+                        cmbCustomerId.getEditor().positionCaret(display.length());
+                    }
+                    cmbProductId.requestFocus();
                     break;
                 }
             }
@@ -207,11 +228,9 @@ public class QuotationController implements Initializable {
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
-            cmbCustomerId.getItems().clear();
-            for (CustomerDto dto : currentCustomers) {
-                cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
-            }
+            repopulateAllCustomers();
             if (custResetTimer != null) custResetTimer.stop();
+            cmbCustomerId.show();
         } else {
             cmbCustomerId.getItems().clear();
             for (CustomerDto dto : currentCustomers) {
@@ -241,11 +260,20 @@ public class QuotationController implements Initializable {
     @FXML
     void cmbProductOnAction(ActionEvent event) {
         String selection = cmbProductId.getValue();
+        if ((selection == null || selection.trim().isEmpty()) && cmbProductId.getEditor() != null) {
+            selection = cmbProductId.getEditor().getText();
+        }
         if (selection != null && currentProducts != null) {
+            String sel = selection.trim();
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
-                if (display.equals(selection) || dto.getName().equals(selection)) {
+                if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
                     selectedProduct = dto;
+                    cmbProductId.setValue(display);
+                    if (cmbProductId.getEditor() != null) {
+                        cmbProductId.getEditor().setText(display);
+                        cmbProductId.getEditor().positionCaret(display.length());
+                    }
                     txtUnitPrice.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     txtQty.requestFocus();
@@ -262,11 +290,9 @@ public class QuotationController implements Initializable {
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
-            cmbProductId.getItems().clear();
-            for (ProductDto dto : currentProducts) {
-                cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
-            }
+            repopulateAllProducts();
             if (resetTimer != null) resetTimer.stop();
+            cmbProductId.show();
         } else {
             cmbProductId.getItems().clear();
             for (ProductDto dto : currentProducts) {
@@ -416,6 +442,26 @@ public class QuotationController implements Initializable {
         }
     }
 
+    private void repopulateAllProducts() {
+        if (cmbProductId.getItems() == null) return;
+        cmbProductId.getItems().clear();
+        if (currentProducts != null) {
+            for (ProductDto dto : currentProducts) {
+                cmbProductId.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
+            }
+        }
+    }
+
+    private void repopulateAllCustomers() {
+        if (cmbCustomerId.getItems() == null) return;
+        cmbCustomerId.getItems().clear();
+        if (currentCustomers != null) {
+            for (CustomerDto dto : currentCustomers) {
+                cmbCustomerId.getItems().add(dto.getName() + " - " + dto.getContact());
+            }
+        }
+    }
+
     private void clearProductSelection() {
         selectedProduct = null;
         txtQty.clear();
@@ -424,8 +470,7 @@ public class QuotationController implements Initializable {
         lblQtyOnHand.setText("0Kg");
         cmbProductId.getEditor().clear();
         cmbProductId.getSelectionModel().clearSelection();
-        cmbProductId.getItems().clear();
-        loadProductIds();
+        repopulateAllProducts();
     }
 
     private void resetForm() {

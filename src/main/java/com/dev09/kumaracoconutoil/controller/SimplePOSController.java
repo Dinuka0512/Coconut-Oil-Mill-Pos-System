@@ -140,6 +140,17 @@ public class SimplePOSController implements Initializable {
         ComboBoxUtil.enableArrowSelection(cmbProduct);
         ComboBoxUtil.enableArrowSelection(cmbCustomer);
 
+        cmbProduct.showingProperty().addListener((obs, was, showing) -> {
+            if (showing && cmbProduct.getEditor() != null && cmbProduct.getEditor().getText().trim().isEmpty()) {
+                repopulateAllProducts();
+            }
+        });
+        cmbCustomer.showingProperty().addListener((obs, was, showing) -> {
+            if (showing && cmbCustomer.getEditor() != null && cmbCustomer.getEditor().getText().trim().isEmpty()) {
+                repopulateAllCustomers();
+            }
+        });
+
         javafx.application.Platform.runLater(() -> {
             if (cmbProduct.getEditor() != null) {
                 cmbProduct.getEditor().requestFocus();
@@ -185,11 +196,20 @@ public class SimplePOSController implements Initializable {
     @FXML
     void cmbProductOnAction(ActionEvent event) {
         String selection = cmbProduct.getValue();
+        if ((selection == null || selection.trim().isEmpty()) && cmbProduct.getEditor() != null) {
+            selection = cmbProduct.getEditor().getText();
+        }
         if (selection != null && currentProducts != null) {
+            String sel = selection.trim();
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
-                if (display.equals(selection) || dto.getName().equals(selection)) {
+                if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
                     selectedProduct = dto;
+                    cmbProduct.setValue(display);
+                    if (cmbProduct.getEditor() != null) {
+                        cmbProduct.getEditor().setText(display);
+                        cmbProduct.getEditor().positionCaret(display.length());
+                    }
                     txtUnitPriceDisplay.setText(String.valueOf(dto.getPrice()));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     lblItemName.setText(dto.getName());
@@ -206,11 +226,9 @@ public class SimplePOSController implements Initializable {
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProduct.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
-            cmbProduct.getItems().clear();
-            for (ProductDto dto : currentProducts) {
-                cmbProduct.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
-            }
+            repopulateAllProducts();
             if (productResetTimer != null) productResetTimer.stop();
+            cmbProduct.show();
         } else {
             cmbProduct.getItems().clear();
             for (ProductDto dto : currentProducts) {
@@ -241,6 +259,12 @@ public class SimplePOSController implements Initializable {
     void cmbCustomerOnAction(ActionEvent event) {
         resolveSelectedCustomer();
         if (selectedCustomer != null) {
+            String display = selectedCustomer.getName() + " - " + (selectedCustomer.getContact() != null ? selectedCustomer.getContact() : "");
+            cmbCustomer.setValue(display);
+            if (cmbCustomer.getEditor() != null) {
+                cmbCustomer.getEditor().setText(display);
+                cmbCustomer.getEditor().positionCaret(display.length());
+            }
             javafx.application.Platform.runLater(() -> {
                 if (cmbProduct.getEditor() != null) {
                     cmbProduct.getEditor().requestFocus();
@@ -386,11 +410,9 @@ public class SimplePOSController implements Initializable {
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomer.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
-            cmbCustomer.getItems().clear();
-            for (CustomerDto dto : currentCustomers) {
-                cmbCustomer.getItems().add(dto.getName() + " - " + dto.getContact());
-            }
+            repopulateAllCustomers();
             if (customerResetTimer != null) customerResetTimer.stop();
+            cmbCustomer.show();
         } else {
             cmbCustomer.getItems().clear();
             for (CustomerDto dto : currentCustomers) {
@@ -427,8 +449,19 @@ public class SimplePOSController implements Initializable {
             stage.setResizable(false);
             stage.showAndWait();
 
+            selectedProduct = null;
             cmbProduct.getItems().clear();
+            cmbProduct.getSelectionModel().clearSelection();
+            if (cmbProduct.getEditor() != null) cmbProduct.getEditor().clear();
             loadProducts();
+            if (cmbProduct.getEditor() != null) {
+                cmbProduct.getEditor().requestFocus();
+            } else {
+                cmbProduct.requestFocus();
+            }
+            if (!cmbProduct.getItems().isEmpty()) {
+                cmbProduct.show();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Inventory UI: " + e.getMessage());
@@ -445,8 +478,23 @@ public class SimplePOSController implements Initializable {
             stage.setResizable(false);
             stage.showAndWait();
 
+            CustomerDto previous = selectedCustomer;
+            selectedCustomer = null;
             cmbCustomer.getItems().clear();
+            cmbCustomer.getSelectionModel().clearSelection();
+            if (cmbCustomer.getEditor() != null) cmbCustomer.getEditor().clear();
             loadCustomers();
+
+            // If demo/previous auto-selection happened in loadCustomers but user likely wants to pick newly added one,
+            // keep list ready for selection and focus the field.
+            if (cmbCustomer.getEditor() != null) {
+                cmbCustomer.getEditor().requestFocus();
+            } else {
+                cmbCustomer.requestFocus();
+            }
+            if (!cmbCustomer.getItems().isEmpty()) {
+                cmbCustomer.show();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to load Customers UI: " + e.getMessage());
@@ -532,6 +580,26 @@ public class SimplePOSController implements Initializable {
         }
     }
 
+    private void repopulateAllProducts() {
+        if (cmbProduct.getItems() == null) return;
+        cmbProduct.getItems().clear();
+        if (currentProducts != null) {
+            for (ProductDto dto : currentProducts) {
+                cmbProduct.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
+            }
+        }
+    }
+
+    private void repopulateAllCustomers() {
+        if (cmbCustomer.getItems() == null) return;
+        cmbCustomer.getItems().clear();
+        if (currentCustomers != null) {
+            for (CustomerDto dto : currentCustomers) {
+                cmbCustomer.getItems().add(dto.getName() + " - " + dto.getContact());
+            }
+        }
+    }
+
     private void clearProductSelection() {
         selectedProduct = null;
         txtQty.clear();
@@ -542,8 +610,7 @@ public class SimplePOSController implements Initializable {
         lblItemCode.setText("-");
         cmbProduct.getEditor().clear();
         cmbProduct.getSelectionModel().clearSelection();
-        cmbProduct.getItems().clear();
-        loadProducts();
+        repopulateAllProducts();
     }
 
     private void calculateTotal() {

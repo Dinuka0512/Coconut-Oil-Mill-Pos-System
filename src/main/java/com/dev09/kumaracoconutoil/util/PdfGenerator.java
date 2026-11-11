@@ -1104,6 +1104,10 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     // 3. THERMAL ORDER BILL (80mm width - Professional Real-World Style)
     // ================================
     public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details) {
+        return generateOrderBill(order, details, 0.0);
+    }
+
+    public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details, double duePaidAmount) {
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
@@ -1132,7 +1136,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             y = drawThermalSummaryPro(c, x, w, y, order, details);
 
             // Payment info
-            y = drawThermalPaymentPro(c, x, w, y, order, details);
+            y = drawThermalPaymentPro(c, x, w, y, order, duePaidAmount);
 
             // Footer
             drawThermalFooterPro(c, x, w, y);
@@ -1716,17 +1720,16 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         return y;
     }
 
-    private static float drawThermalPaymentPro(PDPageContentStream c, float x, float w, float y, OrderEntity order, List<OrderProductDetailsEntity> details) throws IOException {
+    private static float drawThermalPaymentPro(PDPageContentStream c, float x, float w, float y, OrderEntity order, double duePaidAmount) throws IOException {
         c.setFont(THERMAL_FONT, 8);
         c.setNonStrokingColor(0f, 0f, 0f);
 
-        // Payment info box (border around payment section)
+        float boxHeight = duePaidAmount > 0.00001 ? 60f : 48f;
         c.setLineWidth(0.5f);
         c.setStrokingColor(0f, 0f, 0f);
-        c.addRect(x, y - 48, w, 48);
+        c.addRect(x, y - boxHeight, w, boxHeight);
         c.stroke();
 
-        // Payment method (left) and Paid amount (right) on same line
         String method = order.getPaymentMethod();
         if (method == null || method.isEmpty()) method = "CASH";
         c.beginText(); c.newLineAtOffset(x + 5, y - 12); c.showText("PAYMENT: " + method); c.endText();
@@ -1737,14 +1740,16 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
         c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 12); c.showText(s1); c.endText();
         y -= 16;
 
-        // Balance
+        if (duePaidAmount > 0.00001) {
+            String duePaidStr = String.format("Due Paid: LKR %.2f", duePaidAmount);
+            c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(duePaidStr); c.endText();
+            y -= 12;
+        }
+
         double balance = order.getBalance();
         if (balance < 0) {
-            String due = String.format("Due Amount: LKR %.2f", Math.abs(balance));
+            String due = String.format("Balance: LKR %.2f (Due)", Math.abs(balance));
             c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(due); c.endText();
-            c.setNonStrokingColor(0.8f, 0f, 0f);
-            tw = getThermalTextWidth(due, 8);
-            c.beginText(); c.newLineAtOffset(x + w - tw - 5, y - 8); c.showText("UNPAID"); c.endText();
         } else {
             String balStr = String.format("Balance: LKR %.2f", balance);
             c.beginText(); c.newLineAtOffset(x + 5, y - 8); c.showText(balStr); c.endText();
@@ -1829,7 +1834,7 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             y = drawThermalDetailsPro(c, xOffset, A4_BILL_WIDTH, y, order);
             y = drawThermalTablePro(c, xOffset, A4_BILL_WIDTH, y, details);
             y = drawThermalSummaryPro(c, xOffset, A4_BILL_WIDTH, y, order, details);
-            y = drawThermalPaymentPro(c, xOffset, A4_BILL_WIDTH, y, order, details);
+            y = drawThermalPaymentPro(c, xOffset, A4_BILL_WIDTH, y, order, 0.0);
             drawThermalFooterPro(c, xOffset, A4_BILL_WIDTH, y);
 
             c.close();
@@ -1844,6 +1849,10 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
     // 5. PROFESSIONAL A4 INVOICE (Real-world layout with pagination)
     // ================================
     public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details) {
+        return generateOrderBillA4Pro(order, details, 0.0);
+    }
+
+    public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details, double duePaidAmount) {
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
@@ -1982,21 +1991,31 @@ private static final PDType1Font THERMAL_FONT_BOLD = PDType1Font.HELVETICA_BOLD;
             String method = order.getPaymentMethod();
             if (method == null || method.isEmpty()) method = "CASH";
             double balance = order.getBalance();
+            float payBoxH = duePaidAmount > 0.00001 ? 56f : 44f;
             c.setLineWidth(0.5f); c.setStrokingColor(0.7f, 0.7f, 0.7f);
-            c.addRect(m, y - 44, 200, 44); c.stroke();
+            c.addRect(m, y - payBoxH, 230, payBoxH); c.stroke();
             c.setFont(PDType1Font.HELVETICA_BOLD, 9); c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
             c.beginText(); c.newLineAtOffset(m + 10, y - 15); c.showText("PAYMENT: " + method); c.endText();
             c.setFont(PDType1Font.HELVETICA, 9);
             String paidStr = String.format("Paid: LKR %,.2f", order.getAmountPaid());
             c.beginText(); c.newLineAtOffset(m + 10, y - 30); c.showText(paidStr); c.endText();
+
+            float infoY = y - 42;
+            if (duePaidAmount > 0.00001) {
+                c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
+                String duePaidStr = String.format("Due Paid: LKR %,.2f", duePaidAmount);
+                c.beginText(); c.newLineAtOffset(m + 10, infoY); c.showText(duePaidStr); c.endText();
+                infoY -= 12;
+            }
+
             if (balance < 0) {
                 c.setNonStrokingColor(0.8f, 0f, 0f);
-                String dueStr = String.format("Due: LKR %,.2f", Math.abs(balance));
-                c.beginText(); c.newLineAtOffset(m + 10, y - 42); c.showText(dueStr); c.endText();
+                String dueStr = String.format("Balance: LKR %,.2f (Due)", Math.abs(balance));
+                c.beginText(); c.newLineAtOffset(m + 10, infoY); c.showText(dueStr); c.endText();
             } else {
                 c.setNonStrokingColor(0f, 0.5f, 0f);
-                String balStr = balance > 0 ? String.format("Change: LKR %,.2f", balance) : "Settled";
-                c.beginText(); c.newLineAtOffset(m + 10, y - 42); c.showText(balStr); c.endText();
+                String balStr = String.format("Balance: LKR %,.2f%s", balance, balance > 0 ? " (Change)" : "");
+                c.beginText(); c.newLineAtOffset(m + 10, infoY); c.showText(balStr); c.endText();
             }
             c.setNonStrokingColor(0.1f, 0.1f, 0.1f);
 
