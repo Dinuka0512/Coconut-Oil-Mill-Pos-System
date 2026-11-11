@@ -225,6 +225,7 @@ public class QuotationController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbCustomerId)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
@@ -287,6 +288,7 @@ public class QuotationController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(javafx.scene.input.KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbProductId)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {

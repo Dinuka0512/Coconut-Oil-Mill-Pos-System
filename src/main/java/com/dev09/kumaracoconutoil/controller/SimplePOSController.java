@@ -223,6 +223,7 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbProduct)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProduct.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
@@ -407,6 +408,7 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbCustomer)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomer.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {

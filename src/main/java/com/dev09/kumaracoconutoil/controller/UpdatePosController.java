@@ -219,6 +219,7 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbCustomerId)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
@@ -281,6 +282,7 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
+        if (ComboBoxUtil.isSearchManaged(cmbProductId)) return;
         if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
