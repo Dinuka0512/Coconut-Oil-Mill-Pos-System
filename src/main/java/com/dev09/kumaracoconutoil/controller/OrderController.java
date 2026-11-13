@@ -13,7 +13,6 @@ import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.TaxDto;
-import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -210,8 +209,6 @@ public class OrderController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(javafx.scene.input.KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbCustomerId)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbCustomerId.getItems().clear();
@@ -267,8 +264,6 @@ public class OrderController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(javafx.scene.input.KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbProductId)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             cmbProductId.getItems().clear();

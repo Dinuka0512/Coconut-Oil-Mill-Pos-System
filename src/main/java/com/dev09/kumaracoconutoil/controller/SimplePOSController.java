@@ -2,7 +2,6 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
-import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
@@ -10,16 +9,20 @@ import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.skin.ComboBoxListViewSkin;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.animation.KeyFrame;
@@ -137,8 +140,8 @@ public class SimplePOSController implements Initializable {
 
         txtUnitPriceDisplay.setOnAction(e -> btnAddToCartOnAction(null));
 
-        ComboBoxUtil.enableArrowSelection(cmbProduct);
-        ComboBoxUtil.enableArrowSelection(cmbCustomer);
+        installComboNavigation(cmbProduct);
+        installComboNavigation(cmbCustomer);
 
         cmbProduct.showingProperty().addListener((obs, was, showing) -> {
             if (showing && cmbProduct.getEditor() != null && cmbProduct.getEditor().getText().trim().isEmpty()) {
@@ -221,34 +224,290 @@ public class SimplePOSController implements Initializable {
         }
     }
 
+    private boolean isNavigationKey(KeyEvent event) {
+        if (event == null || event.getCode() == null) return false;
+        switch (event.getCode()) {
+            case UP:
+            case DOWN:
+            case LEFT:
+            case RIGHT:
+            case ENTER:
+            case ESCAPE:
+            case TAB:
+            case PAGE_UP:
+            case PAGE_DOWN:
+            case HOME:
+            case END:
+            case SHIFT:
+            case CONTROL:
+            case ALT:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void installComboNavigation(ComboBox<String> combo) {
+        if (combo == null) return;
+
+        // Highlight is driven purely by a tracked index, never by the ListView selection model.
+        // This avoids the ComboBox skin syncing a browswed item into value/editor (which caused "commit on arrow").
+        combo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                Object hi = combo.getProperties().get("pos.highlightIndex");
+                boolean highlighted = !empty && item != null && hi instanceof Integer && ((Integer) hi) == getIndex();
+                setStyle(highlighted ? "-fx-background-color: #2563eb; -fx-text-fill: white;" : "");
+            }
+        });
+
+        combo.showingProperty().addListener((obs, was, showing) -> {
+            if (showing) {
+                Platform.runLater(() -> installPopupNavigation(combo, 0));
+            } else {
+                combo.getProperties().remove("pos.highlightIndex");
+            }
+        });
+
+        javafx.event.EventHandler<KeyEvent> handler = event -> {
+            if (event.getEventType() != KeyEvent.KEY_PRESSED) return;
+            KeyCode code = event.getCode();
+            if (code == KeyCode.DOWN || code == KeyCode.UP) {
+                event.consume();
+                if (!combo.isShowing()) {
+                    combo.show();
+                }
+                moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
+            } else if (code == KeyCode.ENTER) {
+                if (combo.isShowing()) {
+                    String highlighted = getHighlightedComboItem(combo);
+                    if (highlighted != null) {
+                        event.consume();
+                        commitComboSelection(combo, highlighted);
+                    }
+                }
+            } else if (code == KeyCode.ESCAPE && combo.isShowing()) {
+                combo.getProperties().remove("pos.highlightIndex");
+                combo.hide();
+                event.consume();
+            }
+        };
+        combo.addEventFilter(KeyEvent.KEY_PRESSED, handler);
+        if (combo.getEditor() != null) {
+            combo.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, handler);
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void installPopupNavigation(ComboBox<String> combo, int attempt) {
+        ListView listView = getComboPopupListView(combo);
+        if (listView == null) {
+            if (attempt < 10) {
+                Platform.runLater(() -> installPopupNavigation(combo, attempt + 1));
+            }
+            return;
+        }
+        if (Boolean.TRUE.equals(listView.getProperties().get("pos.navInstalled"))) return;
+        listView.getProperties().put("pos.navInstalled", true);
+        listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            KeyCode code = event.getCode();
+            if (code == KeyCode.DOWN || code == KeyCode.UP) {
+                event.consume();
+                moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
+            } else if (code == KeyCode.ENTER) {
+                event.consume();
+                if (!combo.isShowing()) return;
+                String highlighted = getHighlightedComboItem(combo);
+                if (highlighted != null) commitComboSelection(combo, highlighted);
+            } else if (code == KeyCode.ESCAPE) {
+                event.consume();
+                combo.getProperties().remove("pos.highlightIndex");
+                combo.hide();
+            }
+        });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void moveComboHighlight(ComboBox<String> combo, int delta, int attempt) {
+        if (combo == null) return;
+        ObservableList<String> items = combo.getItems();
+        if (items == null || items.isEmpty()) {
+            combo.getProperties().remove("pos.highlightIndex");
+            return;
+        }
+
+        if (!combo.isShowing()) {
+            combo.show();
+        }
+
+        ListView listView = getComboPopupListView(combo);
+        if (listView == null) {
+            if (attempt < 15) {
+                Platform.runLater(() -> moveComboHighlight(combo, delta, attempt + 1));
+            }
+            return;
+        }
+
+        Object hi = combo.getProperties().get("pos.highlightIndex");
+        int current = hi instanceof Integer ? (Integer) hi : -1;
+        int size = items.size();
+        if (current < 0 || current >= size) {
+            current = delta > 0 ? -1 : size;
+        }
+        int target = current + delta;
+        if (target < 0) target = 0;
+        if (target >= size) target = size - 1;
+
+        combo.getProperties().put("pos.highlightIndex", target);
+
+        // Never touch the selection model here (that causes value/editor sync + accidental commit).
+        try {
+            listView.refresh();
+            listView.scrollTo(target);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void commitComboSelection(ComboBox<String> combo, String value) {
+        if (combo == null || value == null) return;
+        combo.getProperties().remove("pos.highlightIndex");
+        combo.getProperties().put("pos.suppressFilter", true);
+        try {
+            if (combo.getSelectionModel() != null) {
+                combo.getSelectionModel().select(value);
+            }
+            combo.setValue(value);
+            if (combo.getEditor() != null) {
+                combo.getEditor().setText(value);
+                combo.getEditor().positionCaret(value.length());
+            }
+        } finally {
+            combo.getProperties().put("pos.suppressFilter", false);
+        }
+        combo.hide();
+        combo.fireEvent(new javafx.event.ActionEvent(combo, combo));
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private String getHighlightedComboItem(ComboBox<String> combo) {
+        ObservableList<String> items = combo.getItems();
+        if (items == null || items.isEmpty()) return null;
+        Object hi = combo.getProperties().get("pos.highlightIndex");
+        int idx = hi instanceof Integer ? (Integer) hi : -1;
+        if (idx >= 0 && idx < items.size()) return items.get(idx);
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private ListView getComboPopupListView(ComboBox<String> combo) {
+        try {
+            if (combo.getSkin() instanceof ComboBoxListViewSkin) {
+                Node popupContent = ((ComboBoxListViewSkin) combo.getSkin()).getPopupContent();
+                if (popupContent instanceof ListView) return (ListView) popupContent;
+                if (popupContent != null) {
+                    if (popupContent instanceof javafx.scene.Parent) {
+                        Node n = popupContent.lookup(".list-view");
+                        if (n instanceof ListView) return (ListView) n;
+                    }
+                    ListView found = findListView(popupContent);
+                    if (found != null) return found;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            if (combo.getSkin() != null && combo.getSkin().getNode() != null) {
+                Node skinNode = combo.getSkin().getNode();
+                Node lv = skinNode.lookup(".list-view");
+                if (lv instanceof ListView) return (ListView) lv;
+                ListView found = findListView(skinNode);
+                if (found != null) return found;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            Node n = combo.lookup(".list-view");
+            if (n instanceof ListView) return (ListView) n;
+        } catch (Exception ignored) {
+        }
+        // Last resort: search popup windows' scenes (popup may live in separate window)
+        try {
+            for (javafx.stage.Window w : javafx.stage.Window.getWindows()) {
+                if (!w.isShowing()) continue;
+                if (w instanceof javafx.stage.PopupWindow || w instanceof javafx.stage.Stage) {
+                    javafx.scene.Scene sc = null;
+                    if (w instanceof javafx.stage.Stage) sc = ((javafx.stage.Stage) w).getScene();
+                    else if (w instanceof javafx.stage.PopupWindow) sc = ((javafx.stage.PopupWindow) w).getScene();
+                    if (sc != null && sc.getRoot() != null) {
+                        Node lv = sc.getRoot().lookup(".list-view");
+                        if (lv instanceof ListView) return (ListView) lv;
+                        ListView found = findListView(sc.getRoot());
+                        if (found != null) return found;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private ListView findListView(Node node) {
+        if (node == null) return null;
+        if (node instanceof ListView) return (ListView) node;
+        if (node instanceof javafx.scene.Parent) {
+            for (Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                ListView found = findListView(child);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private void comboSetItems(ComboBox<String> combo, java.util.List<String> items) {
+        if (combo == null) return;
+        combo.getProperties().put("pos.suppressFilter", true);
+        try {
+            ObservableList<String> comboItems = combo.getItems();
+            if (comboItems != null) {
+                comboItems.setAll(items == null ? java.util.Collections.emptyList() : items);
+            }
+        } finally {
+            combo.getProperties().put("pos.suppressFilter", false);
+        }
+        // New result set: start arrow navigation from the top
+        combo.getProperties().remove("pos.highlightIndex");
+    }
+
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbProduct)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
+        if (isNavigationKey(event)) return;
+        if (Boolean.TRUE.equals(cmbProduct.getProperties().get("pos.suppressFilter"))) return;
+        cmbProduct.getProperties().remove("pos.highlightIndex");
         String searchText = cmbProduct.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             repopulateAllProducts();
             if (productResetTimer != null) productResetTimer.stop();
             cmbProduct.show();
         } else {
-            cmbProduct.getItems().clear();
+            java.util.List<String> matches = new java.util.ArrayList<>();
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (dto.getName().toLowerCase().contains(searchText) ||
                     (dto.getItemcode() != null ? dto.getItemcode() : "").toLowerCase().contains(searchText)) {
-                    cmbProduct.getItems().add(display);
+                    matches.add(display);
                 }
             }
+            comboSetItems(cmbProduct, matches);
             cmbProduct.show();
 
             if (productResetTimer != null) productResetTimer.stop();
             productResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
                 if (cmbProduct.getItems().isEmpty()) {
                     cmbProduct.getEditor().setText("");
-                    cmbProduct.getItems().clear();
-                    for (ProductDto dto : currentProducts) {
-                        cmbProduct.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
-                    }
+                    repopulateAllProducts();
                 }
             }));
             productResetTimer.setCycleCount(1);
@@ -408,32 +667,31 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbCustomer)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
+        if (isNavigationKey(event)) return;
+        if (Boolean.TRUE.equals(cmbCustomer.getProperties().get("pos.suppressFilter"))) return;
+        cmbCustomer.getProperties().remove("pos.highlightIndex");
         String searchText = cmbCustomer.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             repopulateAllCustomers();
             if (customerResetTimer != null) customerResetTimer.stop();
             cmbCustomer.show();
         } else {
-            cmbCustomer.getItems().clear();
+            java.util.List<String> matches = new java.util.ArrayList<>();
             for (CustomerDto dto : currentCustomers) {
                 String display = dto.getName() + " - " + dto.getContact();
                 if (dto.getName().toLowerCase().contains(searchText) ||
                     dto.getContact().toLowerCase().contains(searchText)) {
-                    cmbCustomer.getItems().add(display);
+                    matches.add(display);
                 }
             }
+            comboSetItems(cmbCustomer, matches);
             cmbCustomer.show();
 
             if (customerResetTimer != null) customerResetTimer.stop();
             customerResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
                 if (cmbCustomer.getItems().isEmpty()) {
                     cmbCustomer.getEditor().setText("");
-                    cmbCustomer.getItems().clear();
-                    for (CustomerDto dto : currentCustomers) {
-                        cmbCustomer.getItems().add(dto.getName() + " - " + dto.getContact());
-                    }
+                    repopulateAllCustomers();
                 }
             }));
             customerResetTimer.setCycleCount(1);

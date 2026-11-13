@@ -1,7 +1,6 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
-import com.dev09.kumaracoconutoil.util.ComboBoxUtil;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
@@ -150,9 +149,6 @@ public class UpdatePosController implements Initializable {
             txtUnitPrice.requestFocus();
         });
 
-        ComboBoxUtil.enableArrowSelection(cmbProductId);
-        ComboBoxUtil.enableArrowSelection(cmbCustomerId);
-
         cmbProductId.showingProperty().addListener((obs, was, showing) -> {
             if (showing && cmbProductId.getEditor() != null && cmbProductId.getEditor().getText().trim().isEmpty()) {
                 repopulateAllProducts();
@@ -219,8 +215,6 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbCustomerOnKeyReleased(KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbCustomerId)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbCustomerId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             repopulateAllCustomers();
@@ -282,8 +276,6 @@ public class UpdatePosController implements Initializable {
 
     @FXML
     void cmbProductOnKeyReleased(KeyEvent event) {
-        if (ComboBoxUtil.isSearchManaged(cmbProductId)) return;
-        if (ComboBoxUtil.isNavigationKey(event)) return;
         String searchText = cmbProductId.getEditor().getText().toLowerCase();
         if (searchText.isEmpty()) {
             repopulateAllProducts();
