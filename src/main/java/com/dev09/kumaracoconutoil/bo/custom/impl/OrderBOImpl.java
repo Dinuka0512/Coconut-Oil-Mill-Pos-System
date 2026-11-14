@@ -361,6 +361,11 @@ public class OrderBOImpl implements OrderBO {
     }
 
     @Override
+    public int clearFullyPaidOrders() throws SQLException, ClassNotFoundException {
+        return orderDAO.clearFullyPaidOrders();
+    }
+
+    @Override
     public double payCustomerDue(String customerId, double amount, String note) throws SQLException, ClassNotFoundException {
         Session session = FactoryConfiguration.getInstance().getSession();
         Transaction transaction = session.beginTransaction();

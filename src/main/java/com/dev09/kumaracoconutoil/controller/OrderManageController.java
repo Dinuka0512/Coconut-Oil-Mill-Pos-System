@@ -105,6 +105,9 @@ public class OrderManageController implements Initializable {
     private Button btnSummaryReport;
 
     @FXML
+    private Button btnClearOrderView;
+
+    @FXML
     private javafx.scene.layout.AnchorPane tdySummary;
 
     @FXML
@@ -268,6 +271,11 @@ public class OrderManageController implements Initializable {
         tblTdySales.setVisible(false);
         if (tdySummary != null) tdySummary.setVisible(false);
         if (btnSummaryReport != null) btnSummaryReport.setVisible(false);
+        if (btnClearOrderView != null) {
+            btnClearOrderView.setVisible(true);
+            btnClearOrderView.setManaged(true);
+            btnClearOrderView.setDisable(!canDeleteInvoices());
+        }
         btnViewOption.setText(ORDERS_VIEW_TEXT);
         txtSearch.setDisable(false);
         btnSearch.setDisable(false);
@@ -281,6 +289,10 @@ public class OrderManageController implements Initializable {
         tblTdySales.setVisible(true);
         if (tdySummary != null) tdySummary.setVisible(true);
         if (btnSummaryReport != null) btnSummaryReport.setVisible(true);
+        if (btnClearOrderView != null) {
+            btnClearOrderView.setVisible(false);
+            btnClearOrderView.setManaged(false);
+        }
         updateSummaryLabels();
         btnViewOption.setText(PRODUCT_SALES_VIEW_TEXT);
         tblOrders.getSelectionModel().clearSelection();
@@ -627,6 +639,52 @@ public class OrderManageController implements Initializable {
                 e.printStackTrace();
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Error deleting order: " + e.getMessage());
             }
+        }
+    }
+
+    @FXML
+    void btnClearOrderView(ActionEvent event) {
+        if (productSalesView) return;
+
+        if (!canDeleteInvoices()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admin can clear orders!");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Clear Paid Orders");
+        confirm.setHeaderText("Permanently delete all fully paid orders?");
+        confirm.setContentText("Orders that still have an outstanding due will be kept so you can continue managing due payments.\n\n"
+                + "This action cannot be undone. Are you sure you want to continue?");
+
+        ButtonType yes = new ButtonType("Yes, Delete Paid", ButtonBar.ButtonData.OK_DONE);
+        ButtonType no = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        confirm.getButtonTypes().setAll(yes, no);
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.orElse(no) != yes) return;
+
+        try {
+            int clearedCount = orderBO.clearFullyPaidOrders();
+            if (clearedCount > 0) {
+                tblOrders.getItems().clear();
+                orderList.clear();
+                LocalDate selectedDate = datePicker.getValue();
+                if (selectedDate != null) {
+                    loadOrderDatesForMonth(YearMonth.from(selectedDate));
+                }
+                loadOrdersByDate(selectedDate);
+                loadProductSalesByDate(selectedDate);
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION,
+                        clearedCount + " fully paid order(s) cleared. Orders with dues were kept.");
+            } else if (clearedCount == 0) {
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "No fully paid orders to clear.");
+            } else {
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to clear paid orders!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error clearing paid orders: " + e.getMessage());
         }
     }
 

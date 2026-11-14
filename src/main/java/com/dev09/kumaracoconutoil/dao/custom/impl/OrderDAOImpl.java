@@ -204,4 +204,38 @@ public class OrderDAOImpl implements OrderDAO {
             session.close();
         }
     }
+
+    @Override
+    public int clearFullyPaidOrders() {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            int paidOrderCount = ((Number) session.createNativeQuery(
+                    "SELECT COUNT(*) FROM orders WHERE balance >= 0").uniqueResult()).intValue();
+            if (paidOrderCount == 0) {
+                transaction.commit();
+                return 0;
+            }
+
+            // Only fully paid orders (balance >= 0) are removed. Orders with an
+            // outstanding due (balance < 0) are kept so due management still works.
+            session.createNativeQuery(
+                    "DELETE FROM due_payment WHERE order_id IN (SELECT orderId FROM orders WHERE balance >= 0)")
+                    .executeUpdate();
+            session.createNativeQuery(
+                    "DELETE FROM order_product_details WHERE order_id IN (SELECT orderId FROM orders WHERE balance >= 0)")
+                    .executeUpdate();
+            session.createNativeQuery("DELETE FROM orders WHERE balance >= 0")
+                    .executeUpdate();
+
+            transaction.commit();
+            return paidOrderCount;
+        } catch (Exception e) {
+            transaction.rollback();
+            e.printStackTrace();
+            return -1;
+        } finally {
+            session.close();
+        }
+    }
 }

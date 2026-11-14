@@ -67,5 +67,10 @@
          </children>
       </AnchorPane>
       <Button fx:id="btnSummaryReport" layoutX="375.0" layoutY="32.0" mnemonicParsing="false" onAction="#btnGenerateSelectedDateSummary" prefHeight="30.0" prefWidth="186.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Generate Summary Report" visible="false" />
+      <Button fx:id="btnClearOrderView" layoutX="437.0" layoutY="32.0" mnemonicParsing="false" onAction="#btnClearOrderView" prefHeight="30.0" prefWidth="126.0" style="-fx-background-color: #ffc000;" text="Clear Paid Orders" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Button>
       </children>
 </AnchorPane>

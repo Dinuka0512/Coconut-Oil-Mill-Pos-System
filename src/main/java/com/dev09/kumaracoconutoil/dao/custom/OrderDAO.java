@@ -15,4 +15,5 @@ public interface OrderDAO extends SuperDAO, CrudDAO<OrderEntity> {
     double getTotalDueByCustomer(String customerId);
     List<OrderEntity> getUnpaidOrdersByCustomer(String customerId);
     List<OrderProductDetailsEntity> getOrderProductDetailsByDate(LocalDate date);
+    int clearFullyPaidOrders();
 }
