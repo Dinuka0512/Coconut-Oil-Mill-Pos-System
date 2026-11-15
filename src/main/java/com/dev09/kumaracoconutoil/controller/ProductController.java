@@ -100,6 +100,9 @@ public class ProductController implements Initializable {
     private TableColumn<ProductPriceDto, Double> colStock1;
 
     @FXML
+    private Button btnAddPriceStock;
+
+    @FXML
     private TextField txtItemCode;
 
     @FXML
@@ -465,9 +468,41 @@ public class ProductController implements Initializable {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
             stage.showAndWait();
+
+            refreshPricesAfterAdd(productId);
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open add price screen!");
+        }
+    }
+
+    /**
+     * After adding a price + stock, keep the product stock in sync:
+     * product stock = sum of all price + stock pairs in the price array.
+     */
+    private void refreshPricesAfterAdd(String productId) {
+        if (productId == null || productId.isEmpty()) {
+            return;
+        }
+        ProductDto refreshed = productBO.searchProduct(productId);
+        if (refreshed == null) {
+            return;
+        }
+
+        ArrayList<ProductPriceDto> priceRows = productPriceBO.getPricesByProduct(productId);
+        double totalStock = 0.0;
+        for (ProductPriceDto priceRow : priceRows) {
+            totalStock += priceRow.getStock();
+        }
+        if (Double.compare(refreshed.getQty(), totalStock) != 0) {
+            refreshed.setQty(totalStock);
+            productBO.updateProduct(refreshed);
+            refreshed = productBO.searchProduct(productId);
+        }
+
+        if (refreshed != null) {
+            loadProductPrices(refreshed);
+            txtQty.setText(String.valueOf(refreshed.getQty()));
         }
     }
 
@@ -626,6 +661,16 @@ public class ProductController implements Initializable {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to delete inventory!");
             }
         }
+    }
+
+    @FXML
+    void btnAddPriceStockOnAction(ActionEvent event) {
+        if (currentProductId == null || currentProductId.isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+            return;
+        }
+        String productName = txtName.getText() == null ? "" : txtName.getText().trim();
+        openAddPriceStockForm(productName, currentProductId);
     }
 
     @FXML

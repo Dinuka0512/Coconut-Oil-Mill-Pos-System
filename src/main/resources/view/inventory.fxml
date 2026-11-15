@@ -53,6 +53,7 @@
                            </font>
                         </Label>
 
+                        <Button fx:id="btnAddPriceStock" layoutX="770.0" layoutY="2.0" mnemonicParsing="false" onAction="#btnAddPriceStockOnAction" prefHeight="26.0" prefWidth="118.0" style="-fx-background-color: #16a085; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ Add Price" />
                         <TableView fx:id="productpriceArrayTbl" layoutY="34.0" prefHeight="128.0" prefWidth="891.0" style="-fx-background-radius: 5; -fx-background-color: gray;">
                            <columns>
                               <TableColumn fx:id="colName1" prefWidth="240.0" text="Inventory Name" />
