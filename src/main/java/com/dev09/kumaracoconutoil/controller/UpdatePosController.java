@@ -7,10 +7,13 @@ import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
+import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -29,6 +32,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -99,6 +103,7 @@ public class UpdatePosController implements Initializable {
 
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
+    private final ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
     private final CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ObservableList<CartTM> obList = FXCollections.observableArrayList();
     private CustomerDto selectedCustomer;
@@ -257,13 +262,18 @@ public class UpdatePosController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
+                    Double price = resolveProductPrice(dto);
+                    if (price == null) {
+                        resetProductSelection();
+                        return;
+                    }
                     selectedProduct = dto;
                     cmbProductId.setValue(display);
                     if (cmbProductId.getEditor() != null) {
                         cmbProductId.getEditor().setText(display);
                         cmbProductId.getEditor().positionCaret(display.length());
                     }
-                    txtUnitPrice.setText(String.valueOf(dto.getPrice()));
+                    txtUnitPrice.setText(String.valueOf(price));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     lblItemName.setText(dto.getName());
                     lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
@@ -272,6 +282,40 @@ public class UpdatePosController implements Initializable {
                 }
             }
         }
+    }
+
+    private Double resolveProductPrice(ProductDto dto) {
+        ArrayList<Double> prices = new ArrayList<>();
+        ArrayList<ProductPriceDto> savedPrices = productPriceBO.getPricesByProduct(dto.getId());
+        if (savedPrices != null) {
+            for (ProductPriceDto savedPrice : savedPrices) {
+                prices.add(savedPrice.getPrice());
+            }
+        }
+
+        if (prices.isEmpty()) {
+            return dto.getPrice();
+        }
+        if (prices.size() == 1) {
+            return prices.get(0);
+        }
+
+        cmbProductId.hide();
+        Window owner = cmbProductId.getScene() == null ? null : cmbProductId.getScene().getWindow();
+        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+    }
+
+    private void resetProductSelection() {
+        selectedProduct = null;
+        cmbProductId.getSelectionModel().clearSelection();
+        if (cmbProductId.getEditor() != null) {
+            cmbProductId.getEditor().clear();
+        }
+        txtUnitPrice.clear();
+        lblQtyOnHand.setText("");
+        lblItemName.setText("");
+        lblItemCode.setText("");
+        cmbProductId.requestFocus();
     }
 
     @FXML

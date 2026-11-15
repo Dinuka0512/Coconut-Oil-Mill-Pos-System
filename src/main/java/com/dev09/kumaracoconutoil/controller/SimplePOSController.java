@@ -6,8 +6,11 @@ import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
+import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -25,6 +28,7 @@ import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -85,6 +89,7 @@ public class SimplePOSController implements Initializable {
     private TableColumn<CartTM, Button> colAction;
 
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
+    private final ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
     private final CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
 
@@ -95,6 +100,8 @@ public class SimplePOSController implements Initializable {
     private CustomerDto selectedCustomer;
     private Timeline productResetTimer;
     private Timeline customerResetTimer;
+    private String lastCommittedProductSelection;
+    private long lastCommittedProductAt;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -202,18 +209,36 @@ public class SimplePOSController implements Initializable {
         if ((selection == null || selection.trim().isEmpty()) && cmbProduct.getEditor() != null) {
             selection = cmbProduct.getEditor().getText();
         }
-        if (selection != null && currentProducts != null) {
-            String sel = selection.trim();
+        String sel = selection == null ? "" : selection.trim();
+
+        // A single user commit can surface as more than one ActionEvent; only handle the
+        // first one per product selection so the price selection popup is not opened twice.
+        boolean duplicate = sel.equals(lastCommittedProductSelection)
+                && System.currentTimeMillis() - lastCommittedProductAt < 3000;
+        if (!duplicate) {
+            lastCommittedProductSelection = sel;
+            lastCommittedProductAt = System.currentTimeMillis();
+        }
+        if (duplicate) {
+            return;
+        }
+
+        if (sel != null && currentProducts != null) {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
+                    Double price = resolveProductPrice(dto);
+                    if (price == null) {
+                        resetProductSelection();
+                        return;
+                    }
                     selectedProduct = dto;
                     cmbProduct.setValue(display);
                     if (cmbProduct.getEditor() != null) {
                         cmbProduct.getEditor().setText(display);
                         cmbProduct.getEditor().positionCaret(display.length());
                     }
-                    txtUnitPriceDisplay.setText(String.valueOf(dto.getPrice()));
+                    txtUnitPriceDisplay.setText(String.valueOf(price));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     lblItemName.setText(dto.getName());
                     lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
@@ -222,6 +247,42 @@ public class SimplePOSController implements Initializable {
                 }
             }
         }
+    }
+
+    private Double resolveProductPrice(ProductDto dto) {
+        ArrayList<Double> prices = new ArrayList<>();
+        ArrayList<ProductPriceDto> savedPrices = productPriceBO.getPricesByProduct(dto.getId());
+        if (savedPrices != null) {
+            for (ProductPriceDto savedPrice : savedPrices) {
+                prices.add(savedPrice.getPrice());
+            }
+        }
+
+        if (prices.isEmpty()) {
+            return dto.getPrice();
+        }
+        if (prices.size() == 1) {
+            return prices.get(0);
+        }
+
+        cmbProduct.hide();
+        Window owner = cmbProduct.getScene() == null ? null : cmbProduct.getScene().getWindow();
+        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+    }
+
+    private void resetProductSelection() {
+        selectedProduct = null;
+        lastCommittedProductSelection = null;
+        lastCommittedProductAt = 0;
+        cmbProduct.getSelectionModel().clearSelection();
+        if (cmbProduct.getEditor() != null) {
+            cmbProduct.getEditor().clear();
+        }
+        txtUnitPriceDisplay.clear();
+        lblQtyOnHand.setText("");
+        lblItemName.setText("");
+        lblItemCode.setText("");
+        cmbProduct.requestFocus();
     }
 
     private boolean isNavigationKey(KeyEvent event) {
@@ -265,7 +326,11 @@ public class SimplePOSController implements Initializable {
 
         combo.showingProperty().addListener((obs, was, showing) -> {
             if (showing) {
-                Platform.runLater(() -> installPopupNavigation(combo, 0));
+                // Install immediately: waiting for runLater left a window where the first
+                // arrow key press fell through to JavaFX's ListViewBehavior and crashed
+                // with IndexOutOfBoundsException [fromIndex: 0, toIndex: 1, size: 0].
+                installPopupNavigation(combo, 0);
+                Platform.runLater(() -> installPopupNavigation(combo, 1));
             } else {
                 combo.getProperties().remove("pos.highlightIndex");
             }
@@ -277,6 +342,9 @@ public class SimplePOSController implements Initializable {
             if (code == KeyCode.DOWN || code == KeyCode.UP) {
                 event.consume();
                 if (!combo.isShowing()) {
+                    if (combo.getItems().isEmpty()) {
+                        return;
+                    }
                     combo.show();
                 }
                 moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
@@ -314,8 +382,26 @@ public class SimplePOSController implements Initializable {
         listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
             if (code == KeyCode.DOWN || code == KeyCode.UP) {
+                // Always consume before doing anything: this is what prevents the
+                // ListView selection model from running on an empty items list.
                 event.consume();
                 moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
+            } else if (code == KeyCode.PAGE_DOWN) {
+                event.consume();
+                moveComboHighlight(combo, 5, 0);
+            } else if (code == KeyCode.PAGE_UP) {
+                event.consume();
+                moveComboHighlight(combo, -5, 0);
+            } else if (code == KeyCode.HOME) {
+                event.consume();
+                combo.getProperties().put("pos.highlightIndex", 0);
+                listView.refresh();
+            } else if (code == KeyCode.END) {
+                event.consume();
+                if (!combo.getItems().isEmpty()) {
+                    combo.getProperties().put("pos.highlightIndex", combo.getItems().size() - 1);
+                    listView.refresh();
+                }
             } else if (code == KeyCode.ENTER) {
                 event.consume();
                 if (!combo.isShowing()) return;
@@ -468,11 +554,17 @@ public class SimplePOSController implements Initializable {
 
     private void comboSetItems(ComboBox<String> combo, java.util.List<String> items) {
         if (combo == null) return;
+        java.util.List<String> newItems = items == null ? java.util.Collections.emptyList() : items;
+        // Never mutate a showing popup into an empty list: JavaFX's ListViewBehavior
+        // reacts to the change and throws IndexOutOfBoundsException on the next arrow key.
+        if (newItems.isEmpty() && combo.isShowing()) {
+            combo.hide();
+        }
         combo.getProperties().put("pos.suppressFilter", true);
         try {
             ObservableList<String> comboItems = combo.getItems();
             if (comboItems != null) {
-                comboItems.setAll(items == null ? java.util.Collections.emptyList() : items);
+                comboItems.setAll(newItems);
             }
         } finally {
             combo.getProperties().put("pos.suppressFilter", false);
@@ -490,7 +582,9 @@ public class SimplePOSController implements Initializable {
         if (searchText.isEmpty()) {
             repopulateAllProducts();
             if (productResetTimer != null) productResetTimer.stop();
-            cmbProduct.show();
+            if (!cmbProduct.getItems().isEmpty()) {
+                cmbProduct.show();
+            }
         } else {
             java.util.List<String> matches = new java.util.ArrayList<>();
             for (ProductDto dto : currentProducts) {
@@ -501,7 +595,11 @@ public class SimplePOSController implements Initializable {
                 }
             }
             comboSetItems(cmbProduct, matches);
-            cmbProduct.show();
+            if (matches.isEmpty()) {
+                cmbProduct.hide();
+            } else {
+                cmbProduct.show();
+            }
 
             if (productResetTimer != null) productResetTimer.stop();
             productResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
@@ -674,7 +772,9 @@ public class SimplePOSController implements Initializable {
         if (searchText.isEmpty()) {
             repopulateAllCustomers();
             if (customerResetTimer != null) customerResetTimer.stop();
-            cmbCustomer.show();
+            if (!cmbCustomer.getItems().isEmpty()) {
+                cmbCustomer.show();
+            }
         } else {
             java.util.List<String> matches = new java.util.ArrayList<>();
             for (CustomerDto dto : currentCustomers) {
@@ -685,7 +785,11 @@ public class SimplePOSController implements Initializable {
                 }
             }
             comboSetItems(cmbCustomer, matches);
-            cmbCustomer.show();
+            if (matches.isEmpty()) {
+                cmbCustomer.hide();
+            } else {
+                cmbCustomer.show();
+            }
 
             if (customerResetTimer != null) customerResetTimer.stop();
             customerResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {

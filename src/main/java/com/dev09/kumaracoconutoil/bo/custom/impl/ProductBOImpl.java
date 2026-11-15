@@ -3,7 +3,11 @@ package com.dev09.kumaracoconutoil.bo.custom.impl;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.ProductDAO;
+import com.dev09.kumaracoconutoil.dao.custom.ProductPriceDAO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
+import com.dev09.kumaracoconutoil.entity.ProductEntity;
+import com.dev09.kumaracoconutoil.entity.ProductPriceEntity;
 import com.dev09.kumaracoconutoil.entity.ProductEntity;
 import com.dev09.kumaracoconutoil.util.PdfGenerator;
 
@@ -13,6 +17,16 @@ public class ProductBOImpl implements ProductBO {
 
     private final ProductDAO productDAO = (ProductDAO) DAOFactory.getInstance()
             .getDAO(DAOFactory.DAOType.PRODUCT);
+    private final ProductPriceDAO productPriceDAO = (ProductPriceDAO) DAOFactory.getInstance()
+            .getDAO(DAOFactory.DAOType.PRODUCT_PRICE);
+
+    private ArrayList<ProductPriceDto> mapPriceDetails(String productId) {
+        ArrayList<ProductPriceDto> details = new ArrayList<>();
+        for (ProductPriceEntity entity : productPriceDAO.getByProductId(productId)) {
+            details.add(new ProductPriceDto(entity.getId(), entity.getProductId(), null, entity.getPrice(), entity.getStock()));
+        }
+        return details;
+    }
 
     @Override
     public ArrayList<ProductDto> getAllProducts() {
@@ -30,6 +44,7 @@ public class ProductBOImpl implements ProductBO {
             dto.setCreatedAt(entity.getCreatedAt());
             dto.setUpdatedBy(entity.getUpdatedBy());
             dto.setUpdatedAt(entity.getUpdatedAt());
+            dto.setPriceDetails(mapPriceDetails(entity.getId()));
             dtoList.add(dto);
         }
         return dtoList;
@@ -94,6 +109,7 @@ public class ProductBOImpl implements ProductBO {
             dto.setCreatedAt(entity.getCreatedAt());
             dto.setUpdatedBy(entity.getUpdatedBy());
             dto.setUpdatedAt(entity.getUpdatedAt());
+            dto.setPriceDetails(mapPriceDetails(entity.getId()));
             return dto;
         }
         return null;

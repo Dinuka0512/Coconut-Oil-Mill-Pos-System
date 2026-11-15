@@ -1,8 +1,11 @@
 package com.dev09.kumaracoconutoil.dto;
 
 import com.dev09.kumaracoconutoil.util.AuditFormat;
+import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class ProductDto {
     private String id;
@@ -10,6 +13,8 @@ public class ProductDto {
     private String name;
     private double qty;
     private double price;
+    private ArrayList<Double> prices = new ArrayList<>();
+    private ArrayList<ProductPriceDto> priceDetails = new ArrayList<>();
     private String createdBy;
     private LocalDateTime createdAt;
     private String updatedBy;
@@ -35,6 +40,36 @@ public class ProductDto {
     public void setQty(double qty) { this.qty = qty; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
+    public ArrayList<Double> getPrices() { return prices; }
+    public void setPrices(ArrayList<Double> prices) { this.prices = prices == null ? new ArrayList<>() : prices; }
+
+    /**
+     * Price rows (price + stock) for this product, e.g. [[price:100, stock:10], [price:20, stock:5]].
+     */
+    public ArrayList<ProductPriceDto> getPriceDetails() { return priceDetails; }
+    public void setPriceDetails(ArrayList<ProductPriceDto> priceDetails) { this.priceDetails = priceDetails == null ? new ArrayList<>() : priceDetails; }
+
+    public ArrayList<ProductPriceDto> getPriceStockPairs() { return priceDetails; }
+
+    public String getPriceArray() {
+        if (prices == null || prices.isEmpty()) {
+            return "[" + formatPrice(price) + "]";
+        }
+        StringBuilder builder = new StringBuilder("[");
+        for (int i = 0; i < prices.size(); i++) {
+            if (i > 0) builder.append(", ");
+            builder.append(formatPrice(prices.get(i)));
+        }
+        return builder.append("]").toString();
+    }
+
+    private String formatPrice(double value) {
+        if (value == Math.rint(value)) {
+            return String.valueOf((long) value);
+        }
+        return String.format(Locale.US, "%.2f", value);
+    }
+
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedAt() { return createdAt; }

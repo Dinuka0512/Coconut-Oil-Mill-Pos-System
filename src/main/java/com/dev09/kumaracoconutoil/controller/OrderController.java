@@ -7,12 +7,15 @@ import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.bo.custom.TaxBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
 import com.dev09.kumaracoconutoil.dto.TaxDto;
+import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,6 +29,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -101,6 +105,7 @@ public class OrderController implements Initializable {
 
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
+    private ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
     private OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private TaxBO taxBO = (TaxBO) BOFactory.getInstance().getBo(BOFactory.BOType.TAX);
 
@@ -249,14 +254,51 @@ public class OrderController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equals(selection) || dto.getName().equals(selection)) {
+                    Double price = resolveProductPrice(dto);
+                    if (price == null) {
+                        resetProductSelection();
+                        return;
+                    }
                     selectedProduct = dto;
-                    txtUnitPrice.setText(String.valueOf(dto.getPrice()));
+                    txtUnitPrice.setText(String.valueOf(price));
                     lblQtyOnHand.setText(dto.getQty() + " Kg");
                     txtQty.requestFocus();
                     break;
                 }
             }
         }
+    }
+
+    private Double resolveProductPrice(ProductDto dto) {
+        ArrayList<Double> prices = new ArrayList<>();
+        ArrayList<ProductPriceDto> savedPrices = productPriceBO.getPricesByProduct(dto.getId());
+        if (savedPrices != null) {
+            for (ProductPriceDto savedPrice : savedPrices) {
+                prices.add(savedPrice.getPrice());
+            }
+        }
+
+        if (prices.isEmpty()) {
+            return dto.getPrice();
+        }
+        if (prices.size() == 1) {
+            return prices.get(0);
+        }
+
+        cmbProductId.hide();
+        Window owner = cmbProductId.getScene() == null ? null : cmbProductId.getScene().getWindow();
+        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+    }
+
+    private void resetProductSelection() {
+        selectedProduct = null;
+        cmbProductId.getSelectionModel().clearSelection();
+        if (cmbProductId.getEditor() != null) {
+            cmbProductId.getEditor().clear();
+        }
+        txtUnitPrice.clear();
+        lblQtyOnHand.setText("");
+        cmbProductId.requestFocus();
     }
 
     private Timeline resetTimer;
