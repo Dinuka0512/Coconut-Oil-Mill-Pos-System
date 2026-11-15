@@ -477,8 +477,8 @@ public class ProductController implements Initializable {
     private void askAndOpenAddPriceForm(String productName, String productId) {
         Alert addPriceAlert = new Alert(Alert.AlertType.CONFIRMATION);
         addPriceAlert.setTitle("Add Price");
-        addPriceAlert.setHeaderText("Do you want to add a new price and stock?");
-        addPriceAlert.setContentText("Yes = add a new price and stock for this product");
+        addPriceAlert.setHeaderText(null);
+        addPriceAlert.setContentText(null);
         ButtonType addYes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         ButtonType addNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
         addPriceAlert.getButtonTypes().addAll(addYes, addNo);
