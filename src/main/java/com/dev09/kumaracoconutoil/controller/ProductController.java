@@ -254,10 +254,10 @@ public class ProductController implements Initializable {
         colCreated1.setVisible(canSeeAudit);
         colUpdated1.setVisible(canSeeAudit);
 
-        productpriceArrayTbl.setEditable(true);
+        productpriceArrayTbl.setEditable(false);
         productpriceArrayTbl.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         productpriceArrayTbl.getColumns().forEach(column -> column.setSortable(false));
-        colPrice1.setEditable(true);
+        colPrice1.setEditable(false);
         StringConverter<Double> priceConverter = new StringConverter<>() {
             @Override
             public String toString(Double value) {
@@ -293,7 +293,7 @@ public class ProductController implements Initializable {
         });
 
         colStock1.setCellValueFactory(new PropertyValueFactory<>("stock"));
-        colStock1.setEditable(true);
+        colStock1.setEditable(false);
         StringConverter<Double> stockConverter = new StringConverter<>() {
             @Override
             public String toString(Double value) {
@@ -332,15 +332,12 @@ public class ProductController implements Initializable {
         });
 
         colAction1.setCellFactory(column -> new TableCell<>() {
-            private final Button addButton = new Button("+ Add");
             private final Button removeButton = new Button("Remove");
-            private final HBox box = new HBox(6, addButton, removeButton);
+            private final HBox box = new HBox(removeButton);
 
             {
                 box.setAlignment(Pos.CENTER);
-                addButton.setStyle("-fx-background-color: #16a085; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 8 2 8;");
                 removeButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 8 2 8;");
-                addButton.setOnAction(event -> addPriceRow(getTableRow() == null ? null : getTableRow().getItem()));
                 removeButton.setOnAction(event -> removePriceRow(getTableRow() == null ? null : getTableRow().getItem()));
             }
 
