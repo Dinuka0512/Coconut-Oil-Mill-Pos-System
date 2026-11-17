@@ -1,23 +1,22 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
-import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
-
+import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
+import com.dev09.kumaracoconutoil.util.AlertUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /**
- * Small modal FXML form used to add a new price (+ stock) for a saved product.
+ * Small modal FXML form used to add a new price (+ stock) pair to a saved product.
  */
 public class AddPriceStockController implements Initializable {
 
@@ -32,8 +31,8 @@ public class AddPriceStockController implements Initializable {
     @FXML
     private Button btnCancel;
 
-    private final ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance()
-            .getBo(BOFactory.BOType.PRODUCT_PRICE);
+    private final ProductBO productBO = (ProductBO) BOFactory.getInstance()
+            .getBo(BOFactory.BOType.PRODUCT);
 
     private String productId;
     private String productName;
@@ -56,21 +55,23 @@ public class AddPriceStockController implements Initializable {
         if (price == null || stock == null) {
             return;
         }
-
-        ArrayList<ProductPriceDto> rows = new ArrayList<>();
-        rows.add(new ProductPriceDto(null, productId, productName, price, stock));
-        boolean saved = productPriceBO.syncPrices(productId, rows);
-
-        if (saved) {
-            Stage stage = (Stage) txtPrice.getScene().getWindow();
-            if (stage != null) {
-                stage.close();
-            }
+        if (productId == null || productId.isBlank()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+            return;
         }
+        if (!productBO.addPriceQty(productId, price, stock)) {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Could not add the price. Please try again.");
+            return;
+        }
+        closeStage();
     }
 
     @FXML
     void btnCancelOnAction(ActionEvent event) {
+        closeStage();
+    }
+
+    private void closeStage() {
         Stage stage = (Stage) txtPrice.getScene().getWindow();
         if (stage != null) {
             stage.close();

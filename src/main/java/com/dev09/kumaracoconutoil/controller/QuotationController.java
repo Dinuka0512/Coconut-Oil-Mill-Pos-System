@@ -6,10 +6,8 @@ import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
-import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
 import com.dev09.kumaracoconutoil.util.PdfGenerator;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
@@ -84,7 +82,6 @@ public class QuotationController implements Initializable {
 
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
-    private ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
 
     private ObservableList<CartTM> obList = FXCollections.observableArrayList();
     private java.util.List<CustomerDto> currentCustomers;
@@ -289,13 +286,7 @@ public class QuotationController implements Initializable {
     }
 
     private Double resolveProductPrice(ProductDto dto) {
-        ArrayList<Double> prices = new ArrayList<>();
-        ArrayList<ProductPriceDto> savedPrices = productPriceBO.getPricesByProduct(dto.getId());
-        if (savedPrices != null) {
-            for (ProductPriceDto savedPrice : savedPrices) {
-                prices.add(savedPrice.getPrice());
-            }
-        }
+        ArrayList<Double> prices = dto.getPrices();
 
         if (prices.isEmpty()) {
             return dto.getPrice();

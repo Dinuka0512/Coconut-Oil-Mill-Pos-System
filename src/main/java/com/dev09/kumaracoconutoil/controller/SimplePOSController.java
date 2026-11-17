@@ -6,10 +6,8 @@ import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
-import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
@@ -89,7 +87,6 @@ public class SimplePOSController implements Initializable {
     private TableColumn<CartTM, Button> colAction;
 
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
-    private final ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
     private final CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
 
@@ -250,13 +247,7 @@ public class SimplePOSController implements Initializable {
     }
 
     private Double resolveProductPrice(ProductDto dto) {
-        ArrayList<Double> prices = new ArrayList<>();
-        ArrayList<ProductPriceDto> savedPrices = productPriceBO.getPricesByProduct(dto.getId());
-        if (savedPrices != null) {
-            for (ProductPriceDto savedPrice : savedPrices) {
-                prices.add(savedPrice.getPrice());
-            }
-        }
+        ArrayList<Double> prices = dto.getPrices();
 
         if (prices.isEmpty()) {
             return dto.getPrice();

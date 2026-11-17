@@ -2,44 +2,37 @@ package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
-import com.dev09.kumaracoconutoil.bo.custom.ProductPriceBO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ButtonBar;
+import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.awt.Desktop;
-import javafx.scene.control.ChoiceDialog;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -75,29 +68,18 @@ public class ProductController implements Initializable {
     @FXML
     private AnchorPane formPane;
 
+    /** Each row is a {price, qty} pair from the product's 2D array. */
     @FXML
-    private AnchorPane priceDetailsPane;
+    private TableView<double[]> productpriceArrayTbl;
 
     @FXML
-    private TableView<ProductPriceDto> productpriceArrayTbl;
+    private TableColumn<double[], Double> colPrice1;
 
     @FXML
-    private TableColumn<ProductPriceDto, String> colName1;
+    private TableColumn<double[], Void> colAction1;
 
     @FXML
-    private TableColumn<ProductPriceDto, Double> colPrice1;
-
-    @FXML
-    private TableColumn<ProductPriceDto, String> colCreated1;
-
-    @FXML
-    private TableColumn<ProductPriceDto, String> colUpdated1;
-
-    @FXML
-    private TableColumn<ProductPriceDto, Void> colAction1;
-
-    @FXML
-    private TableColumn<ProductPriceDto, Double> colStock1;
+    private TableColumn<double[], Double> colStock1;
 
     @FXML
     private Button btnAddPriceStock;
@@ -129,8 +111,7 @@ public class ProductController implements Initializable {
     @FXML
     private Button btnUpdate;
 
-    private ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
-    private ProductPriceBO productPriceBO = (ProductPriceBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT_PRICE);
+    private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentProductId;
 
     private void setupShortcuts() {
@@ -180,7 +161,7 @@ public class ProductController implements Initializable {
         colUpdated.setVisible(canSeeAudit);
         tblProduct.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        setupPriceTable(canSeeAudit);
+        setupPriceTable();
 
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
@@ -188,7 +169,6 @@ public class ProductController implements Initializable {
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
         txtSearch.setTooltip(new Tooltip("Search Inventory (Ctrl+F)"));
 
-        setPriceDetailsVisible(false);
         loadAllProducts();
         generateNextId();
 
@@ -203,7 +183,6 @@ public class ProductController implements Initializable {
                 txtName.setText(newValue.getName());
                 txtQty.setText(String.valueOf(newValue.getQty()));
                 loadProductPrices(newValue);
-                setPriceDetailsVisible(true);
 
                 if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
                     btnDelete.setDisable(true);
@@ -213,6 +192,7 @@ public class ProductController implements Initializable {
                     btnUpdate.setDisable(false);
                 }
                 btnSave.setDisable(true);
+                btnAddPriceStock.setDisable(false);
             } else {
                 clearPriceDetails();
             }
@@ -222,7 +202,8 @@ public class ProductController implements Initializable {
     private void setupOutsideClickClear() {
         rootPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (!(event.getTarget() instanceof Node target)) return;
-            if (isInside(target, tblProduct) || isInside(target, priceDetailsPane) || isInside(target, formPane)) {
+            if (isInside(target, tblProduct) || isInside(target, productpriceArrayTbl)
+                    || isInside(target, formPane) || isInside(target, btnAddPriceStock)) {
                 return;
             }
             if (tblProduct.getSelectionModel().getSelectedItem() != null) {
@@ -244,140 +225,90 @@ public class ProductController implements Initializable {
 
     private void clearPriceDetails() {
         productpriceArrayTbl.getItems().clear();
-        setPriceDetailsVisible(false);
+        txtItemCode.clear();
+        txtName.clear();
+        txtPrice.clear();
+        txtQty.clear();
+        btnAddPriceStock.setDisable(true);
     }
 
-    private void setupPriceTable(boolean canSeeAudit) {
-        colName1.setCellValueFactory(new PropertyValueFactory<>("productName"));
-        colPrice1.setCellValueFactory(new PropertyValueFactory<>("price"));
-        colCreated1.setCellValueFactory(new PropertyValueFactory<>("createdInfo"));
-        colUpdated1.setCellValueFactory(new PropertyValueFactory<>("updatedInfo"));
-        colCreated1.setCellFactory(AuditCell.factory());
-        colUpdated1.setCellFactory(AuditCell.factory());
-        colCreated1.setVisible(canSeeAudit);
-        colUpdated1.setVisible(canSeeAudit);
+    private void setupPriceTable() {
+        colPrice1.setCellValueFactory(cell ->
+                new ReadOnlyObjectWrapper<>(rowValue(cell.getValue(), PriceQtyArray.PRICE)));
+        colStock1.setCellValueFactory(cell ->
+                new ReadOnlyObjectWrapper<>(rowValue(cell.getValue(), PriceQtyArray.QTY)));
 
         productpriceArrayTbl.setEditable(false);
         productpriceArrayTbl.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         productpriceArrayTbl.getColumns().forEach(column -> column.setSortable(false));
-        colPrice1.setEditable(false);
-        StringConverter<Double> priceConverter = new StringConverter<>() {
-            @Override
-            public String toString(Double value) {
-                return value == null ? "" : String.format(Locale.US, "%.2f", value);
-            }
-
-            @Override
-            public Double fromString(String text) {
-                return parsePrice(text);
-            }
-        };
-        colPrice1.setCellFactory(column -> {
-            TextFieldTableCell<ProductPriceDto, Double> cell = new TextFieldTableCell<>(priceConverter);
-            cell.setOnMouseClicked(event -> {
-                if (cell.isEditing() || cell.isEmpty() || cell.getTableRow() == null) return;
-                if (cell.getTableRow().getItem() == null) return;
-                cell.getTableView().edit(cell.getTableRow().getIndex(), column);
-            });
-            return cell;
-        });
-        colPrice1.setOnEditCommit(event -> {
-            Double value = event.getNewValue();
-            if (value == null) {
-                productpriceArrayTbl.refresh();
-                return;
-            }
-            ProductPriceDto row = event.getRowValue();
-            row.setPrice(value);
-            if (productpriceArrayTbl.getItems().indexOf(row) == 0) {
-                txtPrice.setText(formatPrice(value));
-            }
-            productpriceArrayTbl.refresh();
-        });
-
-        colStock1.setCellValueFactory(new PropertyValueFactory<>("stock"));
-        colStock1.setEditable(false);
-        StringConverter<Double> stockConverter = new StringConverter<>() {
-            @Override
-            public String toString(Double value) {
-                return value == null ? "" : String.format(Locale.US, "%.2f", value);
-            }
-
-            @Override
-            public Double fromString(String text) {
-                if (text == null || text.isBlank()) return null;
-                try {
-                    double value = Double.parseDouble(text.trim());
-                    return value < 0 ? null : value;
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-        };
-        colStock1.setCellFactory(column -> {
-            TextFieldTableCell<ProductPriceDto, Double> cell = new TextFieldTableCell<>(stockConverter);
-            cell.setOnMouseClicked(event -> {
-                if (cell.isEditing() || cell.isEmpty() || cell.getTableRow() == null) return;
-                if (cell.getTableRow().getItem() == null) return;
-                cell.getTableView().edit(cell.getTableRow().getIndex(), column);
-            });
-            return cell;
-        });
-        colStock1.setOnEditCommit(event -> {
-            Double value = event.getNewValue();
-            if (value == null) {
-                productpriceArrayTbl.refresh();
-                return;
-            }
-            ProductPriceDto row = event.getRowValue();
-            row.setStock(value);
-            productpriceArrayTbl.refresh();
-        });
 
         colAction1.setCellFactory(column -> new TableCell<>() {
-            private final Button removeButton = new Button("Remove");
-            private final HBox box = new HBox(removeButton);
+            private final Button removeButton = new Button();
 
             {
-                box.setAlignment(Pos.CENTER);
-                removeButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 8 2 8;");
+                removeButton.setGraphic(createRemoveIcon());
+                removeButton.setTooltip(new Tooltip("Remove price"));
+                removeButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 4; -fx-padding: 4 6 4 6; -fx-cursor: hand;");
                 removeButton.setOnAction(event -> removePriceRow(getTableRow() == null ? null : getTableRow().getItem()));
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : box);
+                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : removeButton);
             }
         });
     }
 
-    private void setPriceDetailsVisible(boolean visible) {
-        priceDetailsPane.setVisible(visible);
-        priceDetailsPane.setManaged(visible);
-        tblProduct.setLayoutY(visible ? 430 : 258);
-        tblProduct.setPrefHeight(visible ? 302 : 474);
+    /** Small white trash-can icon used by the price row's remove button. */
+    private Node createRemoveIcon() {
+        Rectangle lid = new Rectangle(1.5, 2.5, 11, 1.5);
+        lid.setArcWidth(1.2);
+        lid.setArcHeight(1.2);
+        lid.setFill(Color.WHITE);
+
+        Rectangle handle = new Rectangle(5, 1, 4, 1.5);
+        handle.setArcWidth(0.8);
+        handle.setArcHeight(0.8);
+        handle.setFill(Color.WHITE);
+
+        Rectangle body = new Rectangle(3, 4.5, 8, 8.5);
+        body.setArcWidth(1.5);
+        body.setArcHeight(1.5);
+        body.setFill(Color.TRANSPARENT);
+        body.setStroke(Color.WHITE);
+        body.setStrokeWidth(1.2);
+
+        Line leftRib = new Line(5.6, 6.5, 5.6, 11);
+        Line rightRib = new Line(8.4, 6.5, 8.4, 11);
+        leftRib.setStroke(Color.WHITE);
+        rightRib.setStroke(Color.WHITE);
+        leftRib.setStrokeWidth(1);
+        rightRib.setStrokeWidth(1);
+
+        Group icon = new Group(lid, handle, body, leftRib, rightRib);
+        icon.setFocusTraversable(false);
+        return icon;
+    }
+
+    private double rowValue(double[] row, int index) {
+        return row != null && row.length > index ? row[index] : 0.0;
     }
 
     private void loadProductPrices(ProductDto product) {
-        ObservableList<ProductPriceDto> items = productpriceArrayTbl.getItems();
+        ObservableList<double[]> items = productpriceArrayTbl.getItems();
         items.clear();
         if (product == null) {
             txtPrice.clear();
             return;
         }
 
-        ArrayList<ProductPriceDto> prices = productPriceBO.getPricesByProduct(product.getId());
-        if (prices.isEmpty()) {
-            prices.add(new ProductPriceDto(null, product.getId(), product.getName(), product.getPrice()));
+        double[][] pairs = product.getPriceQtyPairs();
+        if (pairs.length == 0) {
+            pairs = new double[][]{{product.getPrice(), 0.0}};
         }
-        for (ProductPriceDto price : prices) {
-            price.setProductName(product.getName());
-        }
-        items.setAll(prices);
-        if (!prices.isEmpty()) {
-            txtPrice.setText(formatPrice(prices.get(0).getPrice()));
-        }
+        items.addAll(Arrays.asList(pairs));
+        txtPrice.setText(formatPrice(pairs[0][PriceQtyArray.PRICE]));
     }
 
     @FXML
@@ -425,6 +356,7 @@ public class ProductController implements Initializable {
     private void pageReset() {
         btnDelete.setDisable(true);
         btnUpdate.setDisable(true);
+        btnAddPriceStock.setDisable(true);
         btnSave.setDisable(false);
     }
 
@@ -433,22 +365,9 @@ public class ProductController implements Initializable {
         ObservableList<ProductDto> items = tblProduct.getItems();
         items.clear();
         ArrayList<ProductDto> allProducts = productBO.getAllProducts();
-        if (allProducts == null) return;
-
-        Map<String, ArrayList<Double>> pricesByProduct = new HashMap<>();
-        for (ProductPriceDto price : productPriceBO.getAllPrices()) {
-            pricesByProduct.computeIfAbsent(price.getProductId(), key -> new ArrayList<>())
-                    .add(price.getPrice());
+        if (allProducts != null) {
+            items.addAll(allProducts);
         }
-        for (ProductDto dto : allProducts) {
-            ArrayList<Double> prices = pricesByProduct.get(dto.getId());
-            if (prices == null || prices.isEmpty()) {
-                prices = new ArrayList<>();
-                prices.add(dto.getPrice());
-            }
-            dto.setPrices(prices);
-        }
-        items.addAll(allProducts);
     }
 
     private void generateNextId() {
@@ -476,30 +395,12 @@ public class ProductController implements Initializable {
         }
     }
 
-    /**
-     * After adding a price + stock, keep the product stock in sync:
-     * product stock = sum of all price + stock pairs in the price array.
-     */
+    /** Reload the product after a price/qty pair was appended by the modal form. */
     private void refreshPricesAfterAdd(String productId) {
         if (productId == null || productId.isEmpty()) {
             return;
         }
         ProductDto refreshed = productBO.searchProduct(productId);
-        if (refreshed == null) {
-            return;
-        }
-
-        ArrayList<ProductPriceDto> priceRows = productPriceBO.getPricesByProduct(productId);
-        double totalStock = 0.0;
-        for (ProductPriceDto priceRow : priceRows) {
-            totalStock += priceRow.getStock();
-        }
-        if (Double.compare(refreshed.getQty(), totalStock) != 0) {
-            refreshed.setQty(totalStock);
-            productBO.updateProduct(refreshed);
-            refreshed = productBO.searchProduct(productId);
-        }
-
         if (refreshed != null) {
             loadProductPrices(refreshed);
             txtQty.setText(String.valueOf(refreshed.getQty()));
@@ -527,7 +428,7 @@ public class ProductController implements Initializable {
         String name = txtName.getText().trim();
         String priceText = txtPrice.getText().trim();
         String qtyText = txtQty.getText().trim();
-        ObservableList<ProductPriceDto> priceRows = productpriceArrayTbl.getItems();
+        ObservableList<double[]> priceRows = productpriceArrayTbl.getItems();
 
         if (itemcode.isEmpty() || name.isEmpty() || qtyText.isEmpty()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Mandatory fields are empty!");
@@ -537,36 +438,23 @@ public class ProductController implements Initializable {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Add at least one price for the inventory item!");
             return;
         }
-
         if (productBO.existProductByItemCode(itemcode)) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.");
             return;
         }
 
         try {
-            Double primaryPrice = resolvePrimaryPrice(priceText, priceRows);
-            if (primaryPrice == null) {
+            double[][] pairs = buildPriceQty(priceText, priceRows);
+            if (pairs == null) {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid input for price!");
                 return;
             }
 
-            // Product stock = sum of all price + stock pairs in the price array.
-            double totalStock = 0.0;
-            for (ProductPriceDto priceRow : priceRows) {
-                totalStock += priceRow.getStock();
-            }
-
-            boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, totalStock, primaryPrice));
+            boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, pairs));
             if (isSaved) {
-                boolean pricesSaved = savePriceRows(id, name, priceRows);
-                if (pricesSaved) {
-                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Saved!");
-                } else {
-                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Product saved, but some prices could not be saved!");
-                }
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Saved!");
                 loadAllProducts();
                 clearFields();
-
                 askAndOpenAddPriceForm(name, id);
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save inventory!");
@@ -587,7 +475,7 @@ public class ProductController implements Initializable {
         String name = txtName.getText().trim();
         String priceText = txtPrice.getText().trim();
         String qtyText = txtQty.getText().trim();
-        ObservableList<ProductPriceDto> priceRows = productpriceArrayTbl.getItems();
+        ObservableList<double[]> priceRows = productpriceArrayTbl.getItems();
 
         if (itemcode.isEmpty() || name.isEmpty() || qtyText.isEmpty()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Mandatory fields are empty!");
@@ -605,29 +493,17 @@ public class ProductController implements Initializable {
         }
 
         try {
-            Double primaryPrice = resolvePrimaryPrice(priceText, priceRows);
-            if (primaryPrice == null) {
+            double[][] pairs = buildPriceQty(priceText, priceRows);
+            if (pairs == null) {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid input for price!");
                 return;
             }
 
-            // Product stock = sum of all price + stock pairs in the price array.
-            double totalStock = 0.0;
-            for (ProductPriceDto priceRow : priceRows) {
-                totalStock += priceRow.getStock();
-            }
-
-            boolean isUpdated = productBO.updateProduct(new ProductDto(id, itemcode, name, totalStock, primaryPrice));
+            boolean isUpdated = productBO.updateProduct(new ProductDto(id, itemcode, name, pairs));
             if (isUpdated) {
-                boolean pricesSaved = savePriceRows(id, name, priceRows);
-                if (pricesSaved) {
-                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
-                } else {
-                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Product updated, but some prices could not be saved!");
-                }
+                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
                 loadAllProducts();
                 clearFields();
-
                 askAndOpenAddPriceForm(name, id);
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
@@ -637,13 +513,42 @@ public class ProductController implements Initializable {
         }
     }
 
+    /**
+     * Build the 2D price/qty array from the editor. The typed price is the primary
+     * (first) price and the typed quantity is the total stock across all rows.
+     */
+    private double[][] buildPriceQty(String priceText, ObservableList<double[]> rows) {
+        Double primaryPrice;
+        if (priceText != null && !priceText.isBlank()) {
+            primaryPrice = parsePrice(priceText);
+            if (primaryPrice == null) return null;
+        } else if (!rows.isEmpty()) {
+            primaryPrice = rowValue(rows.get(0), PriceQtyArray.PRICE);
+        } else {
+            return null;
+        }
+        if (primaryPrice < 0) return null;
+
+        double totalQty = productStockValue();
+        if (rows.isEmpty()) {
+            return PriceQtyArray.normalize(new double[][]{{primaryPrice, totalQty}});
+        }
+
+        double[][] pairs = new double[rows.size()][];
+        for (int i = 0; i < rows.size(); i++) {
+            double[] row = rows.get(i);
+            pairs[i] = row == null ? new double[2] : row.clone();
+        }
+        pairs[0][PriceQtyArray.PRICE] = primaryPrice;
+        return PriceQtyArray.withTotalQty(pairs, totalQty);
+    }
+
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
         if (DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole())) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can delete inventory!");
             return;
         }
-        // Confirmation dialog
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete Product");
         confirmAlert.setHeaderText("Are you sure you want to delete this inventory item?");
@@ -653,7 +558,6 @@ public class ProductController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             boolean isDeleted = productBO.deleteProduct(currentProductId);
             if (isDeleted) {
-                productPriceBO.deletePricesByProduct(currentProductId);
                 AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Deleted!");
                 loadAllProducts();
                 clearFields();
@@ -673,46 +577,14 @@ public class ProductController implements Initializable {
         openAddPriceStockForm(productName, currentProductId);
     }
 
-    @FXML
-    void btnAddPriceOnAction(ActionEvent event) {
-        addPriceRow(null);
-    }
-
-    private void addPriceRow(ProductPriceDto after) {
-        ObservableList<ProductPriceDto> items = productpriceArrayTbl.getItems();
-        Double price = parsePrice(txtPrice.getText());
-        double newStock = 0.0;
-        try { newStock = Double.parseDouble(txtQty.getText().trim()); } catch (NumberFormatException ignored) { }
-        ProductPriceDto dto = new ProductPriceDto(
-                null,
-                currentProductId,
-                txtName.getText(),
-                price == null ? 0.0 : price,
-                newStock
-        );
-
-        int index = items.size();
-        if (after != null) {
-            int currentIndex = items.indexOf(after);
-            if (currentIndex >= 0) index = currentIndex + 1;
-        }
-        items.add(index, dto);
-        if (items.size() == 1) {
-            txtPrice.setText(formatPrice(dto.getPrice()));
-        }
-        productpriceArrayTbl.getSelectionModel().select(dto);
-        productpriceArrayTbl.scrollTo(dto);
-        productpriceArrayTbl.edit(index, colPrice1);
-    }
-
-    private void removePriceRow(ProductPriceDto row) {
+    private void removePriceRow(double[] row) {
         if (row == null) return;
-        ObservableList<ProductPriceDto> items = productpriceArrayTbl.getItems();
+        ObservableList<double[]> items = productpriceArrayTbl.getItems();
         items.remove(row);
         if (items.isEmpty()) {
             txtPrice.clear();
         } else {
-            txtPrice.setText(formatPrice(items.get(0).getPrice()));
+            txtPrice.setText(formatPrice(rowValue(items.get(0), PriceQtyArray.PRICE)));
         }
         productpriceArrayTbl.getSelectionModel().clearSelection();
     }
@@ -750,11 +622,11 @@ public class ProductController implements Initializable {
     private void syncPriceFieldToTable() {
         Double price = parsePrice(txtPrice.getText());
         if (price == null) return;
-        ObservableList<ProductPriceDto> items = productpriceArrayTbl.getItems();
+        ObservableList<double[]> items = productpriceArrayTbl.getItems();
         if (items.isEmpty()) {
-            items.add(new ProductPriceDto(null, currentProductId, txtName.getText(), price, productStockValue()));
+            items.add(new double[]{price, productStockValue()});
         } else {
-            items.get(0).setPrice(price);
+            items.get(0)[PriceQtyArray.PRICE] = price;
         }
         productpriceArrayTbl.refresh();
     }
@@ -763,39 +635,6 @@ public class ProductController implements Initializable {
         double stock = 0.0;
         try { stock = Double.parseDouble(txtQty.getText().trim()); } catch (NumberFormatException ignored) { }
         return stock;
-    }
-
-    private Double resolvePrimaryPrice(String priceText, ObservableList<ProductPriceDto> priceRows) {
-        Double primaryPrice;
-        if (priceText != null && !priceText.isBlank()) {
-            primaryPrice = parsePrice(priceText);
-            if (primaryPrice == null) return null;
-        } else if (!priceRows.isEmpty()) {
-            primaryPrice = priceRows.get(0).getPrice();
-        } else {
-            return null;
-        }
-
-        if (priceRows.isEmpty()) {
-            priceRows.add(new ProductPriceDto(null, currentProductId, txtName.getText(), primaryPrice, productStockValue()));
-        } else {
-            priceRows.get(0).setPrice(primaryPrice);
-            priceRows.get(0).setStock(productStockValue());
-        }
-        txtPrice.setText(formatPrice(primaryPrice));
-        productpriceArrayTbl.refresh();
-        return primaryPrice;
-    }
-
-    private boolean savePriceRows(String productId, String productName, ObservableList<ProductPriceDto> priceRows) {
-        ArrayList<ProductPriceDto> prices = new ArrayList<>();
-        for (ProductPriceDto dto : priceRows) {
-            if (dto.getPrice() < 0) continue;
-            dto.setProductId(productId);
-            dto.setProductName(productName);
-            prices.add(dto);
-        }
-        return productPriceBO.syncPrices(productId, prices);
     }
 
     private Double parsePrice(String text) {
@@ -815,12 +654,7 @@ public class ProductController implements Initializable {
     private void clearFields() {
         pageReset();
         generateNextId();
-        productpriceArrayTbl.getItems().clear();
-        setPriceDetailsVisible(false);
-        txtItemCode.clear();
-        txtName.clear();
-        txtPrice.clear();
-        txtQty.clear();
+        clearPriceDetails();
         txtItemCode.requestFocus();
     }
 

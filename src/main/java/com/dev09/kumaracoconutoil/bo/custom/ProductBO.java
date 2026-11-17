@@ -17,4 +17,5 @@ public interface ProductBO extends SuperBo {
 
     ArrayList<com.dev09.kumaracoconutoil.entity.ProductEntity> getAllProductsEntity();
     boolean updateStock(String productId, double quantity);
+    boolean addPriceQty(String productId, double price, double qty);
 }

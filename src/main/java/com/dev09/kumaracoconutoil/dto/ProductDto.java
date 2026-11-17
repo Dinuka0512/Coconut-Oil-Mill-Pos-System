@@ -1,20 +1,20 @@
 package com.dev09.kumaracoconutoil.dto;
 
 import com.dev09.kumaracoconutoil.util.AuditFormat;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class ProductDto {
     private String id;
     private String itemcode;
     private String name;
-    private double qty;
-    private double price;
-    private ArrayList<Double> prices = new ArrayList<>();
-    private ArrayList<ProductPriceDto> priceDetails = new ArrayList<>();
+
+    /** Each row is {price, qty}. */
+    private double[][] priceQty = new double[0][];
+
+    private boolean isDeleted;
     private String createdBy;
     private LocalDateTime createdAt;
     private String updatedBy;
@@ -22,53 +22,54 @@ public class ProductDto {
 
     public ProductDto() {}
 
-    public ProductDto(String id, String itemcode, String name, double qty, double price) {
+    public ProductDto(String id, String itemcode, String name, double[][] priceQty) {
         this.id = id;
         this.itemcode = itemcode;
         this.name = name;
-        this.qty = qty;
-        this.price = price;
+        setPriceQty(priceQty);
+    }
+
+    /** Convenience constructor for a single price/qty pair. */
+    public ProductDto(String id, String itemcode, String name, double qty, double price) {
+        this(id, itemcode, name, new double[][]{{price, qty}});
     }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
     public String getItemcode() { return itemcode; }
     public void setItemcode(String itemcode) { this.itemcode = itemcode; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public double getQty() { return qty; }
-    public void setQty(double qty) { this.qty = qty; }
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
-    public ArrayList<Double> getPrices() { return prices; }
-    public void setPrices(ArrayList<Double> prices) { this.prices = prices == null ? new ArrayList<>() : prices; }
 
-    /**
-     * Price rows (price + stock) for this product, e.g. [[price:100, stock:10], [price:20, stock:5]].
-     */
-    public ArrayList<ProductPriceDto> getPriceDetails() { return priceDetails; }
-    public void setPriceDetails(ArrayList<ProductPriceDto> priceDetails) { this.priceDetails = priceDetails == null ? new ArrayList<>() : priceDetails; }
+    public double[][] getPriceQty() { return priceQty; }
+    public void setPriceQty(double[][] priceQty) { this.priceQty = PriceQtyArray.normalize(priceQty); }
 
-    public ArrayList<ProductPriceDto> getPriceStockPairs() { return priceDetails; }
+    public double[][] getPriceQtyPairs() { return getPriceQty(); }
 
-    public String getPriceArray() {
-        if (prices == null || prices.isEmpty()) {
-            return "[" + formatPrice(price) + "]";
+    /** Total stock, derived from the 2D array. */
+    public double getQty() { return PriceQtyArray.totalQty(priceQty); }
+
+    public void setQty(double qty) { setPriceQty(PriceQtyArray.withTotalQty(priceQty, qty)); }
+
+    /** Primary price, derived from the first row of the 2D array. */
+    public double getPrice() { return PriceQtyArray.primaryPrice(priceQty); }
+
+    public void setPrice(double price) {
+        if (priceQty.length == 0) {
+            setPriceQty(new double[][]{{price, 0.0}});
+        } else {
+            priceQty[0][PriceQtyArray.PRICE] = price;
         }
-        StringBuilder builder = new StringBuilder("[");
-        for (int i = 0; i < prices.size(); i++) {
-            if (i > 0) builder.append(", ");
-            builder.append(formatPrice(prices.get(i)));
-        }
-        return builder.append("]").toString();
     }
 
-    private String formatPrice(double value) {
-        if (value == Math.rint(value)) {
-            return String.valueOf((long) value);
-        }
-        return String.format(Locale.US, "%.2f", value);
-    }
+    public ArrayList<Double> getPrices() { return PriceQtyArray.prices(priceQty); }
+
+    public String getPriceArray() { return PriceQtyArray.formatPrices(priceQty); }
+
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
@@ -84,6 +85,7 @@ public class ProductDto {
 
     @Override
     public String toString() {
-        return "ProductDto{id=" + id + ", itemcode=" + itemcode + ", name=" + name + ", qty=" + qty + ", price=" + price + "}";
+        return "ProductDto{id=" + id + ", itemcode=" + itemcode + ", name=" + name
+                + ", priceQty=" + PriceQtyArray.toJson(priceQty) + "}";
     }
 }

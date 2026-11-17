@@ -3,13 +3,9 @@ package com.dev09.kumaracoconutoil.bo.custom.impl;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dao.DAOFactory;
 import com.dev09.kumaracoconutoil.dao.custom.ProductDAO;
-import com.dev09.kumaracoconutoil.dao.custom.ProductPriceDAO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
-import com.dev09.kumaracoconutoil.dto.ProductPriceDto;
 import com.dev09.kumaracoconutoil.entity.ProductEntity;
-import com.dev09.kumaracoconutoil.entity.ProductPriceEntity;
-import com.dev09.kumaracoconutoil.entity.ProductEntity;
-import com.dev09.kumaracoconutoil.util.PdfGenerator;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 
 import java.util.ArrayList;
 
@@ -17,49 +13,38 @@ public class ProductBOImpl implements ProductBO {
 
     private final ProductDAO productDAO = (ProductDAO) DAOFactory.getInstance()
             .getDAO(DAOFactory.DAOType.PRODUCT);
-    private final ProductPriceDAO productPriceDAO = (ProductPriceDAO) DAOFactory.getInstance()
-            .getDAO(DAOFactory.DAOType.PRODUCT_PRICE);
 
-    private ArrayList<ProductPriceDto> mapPriceDetails(String productId) {
-        ArrayList<ProductPriceDto> details = new ArrayList<>();
-        for (ProductPriceEntity entity : productPriceDAO.getByProductId(productId)) {
-            details.add(new ProductPriceDto(entity.getId(), entity.getProductId(), null, entity.getPrice(), entity.getStock()));
-        }
-        return details;
+    private ProductDto toDto(ProductEntity entity) {
+        ProductDto dto = new ProductDto(
+                entity.getId(),
+                entity.getItemcode(),
+                entity.getName(),
+                entity.getPriceQtyPairs()
+        );
+        dto.setCreatedBy(entity.getCreatedBy());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedBy(entity.getUpdatedBy());
+        dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setDeleted(entity.isDeleted());
+        return dto;
     }
 
     @Override
     public ArrayList<ProductDto> getAllProducts() {
-        ArrayList<ProductEntity> all = productDAO.getAll();
         ArrayList<ProductDto> dtoList = new ArrayList<>();
-        for (ProductEntity entity : all) {
-            ProductDto dto = new ProductDto(
-                    entity.getId(),
-                    entity.getItemcode(),
-                    entity.getName(),
-                    entity.getQty(),
-                    entity.getPrice()
-            );
-            dto.setCreatedBy(entity.getCreatedBy());
-            dto.setCreatedAt(entity.getCreatedAt());
-            dto.setUpdatedBy(entity.getUpdatedBy());
-            dto.setUpdatedAt(entity.getUpdatedAt());
-            dto.setPriceDetails(mapPriceDetails(entity.getId()));
-            dtoList.add(dto);
+        for (ProductEntity entity : productDAO.getAll()) {
+            dtoList.add(toDto(entity));
         }
         return dtoList;
     }
 
     @Override
     public boolean saveProduct(ProductDto dto) {
-        // Create entity using setters (avoid constructor confusion)
         ProductEntity entity = new ProductEntity();
         entity.setId(dto.getId());
         entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
-        entity.setQty(dto.getQty());
-        entity.setPrice(dto.getPrice());
-        // isDeleted defaults to false
+        entity.setPriceQtyPairs(dto.getPriceQty());
         return productDAO.save(entity);
     }
 
@@ -69,8 +54,7 @@ public class ProductBOImpl implements ProductBO {
         if (entity == null) return false;
         entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
-        entity.setQty(dto.getQty());
-        entity.setPrice(dto.getPrice());
+        entity.setPriceQtyPairs(dto.getPriceQty());
         return productDAO.update(entity);
     }
 
@@ -97,25 +81,8 @@ public class ProductBOImpl implements ProductBO {
     @Override
     public ProductDto searchProduct(String id) {
         ProductEntity entity = productDAO.search(id);
-        if (entity != null) {
-            ProductDto dto = new ProductDto(
-                    entity.getId(),
-                    entity.getItemcode(),
-                    entity.getName(),
-                    entity.getQty(),
-                    entity.getPrice()
-            );
-            dto.setCreatedBy(entity.getCreatedBy());
-            dto.setCreatedAt(entity.getCreatedAt());
-            dto.setUpdatedBy(entity.getUpdatedBy());
-            dto.setUpdatedAt(entity.getUpdatedAt());
-            dto.setPriceDetails(mapPriceDetails(entity.getId()));
-            return dto;
-        }
-        return null;
+        return entity == null ? null : toDto(entity);
     }
-
-
 
     @Override
     public ArrayList<ProductEntity> getAllProductsEntity() {
@@ -125,11 +92,17 @@ public class ProductBOImpl implements ProductBO {
     @Override
     public boolean updateStock(String productId, double quantity) {
         ProductEntity entity = productDAO.search(productId);
-        if (entity != null) {
-            double newQty = entity.getQty() - quantity;
-            entity.setQty(newQty);
-            return productDAO.update(entity);
-        }
-        return false;
+        if (entity == null) return false;
+        entity.setQty(entity.getQty() - quantity);
+        return productDAO.update(entity);
+    }
+
+    /** Append a new price/qty pair to a saved product. */
+    @Override
+    public boolean addPriceQty(String productId, double price, double qty) {
+        ProductEntity entity = productDAO.search(productId);
+        if (entity == null) return false;
+        entity.setPriceQtyPairs(PriceQtyArray.append(entity.getPriceQtyPairs(), price, qty));
+        return productDAO.update(entity);
     }
 }
