@@ -33,6 +33,11 @@ public class SupplierBOImpl implements SupplierBO {
     }
 
     @Override
+    public boolean ensureDefaultSupplier(String id, String name, String contact) {
+        return supplierDAO.ensureDefaultSupplier(id, name, contact);
+    }
+
+    @Override
     public boolean saveSupplier(SupplierDto dto) {
         SupplierEntity entity = new SupplierEntity(
                 dto.getSupplierId(),

@@ -10,6 +10,7 @@ public class ProductDto {
     private String id;
     private String itemcode;
     private String name;
+    private String supplierId;
 
     /** Each row is {price, qty}. */
     private double[][] priceQty = new double[0][];
@@ -42,6 +43,9 @@ public class ProductDto {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getSupplierId() { return supplierId; }
+    public void setSupplierId(String supplierId) { this.supplierId = supplierId; }
 
     public double[][] getPriceQty() { return priceQty; }
     public void setPriceQty(double[][] priceQty) { this.priceQty = PriceQtyArray.normalize(priceQty); }

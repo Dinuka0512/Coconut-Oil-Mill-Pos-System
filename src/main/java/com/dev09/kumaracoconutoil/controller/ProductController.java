@@ -1,13 +1,16 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AuditCell;
 import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
+import com.dev09.kumaracoconutoil.util.SupplierSelectionDialog;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.dto.SupplierDto;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -39,6 +42,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class ProductController implements Initializable {
 
@@ -115,6 +119,14 @@ public class ProductController implements Initializable {
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentProductId;
 
+    /**
+     * Supplier pre-selected from the Supplier view's "+ Add Product" flow. It is
+     * read once when this controller loads, then cleared so it only affects the
+     * product that is saved right after the navigation.
+     */
+    public static String pendingSupplierId;
+    private String pendingSupplier;
+
     private void setupShortcuts() {
         rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (!event.isControlDown() || event.isAltDown() || event.isMetaDown()) return;
@@ -147,6 +159,10 @@ public class ProductController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Consume the supplier chosen on the Supplier view's "+ Add Product" flow.
+        pendingSupplier = pendingSupplierId;
+        pendingSupplierId = null;
+
         pageReset();
         colItemCode.setCellValueFactory(new PropertyValueFactory<>("itemcode"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -377,7 +393,8 @@ public class ProductController implements Initializable {
         txtName.setText("");
     }
 
-    private void openAddPriceStockForm(String productName, String productId) {
+    /** Opens the modal and returns true only when a price/stock pair was added. */
+    private boolean openAddPriceStockForm(String productName, String productId) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/addPriceStock.fxml"));
             Parent root = loader.load();
@@ -390,10 +407,15 @@ public class ProductController implements Initializable {
             stage.setResizable(false);
             stage.showAndWait();
 
-            refreshPricesAfterAdd(productId);
+            boolean added = addPriceStockController.isPriceAdded();
+            if (added) {
+                refreshPricesAfterAdd(productId);
+            }
+            return added;
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open add price screen!");
+            return false;
         }
     }
 
@@ -406,20 +428,87 @@ public class ProductController implements Initializable {
         if (refreshed != null) {
             loadProductPrices(refreshed);
             txtQty.setText(String.valueOf(refreshed.getQty()));
+            updateProductRow(refreshed);
         }
     }
 
-    private void askAndOpenAddPriceForm(String productName, String productId) {
+    /**
+     * Keep the main inventory table in sync after a price/stock pair was added.
+     * The row keeps its identity but its price array, stock and audit info are
+     * copied from the freshly loaded product, then the table is re-rendered.
+     */
+    private void updateProductRow(ProductDto refreshed) {
+        if (refreshed == null || refreshed.getId() == null) {
+            return;
+        }
+        for (ProductDto row : tblProduct.getItems()) {
+            if (refreshed.getId().equals(row.getId())) {
+                row.setPriceQty(refreshed.getPriceQty());
+                row.setUpdatedBy(refreshed.getUpdatedBy());
+                row.setUpdatedAt(refreshed.getUpdatedAt());
+                break;
+            }
+        }
+        tblProduct.refresh();
+    }
+
+    private boolean confirmAddPrice() {
         Alert addPriceAlert = new Alert(Alert.AlertType.CONFIRMATION);
         addPriceAlert.setTitle("Add Price");
         addPriceAlert.setHeaderText(null);
-        addPriceAlert.setContentText(null);
+        addPriceAlert.setContentText("Do you want to add new price and stock?");
         ButtonType addYes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
         ButtonType addNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-        addPriceAlert.getButtonTypes().addAll(addYes, addNo);
+        // A CONFIRMATION alert already has OK/Cancel; replace them, don't append.
+        addPriceAlert.getButtonTypes().setAll(addYes, addNo);
         Optional<ButtonType> addResult = addPriceAlert.showAndWait();
-        if (addResult.isPresent() && addYes.getText().equals(addResult.get().getText())) {
-            openAddPriceStockForm(productName, productId);
+        return addResult.isPresent() && addYes.equals(addResult.get());
+    }
+
+    /**
+     * Ask before opening the add-price form. After Save, keep asking after every
+     * successful add so several price/stock pairs can be entered in one session.
+     *
+     * @return true only when the user answered No to the add-price question.
+     */
+    private boolean askAndOpenAddPriceForm(String productName, String productId, boolean repeatAfterAdd) {
+        do {
+            if (!confirmAddPrice()) {
+                return true; // user said No
+            }
+            if (!openAddPriceStockForm(productName, productId)) {
+                return false; // closed without adding a price
+            }
+        } while (repeatAfterAdd);
+        return false;
+    }
+
+    /**
+     * Attach a supplier to a freshly saved product. The supplier comes from the
+     * Supplier view's "+ Add Product" flow when present, otherwise the user is
+     * asked with the supplier picker (defaulting to the built-in supplier).
+     */
+    private void assignSupplierToProduct(String productId) {
+        String supplierId = pendingSupplier;
+        pendingSupplier = null;
+        if (supplierId == null || supplierId.isBlank()) {
+            SupplierDto chosen = openSupplierSelection();
+            supplierId = chosen == null ? AppConstants.DEFAULT_SUPPLIER_ID : chosen.getSupplierId();
+        }
+        if (supplierId != null && !supplierId.isBlank()) {
+            productBO.assignSupplier(productId, supplierId);
+        }
+    }
+
+    /** Opens the supplier picker and returns the chosen supplier (null when cancelled). */
+    private SupplierDto openSupplierSelection() {
+        try {
+            Window owner = rootPane.getScene() == null ? null : rootPane.getScene().getWindow();
+            return SupplierSelectionDialog.show(owner).orElse(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open supplier selection!");
+            return null;
         }
     }
 
@@ -454,10 +543,10 @@ public class ProductController implements Initializable {
 
             boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, pairs));
             if (isSaved) {
-                AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Saved!");
                 loadAllProducts();
                 clearFields();
-                askAndOpenAddPriceForm(name, id);
+                askAndOpenAddPriceForm(name, id, true);
+                assignSupplierToProduct(id);
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to save inventory!");
             }
@@ -506,7 +595,7 @@ public class ProductController implements Initializable {
                 AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
                 loadAllProducts();
                 clearFields();
-                askAndOpenAddPriceForm(name, id);
+                askAndOpenAddPriceForm(name, id, false);
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
             }

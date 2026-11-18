@@ -21,6 +21,7 @@ public class ProductBOImpl implements ProductBO {
                 entity.getName(),
                 entity.getPriceQtyPairs()
         );
+        dto.setSupplierId(entity.getSupplierId());
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedBy(entity.getUpdatedBy());
@@ -45,6 +46,7 @@ public class ProductBOImpl implements ProductBO {
         entity.setItemcode(dto.getItemcode());
         entity.setName(dto.getName());
         entity.setPriceQtyPairs(dto.getPriceQty());
+        entity.setSupplierId(dto.getSupplierId());
         return productDAO.save(entity);
     }
 
@@ -103,6 +105,26 @@ public class ProductBOImpl implements ProductBO {
         ProductEntity entity = productDAO.search(productId);
         if (entity == null) return false;
         entity.setPriceQtyPairs(PriceQtyArray.append(entity.getPriceQtyPairs(), price, qty));
+        return productDAO.update(entity);
+    }
+
+    @Override
+    public ArrayList<ProductDto> getProductsBySupplier(String supplierId) {
+        ArrayList<ProductDto> dtoList = new ArrayList<>();
+        if (supplierId == null || supplierId.isBlank()) {
+            return dtoList;
+        }
+        for (ProductEntity entity : productDAO.getBySupplier(supplierId)) {
+            dtoList.add(toDto(entity));
+        }
+        return dtoList;
+    }
+
+    @Override
+    public boolean assignSupplier(String productId, String supplierId) {
+        ProductEntity entity = productDAO.search(productId);
+        if (entity == null) return false;
+        entity.setSupplierId(supplierId);
         return productDAO.update(entity);
     }
 }

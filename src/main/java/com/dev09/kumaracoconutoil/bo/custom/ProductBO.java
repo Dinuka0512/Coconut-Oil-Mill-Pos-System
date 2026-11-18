@@ -18,4 +18,10 @@ public interface ProductBO extends SuperBo {
     ArrayList<com.dev09.kumaracoconutoil.entity.ProductEntity> getAllProductsEntity();
     boolean updateStock(String productId, double quantity);
     boolean addPriceQty(String productId, double price, double qty);
+
+    /** Products that belong to the given supplier. */
+    ArrayList<ProductDto> getProductsBySupplier(String supplierId);
+
+    /** Attach a saved product to a supplier. */
+    boolean assignSupplier(String productId, String supplierId);
 }

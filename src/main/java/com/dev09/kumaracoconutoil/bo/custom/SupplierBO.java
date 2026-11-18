@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 public interface SupplierBO extends SuperBo {
     ArrayList<SupplierDto> getAllSuppliers();
+    boolean ensureDefaultSupplier(String id, String name, String contact);
     boolean saveSupplier(SupplierDto dto);
     boolean updateSupplier(SupplierDto dto);
     boolean existSupplier(String id);

@@ -7,4 +7,7 @@ import com.dev09.kumaracoconutoil.entity.ProductEntity;
 
 public interface ProductDAO extends SuperDAO, CrudDAO<ProductEntity> {
     boolean existByItemCode(String itemCode);
+
+    /** Products that belong to the given supplier. */
+    java.util.ArrayList<ProductEntity> getBySupplier(String supplierId);
 }

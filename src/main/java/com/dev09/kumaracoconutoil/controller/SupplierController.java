@@ -1,9 +1,12 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
+import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.bo.custom.SupplierBO;
+import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.SupplierDto;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AuditCell;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 import javafx.collections.ObservableList;
@@ -32,6 +35,12 @@ public class SupplierController implements Initializable {
     @FXML private TableColumn<SupplierDto, String> colCreated;
     @FXML private TableColumn<SupplierDto, String> colUpdated;
     @FXML private TableView<SupplierDto> tblSupplier;
+    @FXML private TableColumn<ProductDto, String> colProdItemCode;
+    @FXML private TableColumn<ProductDto, String> colProdName;
+    @FXML private TableColumn<ProductDto, String> colProdPrice;
+    @FXML private TableColumn<ProductDto, Double> colProdQty;
+    @FXML private TableView<ProductDto> tblSuppliersProduct;
+    @FXML private Button btnAddProduct;
     @FXML private TextField txtContact;
     @FXML private TextField txtName;
     @FXML private TextField txtSearch;
@@ -41,6 +50,7 @@ public class SupplierController implements Initializable {
     @FXML private Button btnUpdate;
 
     private final SupplierBO supplierBO = (SupplierBO) BOFactory.getInstance().getBo(BOFactory.BOType.SUPPLIER);
+    private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentSupplierId;
 
     private void setupShortcuts() {
@@ -89,6 +99,8 @@ public class SupplierController implements Initializable {
         colUpdated.setVisible(canSeeAudit);
         tblSupplier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+        setupProductTable();
+
         btnSave.setTooltip(new Tooltip("Save (Ctrl+S)"));
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
@@ -109,13 +121,49 @@ public class SupplierController implements Initializable {
                 currentSupplierId = newValue.getSupplierId();
                 txtName.setText(newValue.getName());
                 txtContact.setText(newValue.getContact());
+                loadSupplierProducts(newValue.getSupplierId());
 
                 btnSave.setDisable(true);
                 boolean isCashier = DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole());
                 btnUpdate.setDisable(isCashier);
                 btnDelete.setDisable(isCashier);
+            } else {
+                loadSupplierProducts(null);
             }
         });
+    }
+
+    private void setupProductTable() {
+        colProdItemCode.setCellValueFactory(new PropertyValueFactory<>("itemcode"));
+        colProdName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colProdPrice.setCellValueFactory(new PropertyValueFactory<>("priceArray"));
+        colProdQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
+        tblSuppliersProduct.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblSuppliersProduct.setPlaceholder(new Label("Select a supplier to see its products"));
+    }
+
+    /** Load the products that belong to the selected supplier. */
+    private void loadSupplierProducts(String supplierId) {
+        ObservableList<ProductDto> items = tblSuppliersProduct.getItems();
+        items.clear();
+        if (supplierId == null || supplierId.isBlank()) {
+            return;
+        }
+        ArrayList<ProductDto> products = productBO.getProductsBySupplier(supplierId);
+        if (products != null) {
+            items.addAll(products);
+        }
+    }
+
+    /** "+ Add Product": open the inventory add-product flow bound to this supplier. */
+    @FXML
+    void btnAddProductOnAction(ActionEvent event) {
+        if (currentSupplierId == null || currentSupplierId.isBlank()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a supplier first!");
+            return;
+        }
+        ProductController.pendingSupplierId = currentSupplierId;
+        DashboardController.openSubView("/view/inventory.fxml");
     }
 
     private void loadAllSuppliers() {
@@ -153,6 +201,10 @@ public class SupplierController implements Initializable {
 
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
+        if (AppConstants.DEFAULT_SUPPLIER_ID.equals(currentSupplierId)) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Default supplier cannot be updated!");
+            return;
+        }
         String id = currentSupplierId;
         String name = txtName.getText();
         String contact = txtContact.getText();
@@ -169,6 +221,10 @@ public class SupplierController implements Initializable {
 
     @FXML
     void btnDeleteOnAction(ActionEvent event) {
+        if (AppConstants.DEFAULT_SUPPLIER_ID.equals(currentSupplierId)) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Default supplier cannot be deleted!");
+            return;
+        }
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Delete Supplier");
         confirmAlert.setHeaderText("Are you sure you want to delete this supplier?");

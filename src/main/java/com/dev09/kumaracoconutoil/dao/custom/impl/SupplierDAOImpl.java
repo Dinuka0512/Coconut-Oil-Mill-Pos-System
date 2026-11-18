@@ -61,6 +61,38 @@ public class SupplierDAOImpl implements SupplierDAO {
     }
 
     @Override
+    public boolean ensureDefaultSupplier(String id, String name, String contact) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        Transaction tx = session.beginTransaction();
+        try {
+            // Must ignore is_deleted: a soft-deleted row still owns the primary key.
+            NativeQuery<Long> countQuery = session.createNativeQuery(
+                    "SELECT COUNT(*) FROM supplier WHERE supplierId = :id", Long.class);
+            countQuery.setParameter("id", id);
+            Long count = countQuery.uniqueResult();
+
+            if (count == null || count == 0) {
+                session.persist(new SupplierEntity(id, name, contact, false));
+            } else {
+                session.createNativeQuery(
+                                "UPDATE supplier SET is_deleted = false, name = :name, contact = :contact WHERE supplierId = :id")
+                        .setParameter("name", name)
+                        .setParameter("contact", contact)
+                        .setParameter("id", id)
+                        .executeUpdate();
+            }
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            return false;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public boolean exist(String id) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {

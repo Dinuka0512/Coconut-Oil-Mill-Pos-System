@@ -41,6 +41,7 @@ public class AddPriceStockController implements Initializable {
 
     private String productId;
     private String productName;
+    private boolean priceAdded;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -67,7 +68,13 @@ public class AddPriceStockController implements Initializable {
     public void initData(String productId, String productName) {
         this.productId = productId;
         this.productName = productName;
+        this.priceAdded = false;
         lblProduct.setText(productName == null ? "-" : productName);
+    }
+
+    /** True when the form was closed after a price/stock pair was saved. */
+    public boolean isPriceAdded() {
+        return priceAdded;
     }
 
     /** Enter in the Price field moves the caret to the Stock field. */
@@ -103,6 +110,7 @@ public class AddPriceStockController implements Initializable {
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Could not add the price. Please try again.");
             return;
         }
+        priceAdded = true;
         closeStage();
     }
 

@@ -124,6 +124,19 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public ArrayList<ProductEntity> getBySupplier(String supplierId) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Query<ProductEntity> query = session.createQuery(
+                    "FROM ProductEntity p WHERE p.supplierId = :supplierId", ProductEntity.class);
+            query.setParameter("supplierId", supplierId);
+            return new ArrayList<>(query.list());
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public boolean existByItemCode(String itemCode) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {

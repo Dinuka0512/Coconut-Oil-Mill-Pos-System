@@ -54,6 +54,8 @@ import java.util.ResourceBundle;
 public class DashboardController implements Initializable {
     public static UserDto userData;
 
+    private static DashboardController instance;
+
     @FXML
     private AnchorPane body;
 
@@ -118,6 +120,7 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        instance = this;
         updateUserDisplay();
         IdleMonitor.start(this::performIdleLogout);
         if (userData != null && RoleUtil.isCashier(userData.getRole())) {
@@ -352,6 +355,13 @@ public class DashboardController implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");
+        }
+    }
+
+    /** Lets a child view (e.g. Supplier) switch the dashboard content area. */
+    public static void openSubView(String path) {
+        if (instance != null) {
+            instance.subNavigateTo(path);
         }
     }
 

@@ -7,6 +7,7 @@ import com.dev09.kumaracoconutoil.util.RoleUtil;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
+import com.dev09.kumaracoconutoil.bo.custom.SupplierBO;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.config.FactoryConfiguration;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
@@ -37,6 +38,7 @@ public class LoginController implements Initializable {
 
     private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.USER);
     private CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
+    private SupplierBO supplierBO = (SupplierBO) BOFactory.getInstance().getBo(BOFactory.BOType.SUPPLIER);
 
     @FXML
     void login(ActionEvent event) {
@@ -89,6 +91,13 @@ public class LoginController implements Initializable {
         if (customerBO.getAllCustomers().isEmpty()) {
             customerBO.saveCustomer(new CustomerDto(AppConstants.DEMO_CUSTOMER_ID, "DEMO Customer", "democust@gmail.com"));
         }
+
+        // Default supplier (same idea as the Demo customer). Idempotent: restores
+        // the row if it was soft-deleted instead of inserting a duplicate id.
+        supplierBO.ensureDefaultSupplier(
+                AppConstants.DEFAULT_SUPPLIER_ID,
+                AppConstants.DEFAULT_SUPPLIER_NAME,
+                AppConstants.DEFAULT_SUPPLIER_CONTACT);
     }
 
     private void mainNavigateTo(String path) {

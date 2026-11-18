@@ -23,6 +23,21 @@ public class ProductEntity extends AuditableEntity {
     @Column(name = "price_qty", columnDefinition = "TEXT")
     private String priceQty;
 
+    /**
+     * Legacy columns kept in the existing MySQL table. They are NOT NULL without
+     * a default, so Hibernate must include them in INSERTs. Both are derived from
+     * priceQty and kept in sync whenever the price/qty array changes.
+     */
+    @Column(name = "price")
+    private double legacyPrice;
+
+    @Column(name = "qty")
+    private double legacyQty;
+
+    /** Supplier this product is bought from. Nullable so older rows keep loading. */
+    @Column(name = "supplier_id")
+    private String supplierId;
+
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean isDeleted = false;
 
@@ -49,11 +64,27 @@ public class ProductEntity extends AuditableEntity {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
+    public String getSupplierId() { return supplierId; }
+    public void setSupplierId(String supplierId) { this.supplierId = supplierId; }
+
     public String getPriceQty() { return priceQty; }
-    public void setPriceQty(String priceQty) { this.priceQty = priceQty; }
+    public void setPriceQty(String priceQty) {
+        this.priceQty = priceQty;
+        syncLegacyColumns();
+    }
 
     public double[][] getPriceQtyPairs() { return PriceQtyArray.fromJson(priceQty); }
-    public void setPriceQtyPairs(double[][] pairs) { this.priceQty = PriceQtyArray.toJson(pairs); }
+    public void setPriceQtyPairs(double[][] pairs) {
+        this.priceQty = PriceQtyArray.toJson(pairs);
+        syncLegacyColumns();
+    }
+
+    /** Keep the old price/qty columns consistent with the JSON price tiers. */
+    private void syncLegacyColumns() {
+        double[][] pairs = getPriceQtyPairs();
+        this.legacyPrice = PriceQtyArray.primaryPrice(pairs);
+        this.legacyQty = PriceQtyArray.totalQty(pairs);
+    }
 
     /** Total stock, derived from the 2D array. */
     public double getQty() { return PriceQtyArray.totalQty(getPriceQtyPairs()); }
