@@ -164,6 +164,12 @@ public class UpdatePosController implements Initializable {
 
         txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
 
+        body.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.ESCAPE) return;
+            event.consume();
+            handleEscape();
+        });
+
         Platform.runLater(() -> {
             Scene scene = tblOrderCart.getScene();
             if (scene != null) {
@@ -173,6 +179,18 @@ public class UpdatePosController implements Initializable {
                 );
             }
         });
+    }
+
+    /** Esc closes directly when the cart is empty, otherwise asks for confirmation. */
+    private void handleEscape() {
+        boolean hasValues = !obList.isEmpty() || selectedProduct != null;
+        if (hasValues && !AlertUtil.confirmClose()) {
+            return;
+        }
+        Stage stage = (Stage) body.getScene().getWindow();
+        if (stage != null) {
+            stage.close();
+        }
     }
 
     private void loadCustomerIds() {

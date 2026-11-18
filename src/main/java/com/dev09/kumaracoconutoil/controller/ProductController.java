@@ -20,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -167,6 +168,7 @@ public class ProductController implements Initializable {
         btnUpdate.setTooltip(new Tooltip("Update (Ctrl+U)"));
         btnDelete.setTooltip(new Tooltip("Delete (Ctrl+D)"));
         btnClear.setTooltip(new Tooltip("Clear (Ctrl+C)"));
+        btnAddPriceStock.setTooltip(new Tooltip("Add Price (Enter on selected product)"));
         txtSearch.setTooltip(new Tooltip("Search Inventory (Ctrl+F)"));
 
         loadAllProducts();
@@ -567,6 +569,15 @@ public class ProductController implements Initializable {
         }
     }
 
+    /** Enter on a selected product row opens the "+ Add Price" form. */
+    @FXML
+    void tblProductOnKeyPressed(KeyEvent event) {
+        if (event.getCode() != KeyCode.ENTER) return;
+        if (tblProduct.getSelectionModel().getSelectedItem() == null || btnAddPriceStock.isDisabled()) return;
+        event.consume();
+        btnAddPriceStock.fire();
+    }
+
     @FXML
     void btnAddPriceStockOnAction(ActionEvent event) {
         if (currentProductId == null || currentProductId.isEmpty()) {
@@ -652,6 +663,9 @@ public class ProductController implements Initializable {
     }
 
     private void clearFields() {
+        // Clear the row selection too, otherwise clicking the same row again
+        // fires no selection-change event, so the form never re-populates.
+        tblProduct.getSelectionModel().clearSelection();
         pageReset();
         generateNextId();
         clearPriceDetails();

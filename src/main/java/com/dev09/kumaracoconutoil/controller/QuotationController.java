@@ -119,6 +119,12 @@ public class QuotationController implements Initializable {
         txtQty.setOnAction(e -> txtUnitPrice.requestFocus());
         txtUnitPrice.setOnAction(e -> btnAddToCartOnAction(null));
 
+        body.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.ESCAPE) return;
+            event.consume();
+            handleEscape();
+        });
+
         javafx.application.Platform.runLater(() -> {
             cmbProductId.requestFocus();
             javafx.scene.Scene scene = tblCart.getScene();
@@ -133,6 +139,15 @@ public class QuotationController implements Initializable {
                 );
             }
         });
+    }
+
+    /** Esc goes back directly when nothing was added, otherwise asks for confirmation. */
+    private void handleEscape() {
+        boolean hasValues = !obList.isEmpty() || selectedProduct != null;
+        if (hasValues && !AlertUtil.confirmClose()) {
+            return;
+        }
+        btnBackOnAction(null);
     }
 
     private void setQuotationId() {

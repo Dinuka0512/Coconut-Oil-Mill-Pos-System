@@ -10,6 +10,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -20,6 +23,8 @@ import java.util.ResourceBundle;
  */
 public class AddPriceStockController implements Initializable {
 
+    @FXML
+    private AnchorPane rootPane;
     @FXML
     private Label lblProduct;
     @FXML
@@ -39,7 +44,24 @@ public class AddPriceStockController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        btnSave.setDefaultButton(true);
+        // Enter is handled on each text field: Price -> Stock -> Save.
+        // The Save button is intentionally NOT the default button, otherwise
+        // pressing Enter in Price would submit before Stock is filled.
+        rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.ESCAPE) return;
+            event.consume();
+            handleEscape();
+        });
+    }
+
+    /** Esc closes directly when empty, otherwise asks before discarding the values. */
+    private void handleEscape() {
+        boolean hasValues = (txtPrice.getText() != null && !txtPrice.getText().isBlank())
+                || (txtStock.getText() != null && !txtStock.getText().isBlank());
+        if (hasValues && !AlertUtil.confirmClose()) {
+            return;
+        }
+        closeStage();
     }
 
     public void initData(String productId, String productName) {
@@ -48,11 +70,29 @@ public class AddPriceStockController implements Initializable {
         lblProduct.setText(productName == null ? "-" : productName);
     }
 
+    /** Enter in the Price field moves the caret to the Stock field. */
+    @FXML
+    void txtPriceOnAction(ActionEvent event) {
+        txtStock.requestFocus();
+    }
+
+    /** Enter in the Stock field saves (adds/updates) the price and stock pair. */
+    @FXML
+    void txtStockOnAction(ActionEvent event) {
+        btnSaveOnAction(event);
+    }
+
     @FXML
     void btnSaveOnAction(ActionEvent event) {
         Double price = parse(txtPrice.getText());
         Double stock = parse(txtStock.getText());
         if (price == null || stock == null) {
+            if (price == null) {
+                txtPrice.requestFocus();
+            } else {
+                txtStock.requestFocus();
+            }
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "You must fill the both feilds .....");
             return;
         }
         if (productId == null || productId.isBlank()) {

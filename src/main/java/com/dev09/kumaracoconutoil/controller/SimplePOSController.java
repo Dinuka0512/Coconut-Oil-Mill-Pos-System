@@ -24,6 +24,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -175,8 +176,25 @@ public class SimplePOSController implements Initializable {
                     new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.ENTER, javafx.scene.input.KeyCombination.CONTROL_DOWN),
                     () -> btnPlaceOrderOnAction(null)
                 );
+                // Combo popups consume Esc themselves, so this only closes the POS window.
+                scene.getAccelerators().put(
+                    new KeyCodeCombination(KeyCode.ESCAPE),
+                    this::handleEscape
+                );
             }
         });
+    }
+
+    /** Esc closes directly when nothing was added, otherwise asks for confirmation. */
+    private void handleEscape() {
+        boolean hasValues = !obList.isEmpty() || selectedProduct != null;
+        if (hasValues && !AlertUtil.confirmClose()) {
+            return;
+        }
+        Stage stage = (Stage) tblCart.getScene().getWindow();
+        if (stage != null) {
+            stage.close();
+        }
     }
 
     private void loadProducts() {

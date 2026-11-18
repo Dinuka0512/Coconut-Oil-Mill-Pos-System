@@ -42,7 +42,7 @@
 
             <TextField fx:id="txtSearch" layoutX="32.0" layoutY="218.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="891.0" promptText="Search Inventory by ID, Item Code or Name..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
 
-            <TableView fx:id="tblProduct" layoutX="32.0" layoutY="264.0" prefHeight="293.0" prefWidth="663.0" style="-fx-background-radius: 5;">
+            <TableView fx:id="tblProduct" layoutX="32.0" layoutY="264.0" onKeyPressed="#tblProductOnKeyPressed" prefHeight="293.0" prefWidth="663.0" style="-fx-background-radius: 5;">
                <columns>
                   <TableColumn fx:id="colItemCode" prefWidth="69.0" text="Item Code" />
                   <TableColumn fx:id="colName" prefWidth="152.0" text="Inventory Name" />
