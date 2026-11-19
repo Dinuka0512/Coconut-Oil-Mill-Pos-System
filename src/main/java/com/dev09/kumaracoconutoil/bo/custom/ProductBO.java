@@ -9,6 +9,12 @@ public interface ProductBO extends SuperBo {
     ArrayList<ProductDto> getAllProducts();
     boolean saveProduct(ProductDto dto);
     boolean existProductByItemCode(String itemCode);
+
+    /** True only when an active (not soft-deleted) product already uses this item code. */
+    boolean existActiveProductByItemCode(String itemCode);
+
+    /** Id of any product with this item code (soft-deleted included), or null. */
+    String findAnyProductIdByItemCode(String itemCode);
     boolean updateProduct(ProductDto dto);
     boolean existProduct(String id);
     boolean deleteProduct(String id);

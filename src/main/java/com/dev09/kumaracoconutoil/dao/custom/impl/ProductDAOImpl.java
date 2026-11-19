@@ -150,6 +150,66 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public boolean existActiveByItemCode(String itemCode) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            String sql = "SELECT COUNT(*) FROM product WHERE itemcode = :itemcode AND is_deleted = false";
+            NativeQuery<Long> query = session.createNativeQuery(sql, Long.class);
+            query.setParameter("itemcode", itemCode);
+            return query.uniqueResult() > 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public ProductEntity findAnyByItemCode(String itemCode) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            // Native query so it also sees soft-deleted rows (bypasses @SQLRestriction).
+            String sql = "SELECT * FROM product WHERE itemcode = :itemcode";
+            NativeQuery<ProductEntity> query = session.createNativeQuery(sql, ProductEntity.class);
+            query.setParameter("itemcode", itemCode);
+            return query.uniqueResult();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public boolean revive(ProductEntity entity) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        Transaction tx = session.beginTransaction();
+        try {
+            // A native UPDATE is used because @SQLRestriction hides soft-deleted rows
+            // from Hibernate's merge/load, which would otherwise try to re-insert.
+            String sql = "UPDATE product SET is_deleted = false, itemcode = :itemcode, name = :name, "
+                    + "price_qty = :priceQty, price = :price, qty = :qty, supplier_id = :supplierId, "
+                    + "updated_by = :updatedBy, updated_at = :updatedAt WHERE id = :id";
+            int rowsUpdated = session.createNativeQuery(sql)
+                    .setParameter("id", entity.getId())
+                    .setParameter("itemcode", entity.getItemcode())
+                    .setParameter("name", entity.getName())
+                    .setParameter("priceQty", entity.getPriceQty())
+                    .setParameter("price", entity.getPrice())
+                    .setParameter("qty", entity.getQty())
+                    // Explicit type so a null supplier id can still be bound.
+                    .setParameter("supplierId", entity.getSupplierId(), String.class)
+                    .setParameter("updatedBy", AuditUtil.currentUser())
+                    .setParameter("updatedAt", LocalDateTime.now())
+                    .executeUpdate();
+            tx.commit();
+            return rowsUpdated > 0;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            return false;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public ProductEntity search(String id) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {

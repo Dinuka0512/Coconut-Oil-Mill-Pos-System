@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Supplier Report</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="report-container">
+    {{> partials/header-report-a4}}
+
+    <table class="report-meta">
+        <tr>
+            <td>
+                <span class="meta-label">Generated Date:</span>
+                {{generatedAt}}
+            </td>
+            <td class="text-right">
+                <span class="meta-label">Total Suppliers:</span>
+                {{count}}
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 20%;">Supplier ID</th>
+            <th style="width: 52%;">Supplier Name</th>
+            <th style="width: 28%;">Contact Number</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{contact}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="3">No suppliers found.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-box">
+            <div class="summary-label">Registered Suppliers</div>
+            <div class="summary-value">{{count}}</div>
+        </div>
+    </div>
+
+    <div class="report-footer">
+        Thank you for your business.<br /><br />
+        <span class="footer-highlight">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

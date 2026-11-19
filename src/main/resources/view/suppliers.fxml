@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SupplierController">
+<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.SupplierController">
    <children>
       <Label layoutX="32.0" layoutY="21.0" text="Supplier Management" textFill="#2c3e50">
          <font>
@@ -16,7 +16,7 @@
          </font>
       </Label>
 
-      <AnchorPane layoutX="32.0" layoutY="74.0" prefHeight="135.0" prefWidth="878.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane fx:id="formPane" layoutX="32.0" layoutY="74.0" prefHeight="135.0" prefWidth="878.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
             <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="412.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
@@ -44,12 +44,13 @@
       </TableView>
       <TableView fx:id="tblSuppliersProduct" layoutX="480.0" layoutY="275.0" prefHeight="241.0" prefWidth="438.0" style="-fx-background-radius: 5;">
          <columns>
-            <TableColumn fx:id="colProdItemCode" prefWidth="85.0" text="Item Code" />
-            <TableColumn fx:id="colProdName" prefWidth="161.0" text="Name" />
-            <TableColumn fx:id="colProdPrice" prefWidth="112.0" text="Prices (LKR)" />
-            <TableColumn fx:id="colProdQty" prefWidth="78.0" text="Qty (Kg)" />
+            <TableColumn fx:id="colProdItemCode" prefWidth="67.0" text="Item Code" />
+            <TableColumn fx:id="colProdName" prefWidth="137.0" text="Name" />
+            <TableColumn fx:id="colProdPrice" prefWidth="92.0" text="Prices (LKR)" />
+            <TableColumn fx:id="colProdQty" prefWidth="83.0" text="Qty (Kg)" />
+            <TableColumn fx:id="colProdQty1" prefWidth="58.0" text="Action" />
          </columns>
       </TableView>
-      <Button fx:id="btnAddProduct" layoutX="480.0" layoutY="524.0" mnemonicParsing="false" onAction="#btnAddProductOnAction" prefHeight="35.0" prefWidth="438.0" style="-fx-background-color: #008a65; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ Add Product" />
+      <Button fx:id="btnAddProduct" disable="true" layoutX="480.0" layoutY="524.0" mnemonicParsing="false" onAction="#btnAddProductOnAction" prefHeight="35.0" prefWidth="438.0" style="-fx-background-color: #008a65; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="+ Add Product" />
    </children>
 </AnchorPane>

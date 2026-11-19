@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Sales Summary Report</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="report-container">
+    {{> partials/header-report-a4}}
+
+    <table class="report-meta">
+        <tr>
+            <td>
+                <span class="meta-label">Generated Date:</span>
+                {{generatedAt}}
+            </td>
+            <td class="text-right">
+                <span class="meta-label">Products Sold:</span>
+                {{soldQty}}
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 20%;">Code</th>
+            <th style="width: 44%;">Product Name</th>
+            <th class="text-right" style="width: 16%;">Sold Qty</th>
+            <th class="text-right" style="width: 20%;">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{code}}</td>
+            <td>{{name}}</td>
+            <td class="text-right">{{qty}}</td>
+            <td class="text-right">{{total}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="4">No sales found for this date.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-box">
+            <div class="summary-label">Total Sales Amount</div>
+            <div class="summary-value">LKR {{totalAmount}}</div>
+        </div>
+    </div>
+
+    <div class="report-footer">
+        Thank you for your business.<br /><br />
+        <span class="footer-highlight">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

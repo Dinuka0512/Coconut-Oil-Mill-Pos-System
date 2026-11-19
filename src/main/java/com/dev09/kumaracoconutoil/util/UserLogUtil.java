@@ -16,10 +16,10 @@ public final class UserLogUtil {
     private UserLogUtil() {
     }
 
-    public static void purgeOlderThanOneWeek() {
+    public static void purgeOlderLogs() {
         try {
             UserLogBO bo = (UserLogBO) BOFactory.getInstance().getBo(BOFactory.BOType.USER_LOG);
-            if (bo != null) bo.purgeLogsOlderThanOneWeek();
+            if (bo != null) bo.purgeOlderLogs();
         } catch (Exception e) {
             e.printStackTrace();
         }

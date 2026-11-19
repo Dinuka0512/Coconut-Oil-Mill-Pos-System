@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>POS Bill</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+{{> partials/company-a4}}
+
+<div class="report-heading">
+    <h2>SALES BILL</h2>
+    <p>Cash memo / point of sale invoice</p>
+</div>
+
+<table class="report-meta">
+    <tr>
+        <td>Bill No: {{orderId}}</td>
+        <td class="right">Date: {{orderDateTime}}</td>
+    </tr>
+    <tr>
+        <td>Customer: {{customerName}}</td>
+        <td class="right">{{#if hasContact}}Contact: {{customerContact}}{{/if}}</td>
+    </tr>
+</table>
+
+<table class="data-table items-table">
+    <thead>
+    <tr>
+        <th style="width: 8%;">#</th>
+        <th style="width: 46%;">Description</th>
+        <th class="num" style="width: 12%;">Qty</th>
+        <th class="num" style="width: 16%;">Rate (LKR)</th>
+        <th class="num" style="width: 18%;">Amount (LKR)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{#each rows}}
+    <tr class="{{rowClass}}">
+        <td>{{index}}</td>
+        <td>{{name}}</td>
+        <td class="num">{{qty}}</td>
+        <td class="num">{{rate}}</td>
+        <td class="num">{{amount}}</td>
+    </tr>
+    {{/each}}
+    </tbody>
+</table>
+
+<table class="layout totals-layout keep-together">
+    <tr>
+        <td class="header-left">
+            <div class="payment-box">
+                <div class="payment-title">PAYMENT: {{paymentMethod}}</div>
+                <div class="payment-line">Paid: LKR {{amountPaidA4}}</div>
+                {{#if hasDuePaid}}
+                <div class="payment-line">Due Paid: LKR {{duePaidA4}}</div>
+                {{/if}}
+                <div class="payment-line {{balanceClass}}">Balance: LKR {{balanceTextA4}}{{balanceSuffix}}</div>
+            </div>
+        </td>
+        <td class="header-right">
+            <table class="summary totals-table">
+                <tr>
+                    <td>Sub Total</td>
+                    <td class="num">LKR {{subTotalA4}}</td>
+                </tr>
+                <tr>
+                    <td>Discount ({{discountPercent}}%)</td>
+                    <td class="num">LKR {{discountA4}}</td>
+                </tr>
+                <tr>
+                    <td>Tax ({{taxRate}}%)</td>
+                    <td class="num">LKR {{taxA4}}</td>
+                </tr>
+                <tr class="total">
+                    <td>TOTAL</td>
+                    <td class="num">LKR {{totalA4}}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div class="document-note">** This Bill is Valid for 3 Days Only.</div>
+
+<div class="report-footer">
+    <table class="layout">
+        <tr>
+            <td>Thank you for your business!</td>
+            <td class="right">{{companyName}}</td>
+        </tr>
+    </table>
+</div>
+
+<table class="layout signature keep-together">
+    <tr>
+        <td></td>
+        <td class="header-right">
+            <div class="signature-line">Authorized Signature</div>
+            <div class="signature-label">{{companyName}}</div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

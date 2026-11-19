@@ -13,6 +13,7 @@ import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.TaxDto;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.collections.FXCollections;
@@ -111,6 +112,8 @@ public class OrderController implements Initializable {
     private java.util.List<ProductDto> currentProducts;
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
+    /** Stock available at the currently selected price tier. */
+    private double selectedTierQty;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -127,8 +130,35 @@ public class OrderController implements Initializable {
         loadProductIds();
         loadTax();
 
+        installEmptyComboKeyGuard(cmbCustomerId);
+        installEmptyComboKeyGuard(cmbProductId);
+
         txtDiscount.setText("0");
         txtAmount.setText("-");
+    }
+
+    /** JavaFX 21 throws from ListViewBehavior when arrow keys navigate an empty popup. */
+    private void installEmptyComboKeyGuard(ComboBox<String> combo) {
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> guard = event -> {
+            if ((event.getCode() == javafx.scene.input.KeyCode.DOWN
+                    || event.getCode() == javafx.scene.input.KeyCode.UP)
+                    && combo.getItems().isEmpty()) {
+                event.consume();
+                combo.hide();
+            }
+        };
+        combo.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, guard);
+        if (combo.getEditor() != null) {
+            combo.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, guard);
+        }
+    }
+
+    private void showComboIfHasItems(ComboBox<String> combo) {
+        if (combo.getItems().isEmpty()) {
+            combo.hide();
+        } else {
+            combo.show();
+        }
     }
 
     private void loadTax() {
@@ -227,7 +257,7 @@ public class OrderController implements Initializable {
                     cmbCustomerId.getItems().add(display);
                 }
             }
-            cmbCustomerId.show();
+            showComboIfHasItems(cmbCustomerId);
 
             if (custResetTimer != null) custResetTimer.stop();
             custResetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
@@ -251,14 +281,15 @@ public class OrderController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equals(selection) || dto.getName().equals(selection)) {
-                    Double price = resolveProductPrice(dto);
-                    if (price == null) {
+                    double[] tier = resolveProductTier(dto);
+                    if (tier == null) {
                         resetProductSelection();
                         return;
                     }
                     selectedProduct = dto;
-                    txtUnitPrice.setText(String.valueOf(price));
-                    lblQtyOnHand.setText(dto.getQty() + " Kg");
+                    selectedTierQty = tier[PriceQtyArray.QTY];
+                    txtUnitPrice.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
+                    lblQtyOnHand.setText(selectedTierQty + " Kg");
                     txtQty.requestFocus();
                     break;
                 }
@@ -266,23 +297,25 @@ public class OrderController implements Initializable {
         }
     }
 
-    private Double resolveProductPrice(ProductDto dto) {
-        ArrayList<Double> prices = dto.getPrices();
+    /** The {price, qty} tier the cashier selected, or null when cancelled. */
+    private double[] resolveProductTier(ProductDto dto) {
+        double[][] rows = dto.getPriceQtyPairs();
 
-        if (prices.isEmpty()) {
-            return dto.getPrice();
+        if (rows.length == 0) {
+            return new double[]{dto.getPrice(), dto.getQty()};
         }
-        if (prices.size() == 1) {
-            return prices.get(0);
+        if (rows.length == 1) {
+            return rows[0];
         }
 
         cmbProductId.hide();
         Window owner = cmbProductId.getScene() == null ? null : cmbProductId.getScene().getWindow();
-        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+        return PriceSelectionDialog.show(owner, dto.getName(), rows).orElse(null);
     }
 
     private void resetProductSelection() {
         selectedProduct = null;
+        selectedTierQty = 0;
         cmbProductId.getSelectionModel().clearSelection();
         if (cmbProductId.getEditor() != null) {
             cmbProductId.getEditor().clear();
@@ -313,7 +346,7 @@ public class OrderController implements Initializable {
                     cmbProductId.getItems().add(display);
                 }
             }
-            cmbProductId.show();
+            showComboIfHasItems(cmbProductId);
 
             if (resetTimer != null) resetTimer.stop();
             resetTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
@@ -346,7 +379,7 @@ public class OrderController implements Initializable {
             return;
         }
 
-        double qtyOnHand = selectedProduct.getQty();
+        double qtyOnHand = selectedTierQty;
         double existingQtyInCart = 0;
         for (int i = 0; i < obList.size(); i++) {
             if (code.equals(obList.get(i).getCode())) {
@@ -530,7 +563,7 @@ public class OrderController implements Initializable {
         }
 
         double balance = amount - finalTotal;
-        String paymentMethod = balance >= 0 ? "Cash" : "Credit";
+        String paymentMethod = "Cash";
 
         ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
         for (CartTM tm : obList) {
@@ -600,6 +633,7 @@ public class OrderController implements Initializable {
         cmbProductId.getSelectionModel().clearSelection();
         loadProductIds();
         selectedProduct = null;
+        selectedTierQty = 0;
         txtUnitPrice.clear();
         lblQtyOnHand.setText("");
         txtQty.clear();

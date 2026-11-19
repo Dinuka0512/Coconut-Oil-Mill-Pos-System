@@ -8,5 +8,5 @@ import java.util.ArrayList;
 public interface UserLogBO extends SuperBo {
     boolean saveUserLog(UserLogDto dto);
     ArrayList<UserLogDto> getAllUserLogs();
-    int purgeLogsOlderThanOneWeek();
+    int purgeOlderLogs();
 }

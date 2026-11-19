@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report template preview - Dilshan Oil Mill</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #ececf4;
+            color: #17171f;
+            font-family: Segoe UI, Arial, sans-serif;
+        }
+
+        header {
+            align-items: center;
+            background: #5fb947;
+            color: #000000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 14px 22px;
+        }
+
+        header h1 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        header p {
+            color: #234d1a;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .controls {
+            align-items: center;
+            background: #ffffff;
+            border-bottom: 1px solid #d6d6e4;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 22px;
+        }
+
+        .controls label {
+            color: #4b4b63;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        select,
+        button {
+            border: 1px solid #b9b9cd;
+            border-radius: 6px;
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        button {
+            background: #5fb947;
+            border-color: #5fb947;
+            color: #000000;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #4aa53a;
+        }
+
+        .workspace {
+            padding: 22px;
+        }
+
+        .frame {
+            background: #ffffff;
+            border: 1px solid #c9c9d9;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(20, 20, 77, 0.12);
+            margin: 0 auto;
+            max-width: 1000px;
+            overflow: hidden;
+        }
+
+        iframe {
+            background: #ffffff;
+            border: 0;
+            display: block;
+            height: 1120px;
+            width: 100%;
+        }
+
+        .status {
+            color: #6a6a80;
+            font-size: 12px;
+            margin: 0 0 10px;
+            text-align: center;
+        }
+
+        .status.error {
+            color: #a51616;
+        }
+
+        @media (max-width: 720px) {
+            iframe {
+                height: 780px;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Report template preview</h1>
+    <p>Optional developer preview: green A4 reports, black/white 80 mm reports, and POS bills. PDFs are rendered by openhtmltopdf in the Java application.</p>
+</header>
+
+<div class="controls">
+    <label for="template">Template</label>
+    <select id="template"></select>
+    <button id="refresh" type="button">Refresh preview</button>
+    <button id="print" type="button">Print frame</button>
+</div>
+
+<div class="workspace">
+    <p class="status" id="status">Loading templates...</p>
+    <div class="frame">
+        <iframe id="preview" title="Report preview"></iframe>
+    </div>
+</div>
+
+<script src="js/report-preview.js"></script>
+<script>
+    (function () {
+        'use strict';
+
+        var select = document.getElementById('template');
+        var frame = document.getElementById('preview');
+        var status = document.getElementById('status');
+        var refresh = document.getElementById('refresh');
+        var print = document.getElementById('print');
+        var preview = window.ReportPreview;
+
+        var reportMeta = {
+            'customer-report-a4.html': { reportTitle: 'CUSTOMER REPORT', subtitle: 'Customer directory' },
+            'customer-report-thermal.html': { reportTitle: 'CUSTOMER REPORT', subtitle: 'Customer directory' },
+            'supplier-report-a4.html': { reportTitle: 'SUPPLIER REPORT', subtitle: 'Supplier directory' },
+            'supplier-report-thermal.html': { reportTitle: 'SUPPLIER REPORT', subtitle: 'Supplier directory' },
+            'due-report-a4.html': { reportTitle: 'DUE PAYMENT REPORT', subtitle: 'Outstanding customer balances' },
+            'due-report-thermal.html': { reportTitle: 'DUE PAYMENT REPORT', subtitle: 'Outstanding customer balances' },
+            'product-report-a4.html': { reportTitle: 'INVENTORY REPORT', subtitle: 'Stock levels and selling prices' },
+            'product-report-thermal.html': { reportTitle: 'INVENTORY REPORT', subtitle: 'Stock levels and selling prices' },
+            'invoice-a4.html': { reportTitle: 'INVOICE', subtitle: 'Sales invoice ORD-1001' },
+            'invoice-a4-bill.html': { reportTitle: 'INVOICE', subtitle: 'Sales invoice ORD-1001' },
+            'invoice-thermal.html': { reportTitle: 'INVOICE', subtitle: 'Sales invoice ORD-1001' },
+            'quotation-a4.html': { reportTitle: 'QUOTATION', subtitle: 'Quotation Q-1001' },
+            'quotation-thermal.html': { reportTitle: 'QUOTATION', subtitle: 'Quotation Q-1001' },
+            'sales-summary-a4.html': { reportTitle: 'SALES SUMMARY REPORT', subtitle: 'Date: 2026-11-19' },
+            'sales-summary-thermal.html': { reportTitle: 'SALES SUMMARY REPORT', subtitle: 'Date: 2026-11-19' }
+        };
+
+        if (!preview) {
+            status.className = 'status error';
+            status.textContent = 'Preview helper failed to load. Serve this folder over HTTP and try again.';
+            return;
+        }
+
+        preview.templates.forEach(function (name) {
+            var option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+
+        function showStatus(message, isError) {
+            status.className = isError ? 'status error' : 'status';
+            status.textContent = message;
+        }
+
+        function renderSelected() {
+            var name = select.value;
+            var meta = reportMeta[name] || {};
+            showStatus('Rendering ' + name + '...', false);
+
+            preview.renderToIframe(frame, name, meta).then(function () {
+                showStatus('Previewing ' + name, false);
+            }).catch(function (error) {
+                showStatus(error.message + ' - open this page through a local HTTP server, not file://', true);
+            });
+        }
+
+        select.addEventListener('change', renderSelected);
+        refresh.addEventListener('click', renderSelected);
+        print.addEventListener('click', function () {
+            if (frame.contentWindow) {
+                frame.contentWindow.print();
+            }
+        });
+
+        renderSelected();
+    })();
+</script>
+</body>
+</html>

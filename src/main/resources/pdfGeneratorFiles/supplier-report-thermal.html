@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Supplier Thermal Report</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="receipt">
+    {{> partials/company-thermal-report}}
+
+    <div class="report-heading">
+        <div class="report-title">{{reportTitle}}</div>
+        <div class="report-subtitle">{{subtitle}}</div>
+    </div>
+
+    <table class="report-meta">
+        <tr>
+            <td><span class="meta-label">Date:</span> {{generatedAt}}</td>
+        </tr>
+        <tr>
+            <td><span class="meta-label">Suppliers:</span> {{count}}</td>
+        </tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 20%;">ID</th>
+            <th style="width: 54%;">Name</th>
+            <th style="width: 26%;">Contact</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{contact}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="3">No suppliers found.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-row">
+            <div class="summary-label">TOTAL SUPPLIERS</div>
+            <div class="summary-value">{{count}}</div>
+        </div>
+    </div>
+
+    <div class="report-footer">
+        Thank you for your business!<br />
+        <span class="footer-company">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

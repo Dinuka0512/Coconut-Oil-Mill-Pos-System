@@ -8,7 +8,9 @@ import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
+import com.dev09.kumaracoconutoil.util.SessionRestore;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -95,6 +97,8 @@ public class SimplePOSController implements Initializable {
     private ArrayList<ProductDto> currentProducts;
     private ArrayList<CustomerDto> currentCustomers;
     private ProductDto selectedProduct;
+    /** Stock available at the currently selected price tier. */
+    private double selectedTierQty;
     private CustomerDto selectedCustomer;
     private Timeline productResetTimer;
     private Timeline customerResetTimer;
@@ -242,19 +246,20 @@ public class SimplePOSController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
-                    Double price = resolveProductPrice(dto);
-                    if (price == null) {
+                    double[] tier = resolveProductTier(dto);
+                    if (tier == null) {
                         resetProductSelection();
                         return;
                     }
                     selectedProduct = dto;
+                    selectedTierQty = tier[PriceQtyArray.QTY];
                     cmbProduct.setValue(display);
                     if (cmbProduct.getEditor() != null) {
                         cmbProduct.getEditor().setText(display);
                         cmbProduct.getEditor().positionCaret(display.length());
                     }
-                    txtUnitPriceDisplay.setText(String.valueOf(price));
-                    lblQtyOnHand.setText(dto.getQty() + " Kg");
+                    txtUnitPriceDisplay.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
+                    lblQtyOnHand.setText(selectedTierQty + " Kg");
                     lblItemName.setText(dto.getName());
                     lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
                     txtQty.requestFocus();
@@ -264,23 +269,25 @@ public class SimplePOSController implements Initializable {
         }
     }
 
-    private Double resolveProductPrice(ProductDto dto) {
-        ArrayList<Double> prices = dto.getPrices();
+    /** The {price, qty} tier the cashier selected, or null when cancelled. */
+    private double[] resolveProductTier(ProductDto dto) {
+        double[][] rows = dto.getPriceQtyPairs();
 
-        if (prices.isEmpty()) {
-            return dto.getPrice();
+        if (rows.length == 0) {
+            return new double[]{dto.getPrice(), dto.getQty()};
         }
-        if (prices.size() == 1) {
-            return prices.get(0);
+        if (rows.length == 1) {
+            return rows[0];
         }
 
         cmbProduct.hide();
         Window owner = cmbProduct.getScene() == null ? null : cmbProduct.getScene().getWindow();
-        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+        return PriceSelectionDialog.show(owner, dto.getName(), rows).orElse(null);
     }
 
     private void resetProductSelection() {
         selectedProduct = null;
+        selectedTierQty = 0;
         lastCommittedProductSelection = null;
         lastCommittedProductAt = 0;
         cmbProduct.getSelectionModel().clearSelection();
@@ -896,27 +903,29 @@ public class SimplePOSController implements Initializable {
             return;
         }
 
-        double qtyOnHand = selectedProduct.getQty();
-        double existingQtyInCart = 0;
-        for (CartTM item : obList) {
-            if (code.equals(item.getCode())) {
-                existingQtyInCart = item.getQty();
-                break;
-            }
-        }
-
-        double totalQtyInCart = existingQtyInCart + qty;
-        if (totalQtyInCart > qtyOnHand) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
-            return;
-        }
-
         try {
             double unitPrice = Double.parseDouble(txtUnitPriceDisplay.getText().trim());
             if (unitPrice <= 0) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING, "Unit price must be greater than zero!");
                 return;
             }
+
+            // Stock is tracked per price tier, so the entered quantity is limited to the
+            // stock of the selected price (not the product's total stock).
+            double existingQtyInCart = 0;
+            for (CartTM item : obList) {
+                if (code.equals(item.getCode()) && unitPrice == item.getUnitPrice()) {
+                    existingQtyInCart = item.getQty();
+                    break;
+                }
+            }
+            if (existingQtyInCart + qty > selectedTierQty) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING,
+                        "Quantity exceeds the stock available for this price!\nAvailable: "
+                                + selectedTierQty + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
+                return;
+            }
+
             double total = qty * unitPrice;
             Button btn = new Button("X");
             btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
@@ -975,6 +984,7 @@ public class SimplePOSController implements Initializable {
 
     private void clearProductSelection() {
         selectedProduct = null;
+        selectedTierQty = 0;
         txtQty.clear();
         txtQty.setText("1");
         txtUnitPriceDisplay.clear();
@@ -1046,5 +1056,117 @@ public class SimplePOSController implements Initializable {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Error: " + e.getMessage());
         }
+    }
+
+    /* ---------- Resume support (called by SessionRestore) ---------- */
+
+    /** Small, node-free copy of the in-progress invoice. */
+    public SessionRestore.PosDraft captureDraft() {
+        String productDisplay = cmbProduct.getValue() != null ? cmbProduct.getValue() : "";
+        if (productDisplay.isEmpty() && cmbProduct.getEditor() != null) {
+            productDisplay = cmbProduct.getEditor().getText();
+        }
+
+        ArrayList<SessionRestore.CartItem> items = new ArrayList<>();
+        for (CartTM item : obList) {
+            items.add(new SessionRestore.CartItem(
+                    item.getCode(), item.getDescription(),
+                    item.getQty(), item.getUnitPrice(), item.getTotal()));
+        }
+
+        return new SessionRestore.PosDraft(
+                selectedCustomer == null ? null : selectedCustomer.getCustId(),
+                selectedProduct == null ? null : selectedProduct.getId(),
+                productDisplay,
+                cmbCustomer.getEditor() == null ? "" : cmbCustomer.getEditor().getText(),
+                cmbProduct.getEditor() == null ? "" : cmbProduct.getEditor().getText(),
+                selectedTierQty,
+                txtQty.getText(),
+                txtUnitPriceDisplay.getText(),
+                items
+        );
+    }
+
+    /** Rebuilds the cart and the half-finished selections after a re-login. */
+    public void applyDraft(SessionRestore.PosDraft draft) {
+        if (draft == null) return;
+
+        obList.clear();
+        for (SessionRestore.CartItem item : draft.cart()) {
+            CartTM row = new CartTM(item.code(), item.description(),
+                    item.qty(), item.unitPrice(), item.total(), null);
+            Button remove = new Button("X");
+            remove.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
+            remove.setOnAction(e -> {
+                ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+                ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+                Optional<ButtonType> answer = new Alert(Alert.AlertType.CONFIRMATION, "Remove this item?", yes, no).showAndWait();
+                if (answer.orElse(no) == yes) {
+                    obList.remove(row);
+                    calculateTotal();
+                }
+            });
+            row.setBtn(remove);
+            obList.add(row);
+        }
+        tblCart.setItems(obList);
+        calculateTotal();
+
+        txtQty.setText(draft.qty() == null || draft.qty().isEmpty() ? "1" : draft.qty());
+        txtUnitPriceDisplay.setText(draft.unitPrice() == null ? "" : draft.unitPrice());
+
+        boolean customerRestored = false;
+        if (draft.customerId() != null && currentCustomers != null) {
+            for (CustomerDto customer : currentCustomers) {
+                if (draft.customerId().equals(customer.getCustId())) {
+                    selectedCustomer = customer;
+                    String display = customerDisplay(customer);
+                    cmbCustomer.setValue(display);
+                    if (cmbCustomer.getEditor() != null) cmbCustomer.getEditor().setText(display);
+                    checkCustomerDue();
+                    customerRestored = true;
+                    break;
+                }
+            }
+        }
+        // The user may only have typed part of a name - keep that too.
+        if (!customerRestored && draft.customerEditor() != null && !draft.customerEditor().isEmpty()) {
+            cmbCustomer.setValue(draft.customerEditor());
+            if (cmbCustomer.getEditor() != null) cmbCustomer.getEditor().setText(draft.customerEditor());
+        }
+
+        boolean productRestored = false;
+        if (draft.productCode() != null && currentProducts != null) {
+            for (ProductDto product : currentProducts) {
+                if (draft.productCode().equals(product.getId())) {
+                    selectedProduct = product;
+                    selectedTierQty = draft.selectedTierQty() > 0 ? draft.selectedTierQty() : product.getQty();
+                    String display = draft.productDisplay() == null || draft.productDisplay().isBlank()
+                            ? product.getName() + " (" + (product.getItemcode() != null ? product.getItemcode() : "") + ")"
+                            : draft.productDisplay();
+                    cmbProduct.setValue(display);
+                    if (cmbProduct.getEditor() != null) cmbProduct.getEditor().setText(display);
+                    lblQtyOnHand.setText(selectedTierQty + " Kg");
+                    lblItemName.setText(product.getName());
+                    lblItemCode.setText(product.getItemcode() != null ? product.getItemcode() : "-");
+                    lastCommittedProductSelection = display;
+                    lastCommittedProductAt = System.currentTimeMillis();
+                    productRestored = true;
+                    break;
+                }
+            }
+        }
+        if (!productRestored && draft.productEditor() != null && !draft.productEditor().isEmpty()) {
+            cmbProduct.setValue(draft.productEditor());
+            if (cmbProduct.getEditor() != null) cmbProduct.getEditor().setText(draft.productEditor());
+        }
+
+        Platform.runLater(() -> {
+            if (cmbProduct.getEditor() != null) {
+                cmbProduct.getEditor().requestFocus();
+            } else {
+                cmbProduct.requestFocus();
+            }
+        });
     }
 }

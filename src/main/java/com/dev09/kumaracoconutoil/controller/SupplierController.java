@@ -8,15 +8,23 @@ import com.dev09.kumaracoconutoil.dto.SupplierDto;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.ProductSelectionDialog;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Window;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -30,6 +38,7 @@ import java.util.ResourceBundle;
 public class SupplierController implements Initializable {
 
     @FXML private AnchorPane rootPane;
+    @FXML private AnchorPane formPane;
     @FXML private TableColumn<SupplierDto, String> colContact;
     @FXML private TableColumn<SupplierDto, String> colName;
     @FXML private TableColumn<SupplierDto, String> colCreated;
@@ -39,6 +48,7 @@ public class SupplierController implements Initializable {
     @FXML private TableColumn<ProductDto, String> colProdName;
     @FXML private TableColumn<ProductDto, String> colProdPrice;
     @FXML private TableColumn<ProductDto, Double> colProdQty;
+    @FXML private TableColumn<ProductDto, Void> colProdQty1;
     @FXML private TableView<ProductDto> tblSuppliersProduct;
     @FXML private Button btnAddProduct;
     @FXML private TextField txtContact;
@@ -122,6 +132,7 @@ public class SupplierController implements Initializable {
                 txtName.setText(newValue.getName());
                 txtContact.setText(newValue.getContact());
                 loadSupplierProducts(newValue.getSupplierId());
+                btnAddProduct.setDisable(false);
 
                 btnSave.setDisable(true);
                 boolean isCashier = DashboardController.userData != null && RoleUtil.isCashier(DashboardController.userData.getRole());
@@ -129,8 +140,32 @@ public class SupplierController implements Initializable {
                 btnDelete.setDisable(isCashier);
             } else {
                 loadSupplierProducts(null);
+                btnAddProduct.setDisable(true);
             }
         });
+
+        setupOutsideClickClear();
+    }
+
+    /** Clicking the empty background clears the supplier selection (same as Inventory). */
+    private void setupOutsideClickClear() {
+        rootPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (!(event.getTarget() instanceof Node target)) return;
+            if (isInside(target, tblSupplier) || isInside(target, tblSuppliersProduct)
+                    || isInside(target, formPane) || isInside(target, btnAddProduct)) {
+                return;
+            }
+            tblSupplier.getSelectionModel().clearSelection();
+        });
+    }
+
+    private boolean isInside(Node node, Node container) {
+        Node current = node;
+        while (current != null) {
+            if (current == container) return true;
+            current = current.getParent();
+        }
+        return false;
     }
 
     private void setupProductTable() {
@@ -140,6 +175,97 @@ public class SupplierController implements Initializable {
         colProdQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         tblSuppliersProduct.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblSuppliersProduct.setPlaceholder(new Label("Select a supplier to see its products"));
+        tblSuppliersProduct.getColumns().forEach(column -> column.setSortable(false));
+
+        colProdQty1.setCellFactory(column -> new TableCell<>() {
+            private final Button removeButton = new Button();
+
+            {
+                removeButton.setGraphic(createRemoveIcon());
+                removeButton.setTooltip(new Tooltip("Remove from supplier"));
+                removeButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 4; -fx-padding: 4 6 4 6; -fx-cursor: hand;");
+                removeButton.setOnAction(event -> removeProductFromSupplier(getTableRow() == null ? null : getTableRow().getItem()));
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : removeButton);
+            }
+        });
+    }
+
+    /** Small white trash-can icon used by the product row's remove button. */
+    private Node createRemoveIcon() {
+        Rectangle lid = new Rectangle(1.5, 2.5, 11, 1.5);
+        lid.setArcWidth(1.2);
+        lid.setArcHeight(1.2);
+        lid.setFill(Color.WHITE);
+
+        Rectangle handle = new Rectangle(5, 1, 4, 1.5);
+        handle.setArcWidth(0.8);
+        handle.setArcHeight(0.8);
+        handle.setFill(Color.WHITE);
+
+        Rectangle body = new Rectangle(3, 4.5, 8, 8.5);
+        body.setArcWidth(1.5);
+        body.setArcHeight(1.5);
+        body.setFill(Color.TRANSPARENT);
+        body.setStroke(Color.WHITE);
+        body.setStrokeWidth(1.2);
+
+        Line leftRib = new Line(5.6, 6.5, 5.6, 11);
+        Line rightRib = new Line(8.4, 6.5, 8.4, 11);
+        leftRib.setStroke(Color.WHITE);
+        rightRib.setStroke(Color.WHITE);
+        leftRib.setStrokeWidth(1);
+        rightRib.setStrokeWidth(1);
+
+        Group icon = new Group(lid, handle, body, leftRib, rightRib);
+        icon.setFocusTraversable(false);
+        return icon;
+    }
+
+    /** Detach a product from the currently selected supplier and refresh the tables. */
+    private void removeProductFromSupplier(ProductDto product) {
+        if (product == null || currentSupplierId == null || currentSupplierId.isBlank()) {
+            return;
+        }
+        if (product.getId() == null || product.getId().isBlank()) {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update supplier!");
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Remove Product");
+        confirm.setHeaderText("Remove this product from the supplier?");
+        confirm.setContentText("Product: " + product.getName() + " (" + product.getItemcode() + ")");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+        String supplierId = currentSupplierId;
+        if (productBO.assignSupplier(product.getId(), null)) {
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
+            reloadSupplierView(supplierId);
+        } else {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update supplier!");
+        }
+    }
+
+    /** Reload supplier data and its product table, keeping the same supplier selected. */
+    private void reloadSupplierView(String supplierId) {
+        loadAllSuppliers();
+        if (supplierId == null || supplierId.isBlank()) return;
+        for (SupplierDto dto : tblSupplier.getItems()) {
+            if (supplierId.equals(dto.getSupplierId())) {
+                currentSupplierId = supplierId;
+                tblSupplier.getSelectionModel().select(dto);
+                tblSupplier.scrollTo(dto);
+                return; // the selection listener repopulates the product table
+            }
+        }
+        loadSupplierProducts(supplierId);
     }
 
     /** Load the products that belong to the selected supplier. */
@@ -155,15 +281,25 @@ public class SupplierController implements Initializable {
         }
     }
 
-    /** "+ Add Product": open the inventory add-product flow bound to this supplier. */
+    /** "+ Add Product": pick an existing product and attach it to this supplier. */
     @FXML
     void btnAddProductOnAction(ActionEvent event) {
         if (currentSupplierId == null || currentSupplierId.isBlank()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a supplier first!");
             return;
         }
-        ProductController.pendingSupplierId = currentSupplierId;
-        DashboardController.openSubView("/view/inventory.fxml");
+        Window owner = rootPane.getScene() == null ? null : rootPane.getScene().getWindow();
+        Optional<ProductDto> chosen = ProductSelectionDialog.show(owner);
+        if (chosen.isEmpty()) {
+            return;
+        }
+        ProductDto product = chosen.get();
+        if (productBO.assignSupplier(product.getId(), currentSupplierId)) {
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product added to supplier!");
+            loadSupplierProducts(currentSupplierId);
+        } else {
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to add product to supplier!");
+        }
     }
 
     private void loadAllSuppliers() {
@@ -286,6 +422,7 @@ public class SupplierController implements Initializable {
         btnSave.setDisable(false);
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
+        btnAddProduct.setDisable(true);
     }
 
     @FXML

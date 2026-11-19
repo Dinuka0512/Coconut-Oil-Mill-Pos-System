@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Due Payment Report</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="report-container">
+    {{> partials/header-report-a4}}
+
+    <table class="report-meta">
+        <tr>
+            <td>
+                <span class="meta-label">Generated Date:</span>
+                {{generatedAt}}
+            </td>
+            <td class="text-right">
+                <span class="meta-label">Customers with Dues:</span>
+                {{count}}
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 10%;">ID</th>
+            <th style="width: 35%;">Customer Name</th>
+            <th style="width: 30%;">Contact Number</th>
+            <th class="text-right" style="width: 25%;">Due Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{contact}}</td>
+            <td class="text-right">{{due}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="4">No outstanding balances found.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-box">
+            <div class="summary-label">Total Outstanding Amount</div>
+            <div class="summary-value">LKR {{totalDue}}</div>
+        </div>
+    </div>
+
+    <div class="report-footer">
+        Thank you for your business.<br /><br />
+        <span class="footer-highlight">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

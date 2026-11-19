@@ -6,9 +6,9 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="226.0" prefWidth="329.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AddPriceStockController">
+<AnchorPane fx:id="rootPane" prefHeight="226.0" prefWidth="329.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AddPriceStockController">
    <children>
-      <Label layoutX="33.0" layoutY="23.0" text="Add New Price &amp; Stock" textFill="#1e293b">
+      <Label fx:id="lblTitle" layoutX="33.0" layoutY="23.0" text="Add New Price &amp; Stock" textFill="#1e293b">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>

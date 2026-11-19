@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Quotation</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="report-container">
+    {{> partials/header-report-a4}}
+
+    <table class="report-meta">
+        <tr>
+            <td>
+                <span class="meta-label">Quotation No:</span>
+                {{quotationId}}
+            </td>
+            <td class="text-right">
+                <span class="meta-label">Date:</span>
+                {{quotationDateTime}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="meta-label">Customer:</span>
+                {{customerName}}
+            </td>
+            <td class="text-right">
+                <span class="meta-label">Contact:</span>
+                {{#if hasContact}}{{customerContact}}{{else}}-{{/if}}
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 8%;">#</th>
+            <th style="width: 44%;">Description</th>
+            <th class="text-right" style="width: 12%;">Qty</th>
+            <th class="text-right" style="width: 17%;">Rate</th>
+            <th class="text-right" style="width: 19%;">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{index}}</td>
+            <td>{{description}}</td>
+            <td class="text-right">{{qty}}</td>
+            <td class="text-right">{{rate}}</td>
+            <td class="text-right">{{amount}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="5">No items found.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <table class="layout keep-together">
+        <tr>
+            <td class="header-left">
+                <div class="payment-box">
+                    <div class="payment-title">QUOTATION NOTE</div>
+                    <div class="payment-line">This document is a quotation, not an invoice.</div>
+                    <div class="payment-line">Prices are valid for the date shown above.</div>
+                </div>
+            </td>
+            <td class="header-right">
+                <table class="report-meta invoice-totals">
+                    <tr>
+                        <td class="text-right">
+                            <span class="meta-label">Sub Total:</span>
+                            LKR {{subTotalA4}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">
+                            <span class="meta-label">Discount ({{discountPercent}}%):</span>
+                            LKR {{discountA4}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">
+                            <span class="meta-label">Tax ({{taxRate}}%):</span>
+                            LKR {{taxA4}}
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="summary">
+                    <div class="summary-box">
+                        <div class="summary-label">Quotation Total</div>
+                        <div class="summary-value">LKR {{totalA4}}</div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="document-note">**Condition applied</div>
+
+    <div class="report-footer">
+        Thank you for your business.<br /><br />
+        <span class="footer-highlight">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

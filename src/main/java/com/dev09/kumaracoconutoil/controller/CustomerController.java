@@ -294,7 +294,8 @@ public class CustomerController implements Initializable {
     void txtSearchOnKeyReleased(KeyEvent event) {
         if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
             txtSearch.clear();
-            txtSearch.getParent().requestFocus();
+            if (txtSearch.getParent() != null) txtSearch.getParent().requestFocus();
+            loadAllCustomers();
         } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
             performSearchWithAlert();
         } else {
@@ -303,64 +304,45 @@ public class CustomerController implements Initializable {
     }
 
     private void performSearch() {
-        String searchTerm = txtSearch.getText().toLowerCase();
+        String searchTerm = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
         if (searchTerm.isEmpty()) {
             loadAllCustomers();
             return;
         }
 
-        ObservableList<CustomerDto> allCustomers = tblCustomer.getItems();
-        CustomerDto foundCustomer = null;
-
+        ArrayList<CustomerDto> allCustomers = customerBO.getAllCustomers();
+        tblCustomer.getSelectionModel().clearSelection();
+        ObservableList<CustomerDto> items = tblCustomer.getItems();
+        items.clear();
+        if (allCustomers == null) return;
         for (CustomerDto dto : allCustomers) {
-            if (dto.getCustId().toLowerCase().equals(searchTerm) ||
-                    dto.getName().toLowerCase().contains(searchTerm) ||
-                    dto.getContact().toLowerCase().contains(searchTerm)) {
-                foundCustomer = dto;
-                break;
+            if ((dto.getCustId() != null && dto.getCustId().toLowerCase().contains(searchTerm)) ||
+                    (dto.getName() != null && dto.getName().toLowerCase().contains(searchTerm)) ||
+                    (dto.getContact() != null && dto.getContact().toLowerCase().contains(searchTerm))) {
+                items.add(dto);
             }
-        }
-
-        if (foundCustomer != null) {
-            currentCustomerId = foundCustomer.getCustId();
-            txtName.setText(foundCustomer.getName());
-            txtContact.setText(foundCustomer.getContact());
-            double due1 = foundCustomer.getDueAmount();
-            txtDue.setText(due1 == 0 ? "0" : String.format("%.2f", due1));
-            tblCustomer.getSelectionModel().select(foundCustomer);
-            tblCustomer.scrollTo(foundCustomer);
         }
     }
 
     private void performSearchWithAlert() {
-        String searchTerm = txtSearch.getText().toLowerCase();
+        String searchTerm = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
         if (searchTerm.isEmpty()) {
             loadAllCustomers();
             return;
         }
 
-        ObservableList<CustomerDto> allCustomers = tblCustomer.getItems();
-        CustomerDto foundCustomer = null;
-
-        for (CustomerDto dto : allCustomers) {
-            if (dto.getCustId().toLowerCase().equals(searchTerm) ||
-                    dto.getName().toLowerCase().contains(searchTerm) ||
-                    dto.getContact().toLowerCase().contains(searchTerm)) {
-                foundCustomer = dto;
-                break;
-            }
-        }
-
-        if (foundCustomer != null) {
+        performSearch();
+        if (tblCustomer.getItems().isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Customer not found!");
+        } else {
+            CustomerDto foundCustomer = tblCustomer.getItems().get(0);
             currentCustomerId = foundCustomer.getCustId();
             txtName.setText(foundCustomer.getName());
             txtContact.setText(foundCustomer.getContact());
-            double due2 = foundCustomer.getDueAmount();
-            txtDue.setText(due2 == 0 ? "0" : String.format("%.2f", due2));
+            double due = foundCustomer.getDueAmount();
+            txtDue.setText(due == 0 ? "0" : String.format("%.2f", due));
             tblCustomer.getSelectionModel().select(foundCustomer);
             tblCustomer.scrollTo(foundCustomer);
-        } else {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Customer not found!");
         }
     }
 

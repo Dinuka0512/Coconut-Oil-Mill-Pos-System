@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="rootPane" prefHeight="288.0" prefWidth="329.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.ProductSelectionController">
+   <children>
+      <Label layoutX="33.0" layoutY="23.0" text="Select Product" textFill="#1e293b">
+         <font>
+            <Font name="System Bold" size="16.0" />
+         </font>
+      </Label>
+
+      <Label layoutX="34.0" layoutY="60.0" text="Product" textFill="#64748b" />
+      <ComboBox fx:id="cmbProduct" layoutX="110.0" layoutY="56.0" prefHeight="30.0" prefWidth="194.0" style="-fx-background-radius: 5; -fx-border-color: #cbd5e1; -fx-border-radius: 5;" />
+
+      <Label fx:id="lblItemCode" layoutX="34.0" layoutY="101.0" prefHeight="19.0" prefWidth="270.0" text="Item Code : -" textFill="#1e293b">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblName" layoutX="34.0" layoutY="130.0" prefHeight="19.0" prefWidth="270.0" text="Name : -" textFill="#1e293b">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblPrice" layoutX="34.0" layoutY="159.0" prefHeight="19.0" prefWidth="270.0" text="Prices (LKR) : -" textFill="#1e293b">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblQty" layoutX="34.0" layoutY="188.0" prefHeight="19.0" prefWidth="270.0" text="Stock : -" textFill="#1e293b">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+
+      <Button fx:id="btnSelect" layoutX="29.0" layoutY="233.0" mnemonicParsing="false" onAction="#btnSelectOnAction" prefHeight="32.0" prefWidth="150.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Select" />
+      <Button fx:id="btnCancel" layoutX="190.0" layoutY="234.0" mnemonicParsing="false" onAction="#btnCancelOnAction" prefHeight="32.0" prefWidth="109.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Cancel" />
+   </children>
+</AnchorPane>

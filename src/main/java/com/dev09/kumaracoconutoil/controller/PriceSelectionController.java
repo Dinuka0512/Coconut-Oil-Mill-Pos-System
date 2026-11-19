@@ -1,6 +1,8 @@
 package com.dev09.kumaracoconutoil.controller;
 
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,12 +20,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import java.net.URL;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
  * Controller for the modal "Select Unit Price" popup defined in priceSelection.fxml.
+ *
+ * <p>Each product price carries its own stock quantity, so the list shows both, e.g.
+ * {@code LKR 1,000   (5 Kg available)}, and the caller receives the selected
+ * {@code {price, qty}} tier.</p>
  *
  * <p>Keyboard behaviour mirrors the POS product dropdown:</p>
  * <ul>
@@ -39,7 +44,7 @@ public class PriceSelectionController implements Initializable {
     @FXML
     private Label lblProduct;
     @FXML
-    private ComboBox<Double> cmbPrice;
+    private ComboBox<Integer> cmbPrice;
     @FXML
     private Button btnCancel;
     @FXML
@@ -48,7 +53,9 @@ public class PriceSelectionController implements Initializable {
     private static final String HIGHLIGHT_KEY = "price.highlightIndex";
     private static final String NAV_KEY = "price.navInstalled";
 
-    private Double selectedPrice;
+    /** The product's {price, qty} rows; the combo stores indices into this array. */
+    private double[][] rows = new double[0][];
+    private double[] selectedTier;
     private boolean confirmed;
 
     @Override
@@ -56,20 +63,20 @@ public class PriceSelectionController implements Initializable {
         cmbPrice.setEditable(false);
         cmbPrice.setConverter(new StringConverter<>() {
             @Override
-            public String toString(Double value) {
-                return value == null ? "" : "LKR " + formatPrice(value);
+            public String toString(Integer value) {
+                return value == null ? "" : formatOption(value);
             }
 
             @Override
-            public Double fromString(String text) {
+            public Integer fromString(String text) {
                 return null;
             }
         });
         cmbPrice.setCellFactory(list -> new ListCell<>() {
             @Override
-            protected void updateItem(Double item, boolean empty) {
+            protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : "LKR " + formatPrice(item));
+                setText(empty || item == null ? null : formatOption(item));
                 Object highlight = cmbPrice.getProperties().get(HIGHLIGHT_KEY);
                 boolean highlighted = !empty && item != null
                         && highlight instanceof Integer index && index == getIndex();
@@ -87,10 +94,15 @@ public class PriceSelectionController implements Initializable {
     /**
      * Populates the popup. Must be called after the FXML has been loaded.
      */
-    public void initData(String productName, List<Double> prices) {
+    public void initData(String productName, double[][] priceQtyRows) {
         lblProduct.setText(productName == null ? "" : productName);
-        cmbPrice.setItems(FXCollections.observableArrayList(prices));
-        if (!prices.isEmpty()) {
+        rows = priceQtyRows == null ? new double[0][] : priceQtyRows;
+        ObservableList<Integer> indices = FXCollections.observableArrayList();
+        for (int i = 0; i < rows.length; i++) {
+            indices.add(i);
+        }
+        cmbPrice.setItems(indices);
+        if (!indices.isEmpty()) {
             cmbPrice.getSelectionModel().selectFirst();
         }
     }
@@ -107,8 +119,9 @@ public class PriceSelectionController implements Initializable {
         Platform.runLater(() -> cmbPrice.requestFocus());
     }
 
-    public Double getSelectedPrice() {
-        return selectedPrice;
+    /** The selected {@code {price, qty}} row, or null when nothing was confirmed. */
+    public double[] getSelectedTier() {
+        return selectedTier;
     }
 
     public boolean isConfirmed() {
@@ -117,7 +130,7 @@ public class PriceSelectionController implements Initializable {
 
     @FXML
     void btnSelectOnAction(ActionEvent event) {
-        confirm(getHighlightedPrice());
+        confirm(getHighlightedIndex());
     }
 
     @FXML
@@ -125,12 +138,12 @@ public class PriceSelectionController implements Initializable {
         closeStage();
     }
 
-    private void confirm(Double value) {
-        if (confirmed || value == null) {
+    private void confirm(Integer index) {
+        if (confirmed || index == null || index < 0 || index >= rows.length) {
             return;
         }
         confirmed = true;
-        selectedPrice = value;
+        selectedTier = rows[index];
         if (cmbPrice.isShowing()) {
             cmbPrice.hide();
         }
@@ -164,7 +177,7 @@ public class PriceSelectionController implements Initializable {
                 }
             } else if (code == KeyCode.ENTER) {
                 event.consume();
-                confirm(getHighlightedPrice());
+                confirm(getHighlightedIndex());
             } else if (code == KeyCode.ESCAPE) {
                 event.consume();
                 if (cmbPrice.isShowing()) {
@@ -215,7 +228,7 @@ public class PriceSelectionController implements Initializable {
                     setHighlight(listView, cmbPrice.getItems().size() - 1);
                 } else if (code == KeyCode.ENTER) {
                     event.consume();
-                    confirm(getHighlightedPrice());
+                    confirm(getHighlightedIndex());
                 } else if (code == KeyCode.ESCAPE) {
                     event.consume();
                     cmbPrice.hide();
@@ -225,11 +238,11 @@ public class PriceSelectionController implements Initializable {
             // A single mouse click confirms immediately instead of requiring a second click.
             listView.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 ListCell<?> cell = findCell(event);
-                if (cell == null || cell.isEmpty() || !(cell.getItem() instanceof Double value)) {
+                if (cell == null || cell.isEmpty() || !(cell.getItem() instanceof Integer index)) {
                     return;
                 }
                 event.consume();
-                confirm(value);
+                confirm(index);
             });
         }
 
@@ -265,7 +278,7 @@ public class PriceSelectionController implements Initializable {
         listView.refresh();
     }
 
-    private Double getHighlightedPrice() {
+    private Integer getHighlightedIndex() {
         Object highlight = cmbPrice.getProperties().get(HIGHLIGHT_KEY);
         if (cmbPrice.isShowing() && highlight instanceof Integer index
                 && index >= 0 && index < cmbPrice.getItems().size()) {
@@ -282,7 +295,23 @@ public class PriceSelectionController implements Initializable {
         return null;
     }
 
+    private String formatOption(int index) {
+        if (index < 0 || index >= rows.length) {
+            return "";
+        }
+        double price = rows[index][PriceQtyArray.PRICE];
+        double qty = rows[index][PriceQtyArray.QTY];
+        return "LKR " + formatPrice(price) + "   (" + formatQty(qty) + " Kg available)";
+    }
+
     private static String formatPrice(double value) {
+        if (value == Math.rint(value)) {
+            return String.format(Locale.US, "%,.0f", value);
+        }
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private static String formatQty(double value) {
         if (value == Math.rint(value)) {
             return String.format(Locale.US, "%,.0f", value);
         }

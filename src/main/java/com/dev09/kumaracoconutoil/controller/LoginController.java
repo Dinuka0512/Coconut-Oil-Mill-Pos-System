@@ -3,7 +3,7 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditUtil;
-import com.dev09.kumaracoconutoil.util.RoleUtil;
+import com.dev09.kumaracoconutoil.util.SessionRestore;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -58,16 +58,19 @@ public class LoginController implements Initializable {
             return;
         }
         if(userExtraDto.isLogin()){
-            DashboardController.userData = userExtraDto.getUserDto();
-            AuditUtil.setCurrentUser(userExtraDto.getUserDto().getId(), userExtraDto.getUserDto().getName(), userExtraDto.getUserDto().getRole());
+            com.dev09.kumaracoconutoil.dto.UserDto user = userExtraDto.getUserDto();
+            DashboardController.userData = user;
+            AuditUtil.setCurrentUser(user.getId(), user.getName(), user.getRole());
             com.dev09.kumaracoconutoil.util.UserLogUtil.record("LOGIN");
-            com.dev09.kumaracoconutoil.util.UserLogUtil.purgeOlderThanOneWeek();
-            AlertUtil.showAlert(Alert.AlertType.CONFIRMATION, userExtraDto.getMessage());
-            if (RoleUtil.isCashier(userExtraDto.getUserDto().getRole())) {
-                mainNavigateTo("/view/clientDashboard.fxml");
-            } else {
-                mainNavigateTo("/view/dashboard.fxml");
-            }
+            com.dev09.kumaracoconutoil.util.UserLogUtil.purgeOlderLogs();
+
+            // Only the account that was logged out by inactivity gets its work back.
+            SessionRestore.Snapshot resume = SessionRestore.consumeFor(user);
+            String home = SessionRestore.homeFxmlFor(user.getRole());
+            String message = userExtraDto.getMessage()
+                    + (resume != null ? "\n\nYour previous work has been restored." : "");
+            AlertUtil.showAlert(Alert.AlertType.CONFIRMATION, message);
+            mainNavigateTo(home, resume);
         }else{
             AlertUtil.showAlert(Alert.AlertType.WARNING, userExtraDto.getMessage());
         }
@@ -100,17 +103,19 @@ public class LoginController implements Initializable {
                 AppConstants.DEFAULT_SUPPLIER_CONTACT);
     }
 
-    private void mainNavigateTo(String path) {
+    private void mainNavigateTo(String path, SessionRestore.Snapshot resume) {
         try {
-            // Load Dashboard FXML
-            AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+            AnchorPane dashboardPane = loader.load();
+            DashboardController dashboard = loader.getController();
+            dashboard.setHomeFxml(path);
 
-            // Clear current content
             body.getChildren().clear();
-
-            // Add dashboard to the pane
             body.getChildren().add(dashboardPane);
 
+            if (resume != null) {
+                dashboard.applyRestore(resume);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot load...");

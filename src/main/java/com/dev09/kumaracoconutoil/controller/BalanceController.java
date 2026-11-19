@@ -103,7 +103,7 @@ public class BalanceController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         cmbPaymentMethod.getItems().addAll("Cash", "Card", "Credit");
-        cmbPaymentMethod.getSelectionModel().selectFirst();
+        cmbPaymentMethod.getSelectionModel().select("Cash");
 
         duePayType.getItems().addAll("Full Payment", "Custom");
         duePayType.getSelectionModel().selectFirst();
@@ -490,6 +490,9 @@ public class BalanceController implements Initializable {
             }
 
             String paymentMethod = cmbPaymentMethod.getValue();
+            if (paymentMethod == null || paymentMethod.isBlank()) {
+                paymentMethod = "Cash";
+            }
             if (("Cash".equals(paymentMethod) || "Card".equals(paymentMethod)) && amountPaid <= 0) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING,
                         "Please enter a valid received amount for " + paymentMethod + " payment!");

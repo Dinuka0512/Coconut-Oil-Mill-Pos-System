@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class UserLogBOImpl implements UserLogBO {
+    /** Keep only the latest 2 days of user activity logs. */
+    private static final int LOG_RETENTION_DAYS = 2;
+
     private final UserLogDAO userLogDAO = (UserLogDAO) DAOFactory.getInstance()
             .getDAO(DAOFactory.DAOType.USER_LOG);
 
@@ -31,7 +34,7 @@ public class UserLogBOImpl implements UserLogBO {
     }
 
     @Override
-    public int purgeLogsOlderThanOneWeek() {
-        return userLogDAO.deleteOlderThan(LocalDateTime.now().minusDays(7));
+    public int purgeOlderLogs() {
+        return userLogDAO.deleteOlderThan(LocalDateTime.now().minusDays(LOG_RETENTION_DAYS));
     }
 }

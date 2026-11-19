@@ -1,0 +1,1146 @@
+/* ============================================================
+   Dilshan Oil Mill - shared report stylesheet
+   Rendered with openhtmltopdf. Keep this file XHTML-friendly:
+   use well-formed CSS and avoid raw ampersand or angle-bracket
+   characters outside of CSS selectors.
+   ============================================================ */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #17171f;
+    font-size: 9pt;
+    line-height: 1.35;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table.layout {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.layout td {
+    border: 0;
+    padding: 0;
+    vertical-align: top;
+}
+
+.header-left {
+    text-align: left;
+}
+
+.header-right {
+    text-align: right;
+}
+
+.company-name {
+    color: #14144d;
+    font-size: 15pt;
+    font-weight: bold;
+    letter-spacing: 0.4pt;
+}
+
+.company-tagline {
+    color: #5a5a72;
+    font-size: 7.5pt;
+    margin-top: 0.6mm;
+}
+
+.company-address,
+.company-phone {
+    color: #494959;
+    font-size: 8pt;
+    margin-top: 0.5mm;
+}
+
+.report-title {
+    color: #14144d;
+    font-size: 22pt;
+    font-weight: bold;
+    letter-spacing: 0.6pt;
+}
+
+.report-meta {
+    color: #767686;
+    font-size: 7.5pt;
+    margin-top: 1.2mm;
+}
+
+.header-rule {
+    border-top: 1.6pt solid #14144d;
+    margin: 2.4mm 0 4mm 0;
+}
+
+.report-heading-bar {
+    margin: 0 0 1.5mm 0;
+}
+
+.report-title-inline {
+    color: #14144d;
+    font-size: 13pt;
+    font-weight: bold;
+    letter-spacing: 0.3pt;
+}
+
+.report-subtitle {
+    color: #5c5c70;
+    font-size: 9pt;
+}
+
+/* ------------------------------------------------------------
+   Data tables
+   ------------------------------------------------------------ */
+
+.data-table {
+    width: 100%;
+    margin-top: 1.5mm;
+}
+
+.data-table thead {
+    display: table-header-group;
+}
+
+.data-table th {
+    background: #24245e;
+    border: 0.5pt solid #41417a;
+    color: #ffffff;
+    font-size: 8.5pt;
+    font-weight: bold;
+    padding: 2mm 1.6mm;
+    text-align: left;
+}
+
+.data-table td {
+    border: 0.5pt solid #bdbdcb;
+    font-size: 8.5pt;
+    padding: 1.7mm 1.6mm;
+    vertical-align: top;
+}
+
+.data-table tbody tr.alt td {
+    background: #f2f3fa;
+}
+
+.data-table td.num,
+.data-table th.num {
+    text-align: right;
+}
+
+.data-table td.center,
+.data-table th.center {
+    text-align: center;
+}
+
+.data-table td.mono {
+    font-family: "Courier New", monospace;
+    font-size: 8pt;
+}
+
+/* ------------------------------------------------------------
+   Summary and footer
+   ------------------------------------------------------------ */
+
+.summary {
+    margin-top: 4mm;
+    text-align: right;
+    font-size: 9pt;
+}
+
+.summary .line {
+    margin: 1mm 0;
+}
+
+.summary .strong {
+    font-weight: bold;
+}
+
+.footer {
+    border-top: 0.8pt solid #cfcfd8;
+    color: #777787;
+    font-size: 8pt;
+    margin-top: 6mm;
+    padding-top: 2mm;
+}
+
+.footer .left {
+    text-align: left;
+}
+
+.footer .right {
+    text-align: right;
+}
+
+/* ------------------------------------------------------------
+   A4 invoice / quotation
+   ------------------------------------------------------------ */
+
+.invoice-meta {
+    width: 100%;
+    margin-top: 4mm;
+}
+
+.meta-label {
+    color: #777787;
+    font-size: 7.5pt;
+    font-weight: bold;
+    letter-spacing: 0.5pt;
+    text-transform: uppercase;
+}
+
+.meta-value {
+    color: #17171f;
+    font-size: 10pt;
+    margin-bottom: 2.2mm;
+}
+
+.bill-to {
+    background: #f4f4fb;
+    border: 0.5pt solid #c3c3d4;
+    padding: 3mm;
+    width: 70mm;
+}
+
+.bill-to-title {
+    color: #55556c;
+    font-size: 7.5pt;
+    font-weight: bold;
+    letter-spacing: 0.5pt;
+    margin-bottom: 1.4mm;
+}
+
+.bill-to-name {
+    color: #17171f;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+.bill-to-contact {
+    color: #4a4a5c;
+    font-size: 8.5pt;
+    margin-top: 0.8mm;
+}
+
+.items-table {
+    margin-top: 4mm;
+}
+
+.payment-box {
+    border: 0.5pt solid #a7a7ba;
+    padding: 3mm;
+    width: 72mm;
+}
+
+.payment-title {
+    color: #14144d;
+    font-size: 8.5pt;
+    font-weight: bold;
+    margin-bottom: 1.2mm;
+}
+
+.payment-line {
+    font-size: 8.5pt;
+    margin: 0.7mm 0;
+}
+
+.positive {
+    color: #0a7a35;
+}
+
+.negative {
+    color: #a51616;
+}
+
+.totals-table {
+    width: 72mm;
+    margin-left: auto;
+}
+
+.totals-table td {
+    border: 0;
+    font-size: 9pt;
+    padding: 1.2mm 0;
+}
+
+.totals-table td.num {
+    text-align: right;
+}
+
+.totals-table tr.grand-total td {
+    border-top: 1pt solid #14144d;
+    color: #14144d;
+    font-size: 11pt;
+    font-weight: bold;
+    padding-top: 2mm;
+}
+
+.totals-layout {
+    margin-top: 4mm;
+}
+
+.keep-together {
+    page-break-inside: avoid;
+}
+
+.signature {
+    margin-top: 10mm;
+}
+
+.signature-line {
+    border-top: 0.6pt solid #17171f;
+    margin-left: auto;
+    padding-top: 1mm;
+    text-align: center;
+    width: 55mm;
+}
+
+.signature-label {
+    color: #55556c;
+    font-size: 7.5pt;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------
+   80 mm thermal POS receipt / report
+   Uses the same green, yellow, white, black palette as the A4
+   reports so printed bills and reports look like one system.
+   ------------------------------------------------------------ */
+
+body.thermal {
+    background: #ffffff;
+    color: #000000;
+}
+
+.thermal-sheet {
+    color: #000000;
+    font-size: 7.5pt;
+    margin: 0 auto;
+    width: 74mm;
+}
+
+/* Company header for 80 mm thermal bills (no logo) */
+.t-company-header {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.t-company-header td {
+    border: 0;
+    padding: 0;
+    vertical-align: middle;
+}
+
+.t-company-details {
+    padding-left: 0;
+}
+
+.t-company {
+    color: #000000;
+    font-size: 10.5pt;
+    font-weight: bold;
+    line-height: 1.1;
+    text-align: left;
+}
+
+.t-tagline,
+.t-address,
+.t-phone {
+    color: #000000;
+    font-size: 6.2pt;
+    margin-top: 0.3mm;
+    text-align: left;
+}
+
+.t-rule {
+    border-top: 1.2pt solid #5fb947;
+    margin: 1.8mm 0;
+}
+
+.t-rule-light {
+    border-top: 0.4pt solid #dddddd;
+    margin: 1.4mm 0;
+}
+
+.t-title,
+.t-report-title {
+    background: #5fb947;
+    border: 0.4pt solid #5fb947;
+    color: #000000;
+    font-size: 9pt;
+    font-weight: bold;
+    margin: 1.5mm 0;
+    padding: 1.4mm 0;
+    text-align: center;
+}
+
+.t-report-title {
+    font-size: 8.5pt;
+}
+
+.t-report-meta {
+    color: #333333;
+    font-size: 7pt;
+    margin-bottom: 1mm;
+    text-align: center;
+}
+
+.t-details {
+    font-size: 7.2pt;
+    width: 100%;
+}
+
+.t-details td {
+    border: 0;
+    padding: 0.4mm 0;
+    vertical-align: top;
+}
+
+.t-details .right {
+    text-align: right;
+}
+
+.t-items {
+    margin-top: 1.5mm;
+    width: 100%;
+}
+
+.t-items thead {
+    display: table-header-group;
+}
+
+.t-items th {
+    background: #5fb947;
+    border: 0.4pt solid #dddddd;
+    color: #000000;
+    font-size: 6.8pt;
+    font-weight: bold;
+    padding: 1.2mm 0.8mm;
+    text-align: left;
+}
+
+.t-items td {
+    border-bottom: 0.4pt solid #dddddd;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    font-size: 6.8pt;
+    padding: 1.1mm 0.8mm;
+    vertical-align: top;
+}
+
+.t-items tbody tr.alt td {
+    background: #ffffff;
+}
+
+.t-items th.num,
+.t-items td.num {
+    text-align: right;
+}
+
+.t-items th.center,
+.t-items td.center {
+    text-align: center;
+}
+
+.t-summary {
+    font-size: 7.2pt;
+    margin-top: 1.2mm;
+    width: 100%;
+}
+
+.t-summary td {
+    border: 0;
+    padding: 0.55mm 0.8mm;
+}
+
+.t-summary td.num {
+    text-align: right;
+}
+
+.t-summary tr.total td {
+    background: #f1b41e;
+    border-top: 0.5pt solid #5fb947;
+    font-weight: bold;
+    padding: 1mm 0.8mm;
+}
+
+.t-total {
+    background: #f1b41e;
+    border: 0.6pt solid #5fb947;
+    font-size: 9pt;
+    font-weight: bold;
+    margin-top: 1.5mm;
+    width: 100%;
+}
+
+.t-total td {
+    border: 0;
+    padding: 1.6mm 1.5mm;
+}
+
+.t-total td.num {
+    text-align: right;
+}
+
+.t-payment {
+    border: 0.5pt solid #dddddd;
+    font-size: 7.2pt;
+    margin-top: 1.5mm;
+    width: 100%;
+}
+
+.t-payment td {
+    border: 0;
+    padding: 0.55mm 1.2mm;
+    vertical-align: top;
+}
+
+.t-payment td.num {
+    text-align: right;
+}
+
+.t-payment-title {
+    border-bottom: 0.4pt solid #dddddd;
+    color: #5fb947;
+    font-weight: bold;
+    padding-bottom: 1mm;
+}
+
+.t-balance td {
+    border-top: 0.5pt solid #5fb947;
+    font-weight: bold;
+    padding-top: 1.2mm;
+}
+
+.t-label {
+    font-weight: bold;
+}
+
+.t-footer {
+    margin-top: 2.5mm;
+}
+
+.t-footer-line {
+    color: #666666;
+    font-size: 6.2pt;
+    text-align: center;
+}
+
+.t-thank {
+    color: #5fb947;
+    font-size: 8pt;
+    font-weight: bold;
+    margin: 1mm 0;
+    text-align: center;
+}
+
+.t-sign-line {
+    border-top: 0.5pt solid #000000;
+    margin: 3mm auto 0 auto;
+    width: 45mm;
+}
+
+.t-sign {
+    color: #777777;
+    font-size: 6pt;
+    margin-top: 0.5mm;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------
+   Thermal list reports
+   ------------------------------------------------------------ */
+
+.t-summary-line {
+    font-size: 7.2pt;
+    margin: 0.8mm 0;
+    text-align: right;
+}
+
+.t-summary-line.total {
+    background: #f1b41e;
+    border-top: 0.5pt solid #5fb947;
+    font-weight: bold;
+    padding: 1mm;
+    text-align: center;
+}
+
+.t-footer-note {
+    color: #666666;
+    font-size: 6.8pt;
+    margin-top: 1.5mm;
+    text-align: center;
+}
+
+/* ------------------------------------------------------------
+   A4 report and bill layout - white sheet, green rules and table
+   header, yellow total highlight, black text. The receipt theme
+   above uses the same palette.
+   ------------------------------------------------------------ */
+
+body.a4 {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Company header */
+body.a4 .company-header {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2mm;
+}
+
+body.a4 .company-header td {
+    border: 0;
+    border-bottom: 2pt solid #5fb947;
+    padding: 0 0 4mm 0;
+    vertical-align: middle;
+}
+
+body.a4 .company-header .logo-cell {
+    width: 22mm;
+}
+
+body.a4 .company-logo {
+    height: 18mm;
+    width: 18mm;
+}
+
+body.a4 .company-details {
+    padding-left: 4mm;
+}
+
+body.a4 .company-name {
+    color: #000000;
+    font-size: 15pt;
+    font-weight: bold;
+    letter-spacing: 0.3pt;
+}
+
+body.a4 .company-tagline {
+    color: #5fb947;
+    font-size: 8pt;
+    margin-top: 0.6mm;
+}
+
+body.a4 .company-address,
+body.a4 .company-phone {
+    color: #000000;
+    font-size: 8pt;
+    margin-top: 0.8mm;
+}
+
+/* Report heading and meta row */
+body.a4 .report-heading {
+    border-bottom: 0.5pt solid #5fb947;
+    margin: 8mm 0 5mm 0;
+    padding-bottom: 3mm;
+}
+
+body.a4 .report-heading h2 {
+    color: #000000;
+    font-size: 15pt;
+    font-weight: bold;
+    margin: 0 0 2mm 0;
+}
+
+body.a4 .report-heading p {
+    color: #000000;
+    font-size: 9pt;
+    margin: 0;
+}
+
+body.a4 table.report-meta {
+    font-size: 8pt;
+    margin: 4mm 0 0 0;
+    width: 100%;
+}
+
+body.a4 table.report-meta td {
+    border: 0;
+    color: #000000;
+    padding: 1mm 0;
+}
+
+body.a4 td.right {
+    text-align: right;
+}
+
+/* Data table */
+body.a4 .data-table {
+    font-size: 8.5pt;
+    margin-top: 5mm;
+    width: 100%;
+}
+
+body.a4 .data-table th {
+    background: #5fb947;
+    border: 0.5pt solid #dddddd;
+    color: #000000;
+    padding: 2.5mm 2mm;
+    text-align: left;
+}
+
+body.a4 .data-table td {
+    background: #ffffff;
+    border: 0.5pt solid #dddddd;
+    color: #000000;
+    padding: 2.2mm 2mm;
+}
+
+body.a4 .data-table tbody tr.alt td {
+    background: #ffffff;
+}
+
+body.a4 .data-table td.num,
+body.a4 .data-table th.num {
+    text-align: right;
+}
+
+/* Summary box */
+body.a4 table.summary {
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin: 6mm 0 0 auto;
+    text-align: left;
+    width: 72mm;
+}
+
+body.a4 table.summary td {
+    background: #ffffff;
+    border: 0.5pt solid #dddddd;
+    color: #000000;
+    padding: 2.2mm 3mm;
+}
+
+body.a4 table.summary tr.total td {
+    background: #f1b41e;
+    border-top: 1pt solid #5fb947;
+    font-size: 9pt;
+    font-weight: bold;
+}
+
+body.a4 table.summary td.num {
+    text-align: right;
+}
+
+/* Payment and footer */
+body.a4 .payment-box {
+    background: #ffffff;
+    border: 0.5pt solid #dddddd;
+    width: 70mm;
+}
+
+body.a4 .payment-title {
+    color: #5fb947;
+}
+
+body.a4 .payment-line,
+body.a4 .signature-label {
+    color: #000000;
+}
+
+body.a4 .positive {
+    color: #5fb947;
+}
+
+body.a4 .negative {
+    color: #000000;
+}
+
+body.a4 .report-footer {
+    border-top: 0.5pt solid #5fb947;
+    color: #000000;
+    font-size: 7.5pt;
+    margin-top: 14mm;
+    padding-top: 3mm;
+}
+
+body.a4 .report-footer table {
+    width: 100%;
+}
+
+body.a4 .report-footer td {
+    border: 0;
+    padding: 0;
+}
+
+body.a4 .signature-line {
+    border-top-color: #000000;
+}
+
+/* ============================================================
+   A4 report mockup
+   Company details left, report title right, green header rule,
+   green table header with white text, striped rows, summary box.
+   ============================================================ */
+
+body.a4 .report-container {
+    width: 100%;
+}
+
+body.a4 table.header-report {
+    border-bottom: 2.25pt solid #5fb947;
+    border-collapse: collapse;
+    padding-bottom: 0;
+    width: 100%;
+}
+
+body.a4 table.header-report td {
+    border: 0;
+    padding: 0 0 5.3mm 0;
+    vertical-align: top;
+}
+
+body.a4 table.header-report .company-section {
+    text-align: left;
+    width: 60%;
+}
+
+body.a4 table.header-report .report-section {
+    padding-top: 16mm;
+    text-align: left;
+    width: 40%;
+}
+
+/*
+ * The source PNG has large transparent bands (239 px top, 283 px bottom on
+ * 810 px). Negative margins crop those bands visually so the company name sits
+ * directly under the visible logo. The visible logo is about 16 mm tall.
+ */
+body.a4 .header-report .company-logo {
+    display: block;
+    height: 45mm;
+    margin: -13.3mm 0 -15.7mm 0;
+    width: 45mm;
+}
+
+body.a4 .header-report .company-name {
+    color: #5fb947;
+    font-size: 15pt;
+    font-weight: bold;
+    letter-spacing: 0;
+    line-height: 1.1;
+    margin: 0;
+    text-align: left;
+}
+
+body.a4 .header-report .company-tagline {
+    color: #777777;
+    font-size: 7.5pt;
+    line-height: 1.1;
+    margin: 0;
+    text-align: left;
+}
+
+body.a4 .header-report .company-details {
+    color: #444444;
+    font-size: 7.5pt;
+    line-height: 1.1;
+    margin: 0;
+    padding-left: 0;
+    text-align: left;
+}
+
+body.a4 .header-report .report-title {
+    color: #333333;
+    font-size: 16.5pt;
+    font-weight: bold;
+    letter-spacing: 0;
+    line-height: 1.1;
+    margin: 0;
+    text-align: left;
+}
+
+body.a4 .header-report .report-subtitle {
+    color: #777777;
+    font-size: 8.5pt;
+    line-height: 1.1;
+    margin: 0;
+    text-align: left;
+}
+
+body.a4 table.report-meta {
+    border-collapse: collapse;
+    margin: 5mm 0 4mm 0;
+    width: 100%;
+}
+
+body.a4 table.report-meta td {
+    border: 0;
+    color: #333333;
+    font-size: 8pt;
+    padding: 2mm 1.5mm;
+}
+
+body.a4 .meta-label {
+    color: #444444;
+    font-weight: bold;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.a4 .text-right {
+    text-align: right !important;
+}
+
+body.a4 .data-table thead th {
+    background: #5fb947;
+    border: 0.5pt solid #4da638;
+    color: #ffffff;
+    font-size: 8pt;
+    padding: 2.8mm 2.2mm;
+}
+
+body.a4 .data-table tbody td {
+    background: #ffffff;
+    border: 0.5pt solid #dddddd;
+    color: #333333;
+    font-size: 8pt;
+    padding: 2.5mm 2.2mm;
+}
+
+body.a4 .data-table tbody tr:nth-child(even) td {
+    background: #f7faf6;
+}
+
+body.a4 .empty-message {
+    color: #888888;
+    padding: 6mm !important;
+    text-align: center;
+}
+
+body.a4 .summary {
+    margin-top: 5mm;
+    text-align: right;
+    width: 100%;
+}
+
+body.a4 .summary-box {
+    background: #f3f9ef;
+    border-right: 2pt solid #5fb947;
+    display: inline-block;
+    min-width: 58mm;
+    padding: 3mm 4mm;
+    text-align: left;
+}
+
+body.a4 .summary-label {
+    color: #555555;
+    font-size: 8pt;
+    margin-bottom: 1mm;
+}
+
+body.a4 .summary-value {
+    color: #4da638;
+    font-size: 14pt;
+    font-weight: bold;
+}
+
+body.a4 .report-footer {
+    border-top: 0.5pt solid #dddddd;
+    color: #888888;
+    font-size: 7.5pt;
+    margin-top: 9mm;
+    padding-top: 2.5mm;
+    text-align: center;
+}
+
+body.a4 .footer-highlight {
+    color: #5fb947;
+    font-weight: bold;
+}
+
+body.a4 table.report-meta.invoice-totals {
+    margin: 0 0 3mm 0;
+}
+
+body.a4 table.report-meta.invoice-totals td {
+    border: 0;
+    font-size: 8pt;
+    padding: 1mm 1.5mm;
+}
+
+/* ============================================================
+   80 mm thermal report mockup
+   Centered company header, dashed dividers, compact black and
+   white item table, bordered total, simple footer.
+   ============================================================ */
+
+body.thermal .receipt {
+    color: #000000;
+    font-size: 7.5pt;
+    padding: 2mm 0;
+    width: 100%;
+}
+
+body.thermal .company-header {
+    border-bottom: 0.5pt dashed #000000;
+    padding-bottom: 2.5mm;
+    text-align: center;
+}
+
+body.thermal .company-header .company-name {
+    color: #000000;
+    font-size: 11pt;
+    font-weight: bold;
+    letter-spacing: 0;
+    margin: 1mm 0;
+    text-transform: uppercase;
+}
+
+body.thermal .company-tagline {
+    color: #000000;
+    font-size: 6.5pt;
+    margin: 1mm 0;
+}
+
+body.thermal .company-details {
+    color: #000000;
+    font-size: 6.5pt;
+    line-height: 1.4;
+    margin-top: 1mm;
+}
+
+body.thermal .report-heading {
+    padding: 3mm 0 2mm 0;
+    text-align: center;
+}
+
+body.thermal .report-heading .report-title {
+    color: #000000;
+    font-size: 10.5pt;
+    font-weight: bold;
+    letter-spacing: 0;
+    margin: 0 0 1mm 0;
+    text-transform: uppercase;
+}
+
+body.thermal .report-subtitle {
+    color: #000000;
+    font-size: 6.5pt;
+}
+
+body.thermal table.report-meta {
+    border-collapse: collapse;
+    margin: 1.5mm 0 2.5mm 0;
+    width: 100%;
+}
+
+body.thermal table.report-meta td {
+    border: 0;
+    font-size: 6.8pt;
+    padding: 0.8mm 0;
+}
+
+body.thermal .meta-label {
+    font-weight: bold;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.thermal .divider {
+    border-top: 0.5pt dashed #000000;
+    margin: 2mm 0;
+}
+
+body.thermal .data-table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+body.thermal .data-table thead {
+    border-bottom: 0.5pt solid #000000;
+    border-top: 0.5pt solid #000000;
+}
+
+body.thermal .data-table th {
+    background: #ffffff;
+    border: 0;
+    color: #000000;
+    font-size: 6.5pt;
+    font-weight: bold;
+    padding: 1.5mm 0.5mm;
+    text-align: left;
+}
+
+body.thermal .data-table td {
+    border-bottom: 0.5pt dashed #aaaaaa;
+    color: #000000;
+    font-size: 6.5pt;
+    padding: 1.6mm 0.5mm;
+}
+
+body.thermal .text-right {
+    text-align: right !important;
+}
+
+body.thermal .data-table .nowrap {
+    white-space: nowrap;
+}
+
+body.thermal .empty-message {
+    color: #666666;
+    padding: 3mm 0 !important;
+    text-align: center;
+}
+
+body.thermal .summary {
+    border-bottom: 0.5pt solid #000000;
+    border-top: 0.5pt solid #000000;
+    margin-top: 3mm;
+    padding: 2mm 0;
+    text-align: left;
+}
+
+body.thermal .summary-row {
+    display: table;
+    width: 100%;
+}
+
+body.thermal .summary-label,
+body.thermal .summary-value {
+    display: table-cell;
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+body.thermal .summary-value {
+    font-size: 9.5pt;
+    text-align: right;
+}
+
+body.thermal .report-footer {
+    font-size: 6.8pt;
+    line-height: 1.4;
+    padding: 3mm 0 1mm 0;
+    text-align: center;
+}
+
+body.thermal .footer-company {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Small document notices printed on invoices and quotations. */
+body.a4 .document-note {
+    color: #4a4a5c;
+    font-size: 7pt;
+    margin-top: 2mm;
+    text-align: center;
+}
+
+body.thermal .document-note {
+    color: #444444;
+    font-size: 6pt;
+    margin-top: 1.5mm;
+    text-align: center;
+}

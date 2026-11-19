@@ -13,6 +13,7 @@ import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.SupplierDto;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,11 +23,13 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -119,14 +122,6 @@ public class ProductController implements Initializable {
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
     private String currentProductId;
 
-    /**
-     * Supplier pre-selected from the Supplier view's "+ Add Product" flow. It is
-     * read once when this controller loads, then cleared so it only affects the
-     * product that is saved right after the navigation.
-     */
-    public static String pendingSupplierId;
-    private String pendingSupplier;
-
     private void setupShortcuts() {
         rootPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (!event.isControlDown() || event.isAltDown() || event.isMetaDown()) return;
@@ -159,10 +154,6 @@ public class ProductController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Consume the supplier chosen on the Supplier view's "+ Add Product" flow.
-        pendingSupplier = pendingSupplierId;
-        pendingSupplierId = null;
-
         pageReset();
         colItemCode.setCellValueFactory(new PropertyValueFactory<>("itemcode"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -261,21 +252,44 @@ public class ProductController implements Initializable {
         productpriceArrayTbl.getColumns().forEach(column -> column.setSortable(false));
 
         colAction1.setCellFactory(column -> new TableCell<>() {
+            private final Button editButton = new Button();
             private final Button removeButton = new Button();
+            private final HBox actions = new HBox(4, editButton, removeButton);
 
             {
+                editButton.setGraphic(createEditIcon());
+                editButton.setTooltip(new Tooltip("Edit price"));
+                editButton.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-background-radius: 4; -fx-padding: 4 6 4 6; -fx-cursor: hand;");
+                editButton.setOnAction(event -> editPriceRow(getTableRow() == null ? null : getTableRow().getItem()));
+
                 removeButton.setGraphic(createRemoveIcon());
                 removeButton.setTooltip(new Tooltip("Remove price"));
                 removeButton.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 4; -fx-padding: 4 6 4 6; -fx-cursor: hand;");
                 removeButton.setOnAction(event -> removePriceRow(getTableRow() == null ? null : getTableRow().getItem()));
+
+                actions.setAlignment(Pos.CENTER);
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : removeButton);
+                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : actions);
             }
         });
+    }
+
+    /** Small white pencil icon used by the price row's edit button. */
+    private Node createEditIcon() {
+        Line shaft = new Line(4, 10, 11, 3);
+        shaft.setStroke(Color.WHITE);
+        shaft.setStrokeWidth(2.2);
+
+        Polygon nib = new Polygon(2.0, 12.0, 2.8, 8.8, 5.2, 11.2);
+        nib.setFill(Color.WHITE);
+
+        Group icon = new Group(shaft, nib);
+        icon.setFocusTraversable(false);
+        return icon;
     }
 
     /** Small white trash-can icon used by the price row's remove button. */
@@ -484,17 +498,12 @@ public class ProductController implements Initializable {
     }
 
     /**
-     * Attach a supplier to a freshly saved product. The supplier comes from the
-     * Supplier view's "+ Add Product" flow when present, otherwise the user is
-     * asked with the supplier picker (defaulting to the built-in supplier).
+     * Attach a supplier to a freshly saved product. The user picks the supplier
+     * with the supplier picker, defaulting to the built-in supplier if cancelled.
      */
     private void assignSupplierToProduct(String productId) {
-        String supplierId = pendingSupplier;
-        pendingSupplier = null;
-        if (supplierId == null || supplierId.isBlank()) {
-            SupplierDto chosen = openSupplierSelection();
-            supplierId = chosen == null ? AppConstants.DEFAULT_SUPPLIER_ID : chosen.getSupplierId();
-        }
+        SupplierDto chosen = openSupplierSelection();
+        String supplierId = chosen == null ? AppConstants.DEFAULT_SUPPLIER_ID : chosen.getSupplierId();
         if (supplierId != null && !supplierId.isBlank()) {
             productBO.assignSupplier(productId, supplierId);
         }
@@ -529,7 +538,7 @@ public class ProductController implements Initializable {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Add at least one price for the inventory item!");
             return;
         }
-        if (productBO.existProductByItemCode(itemcode)) {
+        if (productBO.existActiveProductByItemCode(itemcode)) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Item Code already exists! Please use a unique Item Code.");
             return;
         }
@@ -539,6 +548,13 @@ public class ProductController implements Initializable {
             if (pairs == null) {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invalid input for price!");
                 return;
+            }
+
+            // If a soft-deleted product already uses this item code, restore it under
+            // its existing id so the price/supplier steps below target the right row.
+            String existingId = productBO.findAnyProductIdByItemCode(itemcode);
+            if (existingId != null) {
+                id = existingId;
             }
 
             boolean isSaved = productBO.saveProduct(new ProductDto(id, itemcode, name, pairs));
@@ -677,16 +693,132 @@ public class ProductController implements Initializable {
         openAddPriceStockForm(productName, currentProductId);
     }
 
+    /** Remove a price tier, save the change to the database, then reload both tables. */
     private void removePriceRow(double[] row) {
         if (row == null) return;
-        ObservableList<double[]> items = productpriceArrayTbl.getItems();
-        items.remove(row);
-        if (items.isEmpty()) {
-            txtPrice.clear();
-        } else {
-            txtPrice.setText(formatPrice(rowValue(items.get(0), PriceQtyArray.PRICE)));
+        ProductDto selected = tblProduct.getSelectionModel().getSelectedItem();
+        if (selected == null || selected.getId() == null) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+            return;
         }
-        productpriceArrayTbl.getSelectionModel().clearSelection();
+        ObservableList<double[]> items = productpriceArrayTbl.getItems();
+        if (items.size() <= 1) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Cannot remove the last price!");
+            return;
+        }
+        if (!items.remove(row)) {
+            return;
+        }
+
+        ProductDto saved = productBO.searchProduct(selected.getId());
+        if (saved == null) {
+            reloadProductView(selected.getId());
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
+            return;
+        }
+
+        double[][] remaining = new double[items.size()][];
+        for (int i = 0; i < items.size(); i++) {
+            remaining[i] = items.get(i);
+        }
+        ProductDto changed = new ProductDto(saved.getId(), saved.getItemcode(), saved.getName(), remaining);
+        if (!productBO.updateProduct(changed)) {
+            reloadProductView(saved.getId());
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
+            return;
+        }
+
+        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
+        reloadProductView(saved.getId());
+    }
+
+    /** Open the add-price form pre-filled so one selected price row can be edited. */
+    private void editPriceRow(double[] row) {
+        if (row == null) return;
+        ProductDto selected = tblProduct.getSelectionModel().getSelectedItem();
+        if (selected == null || selected.getId() == null) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+            return;
+        }
+        int index = priceRowIndex(row);
+        if (index < 0) return;
+
+        String productName = selected.getName() == null ? "" : selected.getName();
+        openEditPriceStockForm(productName, selected.getId(), index,
+                rowValue(row, PriceQtyArray.PRICE), rowValue(row, PriceQtyArray.QTY));
+    }
+
+    /** Position of this price row in the table; identities are checked before values. */
+    private int priceRowIndex(double[] row) {
+        ObservableList<double[]> items = productpriceArrayTbl.getItems();
+        for (int i = 0; i < items.size(); i++) {
+            double[] item = items.get(i);
+            if (item == row || (item != null && Arrays.equals(item, row))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Save the edited price/stock pair, show the update alert, then reload the tables. */
+    private void openEditPriceStockForm(String productName, String productId, int index,
+                                        double oldPrice, double oldQty) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/addPriceStock.fxml"));
+            Parent root = loader.load();
+            AddPriceStockController controller = loader.getController();
+            controller.initDataForEdit(productId, productName, oldPrice, oldQty);
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Edit Price & Stock");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setResizable(false);
+            stage.showAndWait();
+
+            if (!controller.isPriceAdded()) return;
+            Double newPrice = controller.getEditedPrice();
+            Double newQty = controller.getEditedStock();
+            if (newPrice == null || newQty == null) return;
+
+            ProductDto saved = productBO.searchProduct(productId);
+            double[][] pairs = saved == null ? null : saved.getPriceQtyPairs();
+            if (pairs == null || index >= pairs.length) {
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
+                reloadProductView(productId);
+                return;
+            }
+
+            pairs[index] = new double[]{newPrice, newQty};
+            ProductDto changed = new ProductDto(saved.getId(), saved.getItemcode(), saved.getName(), pairs);
+            if (!productBO.updateProduct(changed)) {
+                AlertUtil.showAlert(Alert.AlertType.ERROR, "Failed to update inventory!");
+                reloadProductView(productId);
+                return;
+            }
+
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Product Updated!");
+            reloadProductView(productId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open edit price screen!");
+        }
+    }
+
+    /** Reload the inventory table and the selected product's price rows from the database. */
+    private void reloadProductView(String productId) {
+        loadAllProducts();
+        ProductDto refreshed = productBO.searchProduct(productId);
+        if (refreshed == null) return;
+        for (ProductDto dto : tblProduct.getItems()) {
+            if (productId.equals(dto.getId())) {
+                tblProduct.getSelectionModel().select(dto);
+                tblProduct.scrollTo(dto);
+                return; // the selection listener repopulates the price table
+            }
+        }
+        loadProductPrices(refreshed);
+        txtQty.setText(String.valueOf(refreshed.getQty()));
     }
 
     @FXML
@@ -765,26 +897,13 @@ public class ProductController implements Initializable {
     void txtSearchOnKeyReleased(KeyEvent event) {
         if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
             txtSearch.clear();
-            txtSearch.getParent().requestFocus();
+            if (txtSearch.getParent() != null) txtSearch.getParent().requestFocus();
+            loadAllProducts();
         } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
             performSearchWithAlert();
         } else {
             performSearch();
         }
-    }
-
-    private ProductDto findProductBySearchTerm(String searchTerm) {
-        if (searchTerm == null || searchTerm.isEmpty()) return null;
-        ObservableList<ProductDto> allProducts = tblProduct.getItems();
-        for (ProductDto dto : allProducts) {
-            String itemcode = dto.getItemcode();
-            if (dto.getId().toLowerCase().equals(searchTerm) ||
-                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
-                    dto.getName().toLowerCase().contains(searchTerm)) {
-                return dto;
-            }
-        }
-        return null;
     }
 
     private void selectProduct(ProductDto foundProduct) {
@@ -799,25 +918,39 @@ public class ProductController implements Initializable {
     }
 
     private void performSearch() {
-        String searchTerm = txtSearch.getText().toLowerCase();
+        String searchTerm = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
         if (searchTerm.isEmpty()) {
             loadAllProducts();
             return;
         }
-        selectProduct(findProductBySearchTerm(searchTerm));
+
+        ArrayList<ProductDto> allProducts = productBO.getAllProducts();
+        tblProduct.getSelectionModel().clearSelection();
+        ObservableList<ProductDto> items = tblProduct.getItems();
+        items.clear();
+        if (allProducts == null) return;
+        for (ProductDto dto : allProducts) {
+            String itemcode = dto.getItemcode();
+            if ((dto.getId() != null && dto.getId().toLowerCase().contains(searchTerm)) ||
+                    (itemcode != null && itemcode.toLowerCase().contains(searchTerm)) ||
+                    (dto.getName() != null && dto.getName().toLowerCase().contains(searchTerm))) {
+                items.add(dto);
+            }
+        }
     }
 
     private void performSearchWithAlert() {
-        String searchTerm = txtSearch.getText().toLowerCase();
+        String searchTerm = txtSearch.getText() == null ? "" : txtSearch.getText().toLowerCase().trim();
         if (searchTerm.isEmpty()) {
             loadAllProducts();
             return;
         }
-        ProductDto found = findProductBySearchTerm(searchTerm);
-        if (found != null) {
-            selectProduct(found);
-        } else {
+
+        performSearch();
+        if (tblProduct.getItems().isEmpty()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Inventory not found!");
+        } else {
+            selectProduct(tblProduct.getItems().get(0));
         }
     }
 }

@@ -19,12 +19,15 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
- * Small modal FXML form used to add a new price (+ stock) pair to a saved product.
+ * Small modal FXML form used to add a new price (+ stock) pair to a saved product,
+ * or to edit an existing pair when opened with {@link #initDataForEdit}.
  */
 public class AddPriceStockController implements Initializable {
 
     @FXML
     private AnchorPane rootPane;
+    @FXML
+    private Label lblTitle;
     @FXML
     private Label lblProduct;
     @FXML
@@ -42,6 +45,12 @@ public class AddPriceStockController implements Initializable {
     private String productId;
     private String productName;
     private boolean priceAdded;
+
+    // When opened in edit mode the form only collects the new values; the caller
+    // persists them against the edited row index.
+    private boolean editMode;
+    private Double editedPrice;
+    private Double editedStock;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -69,12 +78,40 @@ public class AddPriceStockController implements Initializable {
         this.productId = productId;
         this.productName = productName;
         this.priceAdded = false;
+        this.editMode = false;
+        this.editedPrice = null;
+        this.editedStock = null;
         lblProduct.setText(productName == null ? "-" : productName);
+        lblTitle.setText("Add New Price & Stock");
+        btnSave.setText("Add Price");
     }
 
-    /** True when the form was closed after a price/stock pair was saved. */
+    /** Open the same form pre-filled with an existing price/stock pair. */
+    public void initDataForEdit(String productId, String productName, double price, double qty) {
+        initData(productId, productName);
+        this.editMode = true;
+        txtPrice.setText(formatValue(price));
+        txtStock.setText(formatValue(qty));
+        lblTitle.setText("Edit Price & Stock");
+        btnSave.setText("Update Price");
+    }
+
+    /** True when the form was closed after a price/stock pair was submitted. */
     public boolean isPriceAdded() {
         return priceAdded;
+    }
+
+    /** Edited values returned to the caller; only set in edit mode. */
+    public Double getEditedPrice() {
+        return editedPrice;
+    }
+
+    public Double getEditedStock() {
+        return editedStock;
+    }
+
+    private String formatValue(double value) {
+        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
     }
 
     /** Enter in the Price field moves the caret to the Stock field. */
@@ -104,6 +141,15 @@ public class AddPriceStockController implements Initializable {
         }
         if (productId == null || productId.isBlank()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a product first!");
+            return;
+        }
+        if (editMode) {
+            // The product page owns the row index, so it writes these values to
+            // the database and refreshes the table after this dialog closes.
+            editedPrice = price;
+            editedStock = stock;
+            priceAdded = true;
+            closeStage();
             return;
         }
         if (!productBO.addPriceQty(productId, price, stock)) {

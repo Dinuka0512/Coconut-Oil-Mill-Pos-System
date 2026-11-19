@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Quotation</title>
+    <style>{{{styles}}}</style>
+</head>
+<body class="{{bodyClass}}">
+<div class="receipt">
+    {{> partials/company-thermal-report}}
+
+    <div class="report-heading">
+        <div class="report-title">QUOTATION</div>
+        <div class="report-subtitle">{{subtitle}}</div>
+    </div>
+
+    <table class="report-meta">
+        <tr>
+            <td><span class="meta-label">Date:</span> {{quotationDateTime}}</td>
+        </tr>
+        <tr>
+            <td><span class="meta-label">Customer:</span> {{customerName}}</td>
+        </tr>
+        {{#if hasContact}}
+        <tr>
+            <td><span class="meta-label">Contact:</span> {{customerContact}}</td>
+        </tr>
+        {{/if}}
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th style="width: 8%;">#</th>
+            <th style="width: 40%;">Item</th>
+            <th class="text-right" style="width: 12%;">Qty</th>
+            <th class="text-right" style="width: 18%;">Rate</th>
+            <th class="text-right" style="width: 22%;">Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if rows}}
+        {{#each rows}}
+        <tr>
+            <td>{{index}}</td>
+            <td>{{description}}</td>
+            <td class="text-right">{{qty}}</td>
+            <td class="text-right">{{rate}}</td>
+            <td class="text-right">{{amount}}</td>
+        </tr>
+        {{/each}}
+        {{else}}
+        <tr>
+            <td class="empty-message" colspan="5">No items found.</td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+
+    <table class="report-meta invoice-breakdown">
+        <tr>
+            <td>Sub Total</td>
+            <td class="text-right">{{subTotal}}</td>
+        </tr>
+        <tr>
+            <td>Discount ({{discountPercent}}%)</td>
+            <td class="text-right">{{discount}}</td>
+        </tr>
+        <tr>
+            <td>Tax ({{taxRate}}%)</td>
+            <td class="text-right">{{tax}}</td>
+        </tr>
+    </table>
+
+    <div class="summary">
+        <div class="summary-row">
+            <div class="summary-label">TOTAL (LKR)</div>
+            <div class="summary-value">{{total}}</div>
+        </div>
+    </div>
+
+    <table class="report-meta invoice-payment">
+        <tr>
+            <td><span class="meta-label">Type:</span> Quotation</td>
+        </tr>
+        <tr>
+            <td><span class="meta-label">Validity:</span> Prices valid on issue date</td>
+        </tr>
+    </table>
+
+    <div class="document-note">**Condition applied</div>
+
+    <div class="report-footer">
+        Thank you for your business!<br />
+        <span class="footer-company">{{footerCompany}}</span>
+    </div>
+</div>
+</body>
+</html>

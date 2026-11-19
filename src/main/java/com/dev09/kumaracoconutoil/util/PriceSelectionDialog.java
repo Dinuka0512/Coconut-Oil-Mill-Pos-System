@@ -9,11 +9,10 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Small modal popup that lets the user pick one of a product's saved unit prices.
+ * Small modal popup that lets the user pick one of a product's saved price/qty tiers.
  *
  * <p>The UI itself lives in {@code /view/priceSelection.fxml} and is driven by
  * {@link PriceSelectionController}.</p>
@@ -25,8 +24,12 @@ public final class PriceSelectionDialog {
     private PriceSelectionDialog() {
     }
 
-    public static Optional<Double> show(Window owner, String productName, List<Double> prices) {
-        if (prices == null || prices.isEmpty()) {
+    /**
+     * @param priceQtyRows the product's {@code {price, qty}} rows
+     * @return the selected {@code {price, qty}} row, or empty when cancelled
+     */
+    public static Optional<double[]> show(Window owner, String productName, double[][] priceQtyRows) {
+        if (priceQtyRows == null || priceQtyRows.length == 0) {
             return Optional.empty();
         }
 
@@ -35,7 +38,7 @@ public final class PriceSelectionDialog {
             Parent root = loader.load();
 
             PriceSelectionController controller = loader.getController();
-            controller.initData(productName, prices);
+            controller.initData(productName, priceQtyRows);
 
             Stage stage = new Stage();
             stage.setTitle("Select Unit Price");
@@ -57,7 +60,7 @@ public final class PriceSelectionDialog {
             stage.showAndWait();
 
             return controller.isConfirmed()
-                    ? Optional.ofNullable(controller.getSelectedPrice())
+                    ? Optional.ofNullable(controller.getSelectedTier())
                     : Optional.empty();
         } catch (IOException e) {
             e.printStackTrace();

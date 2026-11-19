@@ -11,6 +11,7 @@ import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
+import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
 import javafx.application.Platform;
@@ -105,6 +106,8 @@ public class UpdatePosController implements Initializable {
     private ObservableList<CartTM> obList = FXCollections.observableArrayList();
     private CustomerDto selectedCustomer;
     private ProductDto selectedProduct;
+    /** Stock available at the currently selected price tier. */
+    private double selectedTierQty;
     private ArrayList<ProductDto> currentProducts;
     private Timeline productResetTimer;
     private Timeline customerResetTimer;
@@ -277,19 +280,20 @@ public class UpdatePosController implements Initializable {
             for (ProductDto dto : currentProducts) {
                 String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
                 if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
-                    Double price = resolveProductPrice(dto);
-                    if (price == null) {
+                    double[] tier = resolveProductTier(dto);
+                    if (tier == null) {
                         resetProductSelection();
                         return;
                     }
                     selectedProduct = dto;
+                    selectedTierQty = tier[PriceQtyArray.QTY];
                     cmbProductId.setValue(display);
                     if (cmbProductId.getEditor() != null) {
                         cmbProductId.getEditor().setText(display);
                         cmbProductId.getEditor().positionCaret(display.length());
                     }
-                    txtUnitPrice.setText(String.valueOf(price));
-                    lblQtyOnHand.setText(dto.getQty() + " Kg");
+                    txtUnitPrice.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
+                    lblQtyOnHand.setText(selectedTierQty + " Kg");
                     lblItemName.setText(dto.getName());
                     lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
                     txtQty.requestFocus();
@@ -299,23 +303,25 @@ public class UpdatePosController implements Initializable {
         }
     }
 
-    private Double resolveProductPrice(ProductDto dto) {
-        ArrayList<Double> prices = dto.getPrices();
+    /** The {price, qty} tier the cashier selected, or null when cancelled. */
+    private double[] resolveProductTier(ProductDto dto) {
+        double[][] rows = dto.getPriceQtyPairs();
 
-        if (prices.isEmpty()) {
-            return dto.getPrice();
+        if (rows.length == 0) {
+            return new double[]{dto.getPrice(), dto.getQty()};
         }
-        if (prices.size() == 1) {
-            return prices.get(0);
+        if (rows.length == 1) {
+            return rows[0];
         }
 
         cmbProductId.hide();
         Window owner = cmbProductId.getScene() == null ? null : cmbProductId.getScene().getWindow();
-        return PriceSelectionDialog.show(owner, dto.getName(), prices).orElse(null);
+        return PriceSelectionDialog.show(owner, dto.getName(), rows).orElse(null);
     }
 
     private void resetProductSelection() {
         selectedProduct = null;
+        selectedTierQty = 0;
         cmbProductId.getSelectionModel().clearSelection();
         if (cmbProductId.getEditor() != null) {
             cmbProductId.getEditor().clear();
@@ -382,27 +388,29 @@ public class UpdatePosController implements Initializable {
             return;
         }
 
-        double qtyOnHand = selectedProduct.getQty();
-        double existingQtyInCart = 0;
-        for (CartTM item : obList) {
-            if (code.equals(item.getCode())) {
-                existingQtyInCart = item.getQty();
-                break;
-            }
-        }
-
-        double totalQtyInCart = existingQtyInCart + qty;
-        if (totalQtyInCart > qtyOnHand) {
-            AlertUtil.showAlert(Alert.AlertType.WARNING, "Total quantity exceeds available stock!\nAvailable: " + qtyOnHand + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
-            return;
-        }
-
         try {
             double unitPrice = Double.parseDouble(txtUnitPrice.getText().trim());
             if (unitPrice <= 0) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING, "Unit price must be greater than zero!");
                 return;
             }
+
+            // Stock is tracked per price tier, so the entered quantity is limited to the
+            // stock of the selected price (not the product's total stock).
+            double existingQtyInCart = 0;
+            for (CartTM item : obList) {
+                if (code.equals(item.getCode()) && unitPrice == item.getUnitPrice()) {
+                    existingQtyInCart = item.getQty();
+                    break;
+                }
+            }
+            if (existingQtyInCart + qty > selectedTierQty) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING,
+                        "Quantity exceeds the stock available for this price!\nAvailable: "
+                                + selectedTierQty + " Kg\nIn Cart: " + existingQtyInCart + " Kg");
+                return;
+            }
+
             double total = qty * unitPrice;
             Button btn = new Button("X");
             btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 3;");
@@ -473,6 +481,7 @@ public class UpdatePosController implements Initializable {
 
     private void clearProductSelection() {
         selectedProduct = null;
+        selectedTierQty = 0;
         txtQty.clear();
         txtQty.setText("1");
         txtUnitPrice.clear();

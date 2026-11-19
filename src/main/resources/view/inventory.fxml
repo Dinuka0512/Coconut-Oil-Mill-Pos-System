@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="569.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.ProductController">
+<AnchorPane fx:id="rootPane" prefHeight="569.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.ProductController">
    <children>
       <AnchorPane prefHeight="582.0" prefWidth="958.0" style="-fx-background-color: white;">
          <children>
@@ -54,9 +54,9 @@
             </TableView>
             <TableView fx:id="productpriceArrayTbl" layoutX="702.0" layoutY="264.0" prefHeight="254.0" prefWidth="222.0" style="-fx-background-radius: 5;">
                <columns>
-                  <TableColumn fx:id="colPrice1" prefWidth="88.0" text="Price (LKR)" />
-             <TableColumn fx:id="colStock1" prefWidth="73.0" text="Stock (Kg)" />
-                  <TableColumn fx:id="colAction1" prefWidth="60.0" text="Action" />
+                  <TableColumn fx:id="colPrice1" prefWidth="70.0" text="Price (LKR)" />
+             <TableColumn fx:id="colStock1" prefWidth="62.0" text="Stock (Kg)" />
+                  <TableColumn fx:id="colAction1" prefWidth="76.0" text="Action" />
                </columns>
             </TableView>
 

@@ -3,8 +3,10 @@ package com.dev09.kumaracoconutoil.controller;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AuditUtil;
 import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
+import com.dev09.kumaracoconutoil.util.FormState;
 import com.dev09.kumaracoconutoil.util.IdleMonitor;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
+import com.dev09.kumaracoconutoil.util.SessionRestore;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
@@ -34,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
@@ -53,8 +56,6 @@ import java.util.ResourceBundle;
 
 public class DashboardController implements Initializable {
     public static UserDto userData;
-
-    private static DashboardController instance;
 
     @FXML
     private AnchorPane body;
@@ -118,9 +119,12 @@ public class DashboardController implements Initializable {
     private ArrayList<CustomerDto> cachedCustomers;
     private ArrayList<ProductDto> cachedProducts;
 
+    /** Screen currently shown in the content area, remembered for idle-logout resume. */
+    private String currentSubView;
+    private String homeFxml = "/view/dashboard.fxml";
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        instance = this;
         updateUserDisplay();
         IdleMonitor.start(this::performIdleLogout);
         if (userData != null && RoleUtil.isCashier(userData.getRole())) {
@@ -318,6 +322,7 @@ public class DashboardController implements Initializable {
     void logOut(ActionEvent event) {
         com.dev09.kumaracoconutoil.util.UserLogUtil.record("LOGOUT");
         IdleMonitor.stop();
+        SessionRestore.clear();
         mainNavigateTo("/view/login.fxml");
         userData = null;
         AuditUtil.clear();
@@ -326,6 +331,18 @@ public class DashboardController implements Initializable {
     private void performIdleLogout() {
         IdleMonitor.stop();
         Platform.runLater(() -> {
+            // The dashboard can already be gone (for example after a profile update
+            // navigated to login). Never capture or close windows from a stale view.
+            if (body == null || body.getScene() == null) return;
+
+            // Capture BEFORE the invoice/dialog windows are closed and before the
+            // current user is cleared - the snapshot is owned by this account.
+            Node activeView = bodyContent != null && !bodyContent.getChildren().isEmpty()
+                    ? bodyContent.getChildren().get(0) : null;
+            SessionRestore.save(SessionRestore.capture(
+                    userData, homeFxml, currentSubView,
+                    activeView instanceof Parent parent ? parent : null));
+
             com.dev09.kumaracoconutoil.util.UserLogUtil.record("AUTO_LOGOUT");
             try {
                 Window mainWindow = body != null && body.getScene() != null ? body.getScene().getWindow() : null;
@@ -343,8 +360,27 @@ public class DashboardController implements Initializable {
             userData = null;
             AuditUtil.clear();
             mainNavigateTo("/view/login.fxml");
-            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "You were logged out due to 1 minute of inactivity.");
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION,
+                    "You were logged out due to 1 minute of inactivity.\n"
+                            + "Your current work will be restored when you sign in again as the same user.");
         });
+    }
+
+    /** Called by the login screen right after this dashboard is loaded. */
+    public void setHomeFxml(String homeFxml) {
+        this.homeFxml = homeFxml;
+    }
+
+    /** Put the user back on the same screen, with the same typed values. */
+    public void applyRestore(SessionRestore.Snapshot snapshot) {
+        if (snapshot == null) return;
+        if (snapshot.subViewFxml() != null) {
+            subNavigateTo(snapshot.subViewFxml());
+            if (!bodyContent.getChildren().isEmpty()) {
+                FormState.restore(bodyContent.getChildren().get(0), snapshot.subViewFields());
+            }
+        }
+        SessionRestore.reopen(snapshot.windows());
     }
 
     private void mainNavigateTo(String path) {
@@ -358,16 +394,10 @@ public class DashboardController implements Initializable {
         }
     }
 
-    /** Lets a child view (e.g. Supplier) switch the dashboard content area. */
-    public static void openSubView(String path) {
-        if (instance != null) {
-            instance.subNavigateTo(path);
-        }
-    }
-
     private void subNavigateTo(String path) {
         try {
             AnchorPane pane = FXMLLoader.load(getClass().getResource(path));
+            currentSubView = path;
             bodyContent.getChildren().clear();
             bodyContent.getChildren().add(pane);
             AnchorPane.setTopAnchor(pane, 0.0);
@@ -414,11 +444,14 @@ public class DashboardController implements Initializable {
     @FXML
     void goToOrder(ActionEvent event) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/view/pos.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/pos.fxml"));
+            Parent root = loader.load();
+            SimplePOSController posController = loader.getController();
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.setTitle("Invoice");
             stage.setResizable(false);
+            SessionRestore.track(stage, "/view/pos.fxml", posController);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

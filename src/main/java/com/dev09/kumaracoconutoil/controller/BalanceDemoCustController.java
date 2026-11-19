@@ -166,7 +166,7 @@ public class BalanceDemoCustController implements Initializable {
             }
 
             OrderDto orderDto = new OrderDto(orderId, date, customer, details,
-                    currentTotalWithTax, 0, taxAmount, currentTaxRate, balance, "Credit");
+                    currentTotalWithTax, 0, taxAmount, currentTaxRate, balance, "Cash");
 
             boolean isPlaced = orderBO.placeOrder(orderDto);
 

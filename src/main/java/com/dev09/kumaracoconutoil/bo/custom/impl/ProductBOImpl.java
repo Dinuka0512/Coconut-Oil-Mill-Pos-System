@@ -41,6 +41,20 @@ public class ProductBOImpl implements ProductBO {
 
     @Override
     public boolean saveProduct(ProductDto dto) {
+        // A soft-deleted product still owns its unique item code, so instead of
+        // inserting a conflicting row we restore that product with the new details.
+        ProductEntity existing = productDAO.findAnyByItemCode(dto.getItemcode());
+        if (existing != null) {
+            if (!existing.isDeleted()) {
+                return false; // genuine duplicate; the controller blocks this first
+            }
+            existing.setName(dto.getName());
+            existing.setPriceQtyPairs(dto.getPriceQty());
+            existing.setSupplierId(dto.getSupplierId());
+            existing.setDeleted(false);
+            return productDAO.revive(existing);
+        }
+
         ProductEntity entity = new ProductEntity();
         entity.setId(dto.getId());
         entity.setItemcode(dto.getItemcode());
@@ -48,6 +62,17 @@ public class ProductBOImpl implements ProductBO {
         entity.setPriceQtyPairs(dto.getPriceQty());
         entity.setSupplierId(dto.getSupplierId());
         return productDAO.save(entity);
+    }
+
+    @Override
+    public boolean existActiveProductByItemCode(String itemCode) {
+        return productDAO.existActiveByItemCode(itemCode);
+    }
+
+    @Override
+    public String findAnyProductIdByItemCode(String itemCode) {
+        ProductEntity entity = productDAO.findAnyByItemCode(itemCode);
+        return entity == null ? null : entity.getId();
     }
 
     @Override
