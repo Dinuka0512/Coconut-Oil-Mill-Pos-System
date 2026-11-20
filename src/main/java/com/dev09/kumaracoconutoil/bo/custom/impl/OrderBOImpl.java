@@ -273,17 +273,18 @@ public class OrderBOImpl implements OrderBO {
                 }
             }
 
-            List<Object[]> productQtys = session.createNativeQuery("SELECT product_id, qty FROM order_product_details WHERE order_id = :orderId")
+            // Use entity mappings here: the order detail column is `quantity`, and product
+            // stock lives in `price_qty` (the `qty` column is only a legacy mirror).
+            List<OrderProductDetailsEntity> details = session.createQuery(
+                    "SELECT d FROM OrderProductDetailsEntity d WHERE d.order.orderId = :orderId",
+                    OrderProductDetailsEntity.class)
                     .setParameter("orderId", orderId)
                     .list();
-            for (Object[] row : productQtys) {
-                String productId = (String) row[0];
-                if (productId == null) continue;
-                double qty = ((Number) row[1]).doubleValue();
-                session.createNativeQuery("UPDATE product SET qty = qty + :qty WHERE id = :productId")
-                        .setParameter("qty", qty)
-                        .setParameter("productId", productId)
-                        .executeUpdate();
+            for (OrderProductDetailsEntity detail : details) {
+                ProductEntity product = session.get(ProductEntity.class, detail.getProduct().getId());
+                if (product == null) continue;
+                product.setQty(product.getQty() + detail.getQuantity());
+                session.merge(product);
             }
 
             session.createNativeQuery("DELETE FROM due_payment WHERE order_id = :orderId")
