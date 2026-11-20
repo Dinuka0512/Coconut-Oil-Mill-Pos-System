@@ -29,7 +29,7 @@
                <!-- Company Name (left) -->
                <Label layoutX="37.333333333333336" layoutY="17.666666666666668" prefWidth="205.0" text="Dilshan Oil Mill" textFill="#3b3b3b" AnchorPane.leftAnchor="37.333333333333336" AnchorPane.topAnchor="17.666666666666668">
                    <font>
-                       <Font name="Bebas Neue Regular" size="39.0" />
+                       <Font name="Bebas Neue" size="39.0" />
                    </font>
                </Label>
              <ImageView fitHeight="45.0" fitWidth="52.0" layoutX="1024.0" layoutY="27.0">

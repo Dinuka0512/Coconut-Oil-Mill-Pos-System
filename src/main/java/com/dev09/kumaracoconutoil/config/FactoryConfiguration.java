@@ -6,6 +6,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -57,12 +59,35 @@ public class FactoryConfiguration {
         try (Connection connection = DriverManager.getConnection(url, username, password);
              Statement statement = connection.createStatement()) {
 
+            // Fresh installations have no tables yet (hbm2ddl.auto=validate), so create
+            // them from the bundled schema before Hibernate validates the mappings.
+            runSchemaScript(statement);
+
             if (!columnExists(connection, "product", "price_qty")) {
                 statement.executeUpdate("ALTER TABLE product ADD COLUMN price_qty TEXT");
             }
             migrateLegacyPrices(connection, statement);
         } catch (Exception e) {
             System.err.println("Could not prepare product price_qty column: " + e.getMessage());
+        }
+    }
+
+    /** Creates the database/tables on a new machine; every statement is idempotent. */
+    private static void runSchemaScript(Statement statement) {
+        try (InputStream in = FactoryConfiguration.class.getResourceAsStream("/db/schema.sql")) {
+            if (in == null) {
+                System.err.println("Bundled database schema (/db/schema.sql) not found.");
+                return;
+            }
+            String script = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            for (String raw : script.split(";")) {
+                String sql = raw.trim();
+                if (!sql.isEmpty()) {
+                    statement.execute(sql);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Could not prepare database schema: " + e.getMessage());
         }
     }
 
