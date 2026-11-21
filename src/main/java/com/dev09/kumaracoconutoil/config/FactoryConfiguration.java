@@ -23,8 +23,16 @@ public class FactoryConfiguration {
 
     private FactoryConfiguration(){
         try {
-            Configuration config = new Configuration()
-                    .addAnnotatedClass(UserEntity.class)
+            Configuration config = new Configuration();
+            Properties bundled = new Properties();
+            try (InputStream in = FactoryConfiguration.class.getResourceAsStream("/hibernate.properties")) {
+                if (in != null) {
+                    bundled.load(in);
+                }
+            } catch (Exception ignored) {
+            }
+            config.addProperties(bundled);
+            config.addAnnotatedClass(UserEntity.class)
                     .addAnnotatedClass(OrderEntity.class)
                     .addAnnotatedClass(OrderProductDetailsEntity.class)
                     .addAnnotatedClass(ProductEntity.class)
@@ -33,12 +41,17 @@ public class FactoryConfiguration {
                     .addAnnotatedClass(DuePaymentEntity.class)
                     .addAnnotatedClass(UserLogEntity.class)
                     .addAnnotatedClass(SupplierEntity.class);
+            DatabaseConfig.applyOverrides(config.getProperties());
             ensureSchema(config.getProperties());
             sessionFactory = config.buildSessionFactory();
         } catch (Exception e) {
             System.err.println("Failed to initialize Hibernate SessionFactory: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Cannot initialize database connection. Check hibernate.properties configuration.", e);
+            String detail = e.getMessage();
+            if (e.getCause() != null && e.getCause().getMessage() != null) {
+                detail = e.getCause().getMessage();
+            }
+            throw new RuntimeException("Cannot initialize database connection: " + detail, e);
         }
     }
 
@@ -82,8 +95,13 @@ public class FactoryConfiguration {
             String script = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             for (String raw : script.split(";")) {
                 String sql = raw.trim();
-                if (!sql.isEmpty()) {
+                if (sql.isEmpty()) {
+                    continue;
+                }
+                try {
                     statement.execute(sql);
+                } catch (Exception e) {
+                    System.err.println("Schema statement skipped: " + e.getMessage());
                 }
             }
         } catch (Exception e) {

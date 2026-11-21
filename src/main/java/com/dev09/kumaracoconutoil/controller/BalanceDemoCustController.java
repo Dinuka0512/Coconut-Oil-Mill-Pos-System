@@ -187,27 +187,28 @@ public class BalanceDemoCustController implements Initializable {
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
         printAlert.setTitle("Print Bill");
         printAlert.setHeaderText("Invoice Placed Successfully!");
-        printAlert.setContentText("Choose PDF format:");
+        printAlert.setContentText("Choose output format:");
 
-        ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
+        ButtonType smallBtn = new ButtonType("Small (80mm) - Thermal Printer", ButtonBar.ButtonData.YES);
         ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
         printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
 
         Optional<ButtonType> result = printAlert.showAndWait();
         if (result.isPresent()) {
             try {
-                byte[] pdfBytes;
                 if (result.get() == smallBtn) {
-                    pdfBytes = orderBO.generateOrderBill80mm(orderId);
+                    byte[] escpos = orderBO.generateOrderBill80mm(orderId);
+                    if (escpos != null) {
+                        com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
+                    }
                 } else {
-                    pdfBytes = orderBO.generateOrderBillA4(orderId);
-                }
-
-                if (pdfBytes != null) {
-                    File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                    tempFile.deleteOnExit();
-                    Files.write(tempFile.toPath(), pdfBytes);
-                    Desktop.getDesktop().open(tempFile);
+                    byte[] pdfBytes = orderBO.generateOrderBillA4(orderId);
+                    if (pdfBytes != null) {
+                        File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                        tempFile.deleteOnExit();
+                        Files.write(tempFile.toPath(), pdfBytes);
+                        Desktop.getDesktop().open(tempFile);
+                    }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

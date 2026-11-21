@@ -9,6 +9,7 @@ import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.util.PdfGenerator;
+import com.dev09.kumaracoconutoil.util.ThermalPrinter;
 import com.dev09.kumaracoconutoil.util.PriceQtyArray;
 import com.dev09.kumaracoconutoil.util.PriceSelectionDialog;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
@@ -912,35 +913,32 @@ public class QuotationController implements Initializable {
         String customerContact = selectedCustomer != null ? selectedCustomer.getContact() : null;
 
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        printAlert.setTitle("Generate Quotation PDF");
-        printAlert.setHeaderText("Choose PDF format:");
-        printAlert.setContentText("Select the format for the quotation PDF:");
+        printAlert.setTitle("Generate Quotation");
+        printAlert.setHeaderText("Choose output format:");
+        printAlert.setContentText("Select the format for the quotation:");
 
-        ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
+        ButtonType smallBtn = new ButtonType("Small (80mm) - Thermal Printer", ButtonBar.ButtonData.YES);
         ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
         printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
 
         Optional<ButtonType> result = printAlert.showAndWait();
         if (result.isPresent()) {
             try {
-                byte[] pdfBytes;
                 if (result.get() == smallBtn) {
-                    pdfBytes = PdfGenerator.generateQuotationBill80mm(
+                    byte[] escpos = PdfGenerator.generateQuotationBill80mm(
                             quotationId, date, customerName, customerContact,
                             new ArrayList<>(obList), 0, 0);
+                    ThermalPrinter.print(escpos);
                 } else {
-                    pdfBytes = PdfGenerator.generateQuotationBillA4Pro(
+                    byte[] pdfBytes = PdfGenerator.generateQuotationBillA4Pro(
                             quotationId, date, customerName, customerContact,
                             new ArrayList<>(obList), 0, 0);
-                }
-
-                if (pdfBytes != null) {
                     File tempFile = File.createTempFile("Quotation_" + quotationId, ".pdf");
                     tempFile.deleteOnExit();
                     Files.write(tempFile.toPath(), pdfBytes);
                     Desktop.getDesktop().open(tempFile);
-                    resetForm();
                 }
+                resetForm();
             } catch (Exception e) {
                 e.printStackTrace();
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating PDF: " + e.getMessage());

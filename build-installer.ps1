@@ -1,10 +1,10 @@
 <#
   Builds the Dilshan Oil Mill Windows setup EXE.
 
-  The resulting "Dilshan Oil Mill Setup.exe" checks the target machine
-  (Windows bitness, disk space, MySQL service/port) and then launches the
-  bundled jpackage application installer. Java 21 and the Bebas Neue font
-  are bundled inside the application installer.
+  The resulting "Dilshan Oil Mill Setup.exe" checks disk space and MySQL,
+  asks for MySQL admin credentials, tests the connection, saves app DB config,
+  then launches the bundled jpackage application installer. Java 21 and the
+  Bebas Neue font are bundled inside the application installer.
 #>
 $ErrorActionPreference = 'Stop'
 
@@ -50,15 +50,15 @@ if ($LASTEXITCODE -ne 0) { throw 'jpackage failed.' }
 
 $appInstaller = Get-ChildItem $outputDir -Filter '*.exe' | Select-Object -First 1
 if ($null -eq $appInstaller) { throw 'jpackage did not produce an EXE.' }
-Copy-Item $appInstaller.FullName (Join-Path $root 'dist\Dilshan oil mill-1.0.exe') -Force
 
 Write-Host '4/4 Compiling prerequisite-checking setup EXE...'
 $setupExe = Join-Path $root 'dist\Dilshan Oil Mill Setup.exe'
 $icon = Join-Path $root 'src\main\resources\asets\logo.ico'
 $source = Join-Path $root 'installer\Setup.cs'
+$manifest = Join-Path $root 'installer\Setup.manifest'
 & $csc /nologo /target:winexe /out:$setupExe `
     /r:System.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.ServiceProcess.dll `
-    /win32icon:$icon `
+    /win32icon:$icon /win32manifest:$manifest `
     "/resource:$($appInstaller.FullName),appinstaller" `
     $source
 if ($LASTEXITCODE -ne 0) { throw 'C# compiler failed.' }

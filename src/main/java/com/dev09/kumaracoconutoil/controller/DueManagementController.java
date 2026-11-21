@@ -207,8 +207,8 @@ public class DueManagementController implements Initializable {
         alert.setHeaderText("How do you need to print?");
         alert.setContentText("Choose an option:");
 
-        ButtonType btn80mm = new ButtonType("Small (80mm)");
-        ButtonType btnA4 = new ButtonType("A4 Page");
+        ButtonType btn80mm = new ButtonType("Small (80mm) - Thermal Printer");
+        ButtonType btnA4 = new ButtonType("A4 Page (PDF)");
         ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btn80mm, btnA4, btnCancel);
 
@@ -222,19 +222,14 @@ public class DueManagementController implements Initializable {
             ));
         }
 
-        byte[] bytes;
-        String fileName;
         if (result.get() == btn80mm) {
-            bytes = PdfGenerator.DuePaymentReportThermal(entities);
-            fileName = "DueReport_80mm";
+            com.dev09.kumaracoconutoil.util.ThermalPrinter.print(PdfGenerator.DuePaymentReportThermal(entities));
         } else {
-            bytes = PdfGenerator.DuePaymentReportA4Pro(entities);
-            fileName = "DueReport_A4";
+            byte[] bytes = PdfGenerator.DuePaymentReportA4Pro(entities);
+            File tempFile = File.createTempFile("DueReport_A4", ".pdf");
+            tempFile.deleteOnExit();
+            Files.write(tempFile.toPath(), bytes);
+            java.awt.Desktop.getDesktop().open(tempFile);
         }
-
-        File tempFile = File.createTempFile(fileName, ".pdf");
-        tempFile.deleteOnExit();
-        Files.write(tempFile.toPath(), bytes);
-        java.awt.Desktop.getDesktop().open(tempFile);
     }
 }

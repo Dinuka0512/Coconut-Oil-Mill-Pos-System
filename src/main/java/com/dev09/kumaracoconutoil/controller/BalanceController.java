@@ -561,31 +561,30 @@ public class BalanceController implements Initializable {
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
         printAlert.setTitle("Print Bill");
         printAlert.setHeaderText("Invoice Placed Successfully!");
-        printAlert.setContentText("Choose PDF format:");
+        printAlert.setContentText("Choose output format:");
 
-        ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
+        ButtonType smallBtn = new ButtonType("Small (80mm) - Thermal Printer", ButtonBar.ButtonData.YES);
         ButtonType a4Btn = new ButtonType("A4 PDF", ButtonBar.ButtonData.NO);
         printAlert.getButtonTypes().setAll(smallBtn, a4Btn);
 
         Optional<ButtonType> result = printAlert.showAndWait();
         if (result.isPresent()) {
             try {
-                byte[] pdfBytes;
                 com.dev09.kumaracoconutoil.entity.OrderEntity order = orderBO.getOrderWithProducts(orderId);
                 java.util.List<com.dev09.kumaracoconutoil.entity.OrderProductDetailsEntity> details =
                         order != null && order.getOrderProducts() != null ? order.getOrderProducts() : new java.util.ArrayList<>();
 
                 if (result.get() == smallBtn) {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount);
+                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount);
+                    com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
                 } else {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount);
-                }
-
-                if (pdfBytes != null) {
-                    File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                    tempFile.deleteOnExit();
-                    Files.write(tempFile.toPath(), pdfBytes);
-                    Desktop.getDesktop().open(tempFile);
+                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount);
+                    if (pdfBytes != null) {
+                        File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                        tempFile.deleteOnExit();
+                        Files.write(tempFile.toPath(), pdfBytes);
+                        Desktop.getDesktop().open(tempFile);
+                    }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

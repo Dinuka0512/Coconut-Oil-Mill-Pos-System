@@ -19,15 +19,18 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Generates all application reports as PDF.
+ * Prepares the data for every report and delegates rendering to the correct
+ * engine for its output size:
  *
- * <p>The actual layout lives in HTML/CSS templates under
- * {@code src/main/resources/pdfGeneratorFiles}. Each method prepares the report
- * data and delegates rendering to {@link HtmlReportRenderer}, which uses
- * <strong>openhtmltopdf-pdfbox</strong> to turn the HTML into a PDF.</p>
+ * <ul>
+ *   <li>80mm receipts are built as ESC/POS commands with escpos-coffee and sent
+ *       to the thermal printer by {@link ThermalPrinter};</li>
+ *   <li>A4 bills and reports are rendered from HTML templates to PDF by
+ *       {@link HtmlReportRenderer}.</li>
+ * </ul>
  *
  * <p>The public method signatures are intentionally unchanged so existing
- * controllers do not need any modification.</p>
+ * controllers only need to choose how the returned bytes are delivered.</p>
  */
 public class PdfGenerator {
 
@@ -45,20 +48,13 @@ public class PdfGenerator {
             DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
     private static final String CUSTOMER_REPORT_A4 = "customer-report-a4.html";
-    private static final String CUSTOMER_REPORT_THERMAL = "customer-report-thermal.html";
     private static final String SUPPLIER_REPORT_A4 = "supplier-report-a4.html";
-    private static final String SUPPLIER_REPORT_THERMAL = "supplier-report-thermal.html";
     private static final String PRODUCT_REPORT_A4 = "product-report-a4.html";
-    private static final String PRODUCT_REPORT_THERMAL = "product-report-thermal.html";
     private static final String DUE_REPORT_A4 = "due-report-a4.html";
-    private static final String DUE_REPORT_THERMAL = "due-report-thermal.html";
     private static final String SALES_SUMMARY_A4 = "sales-summary-a4.html";
-    private static final String SALES_SUMMARY_THERMAL = "sales-summary-thermal.html";
-    private static final String INVOICE_A4 = "invoice-a4.html";
     private static final String INVOICE_A4_BILL = "invoice-a4-bill.html";
-    private static final String INVOICE_THERMAL = "invoice-thermal.html";
+    private static final String INVOICE_A4 = "invoice-a4.html";
     private static final String QUOTATION_A4 = "quotation-a4.html";
-    private static final String QUOTATION_THERMAL = "quotation-thermal.html";
 
     private PdfGenerator() {
     }
@@ -85,8 +81,7 @@ public class PdfGenerator {
         model.put("count", rows.size());
         model.put("totalDue", plainMoney(totalDue));
 
-        return HtmlReportRenderer.render(CUSTOMER_REPORT_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(customerListHeight(rows.size())));
+        return ThermalReceiptGenerator.renderCustomerReport(model);
     }
 
     public static byte[] CustomerReportA4Pro(List<CustomerEntity> customers) {
@@ -126,8 +121,7 @@ public class PdfGenerator {
         model.put("rows", rows);
         model.put("count", rows.size());
 
-        return HtmlReportRenderer.render(SUPPLIER_REPORT_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(simpleListHeight(rows.size())));
+        return ThermalReceiptGenerator.renderSupplierReport(model);
     }
 
     public static byte[] SupplierReportA4Pro(List<SupplierEntity> suppliers) {
@@ -167,8 +161,7 @@ public class PdfGenerator {
         model.put("count", rows.size());
         model.put("totalDue", plainMoney(totalDue));
 
-        return HtmlReportRenderer.render(DUE_REPORT_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(customerListHeight(rows.size())));
+        return ThermalReceiptGenerator.renderDueReport(model);
     }
 
     public static byte[] DuePaymentReportA4Pro(List<CustomerEntity> customers) {
@@ -213,8 +206,7 @@ public class PdfGenerator {
         model.put("count", rows.size());
         model.put("lowStock", lowStock);
 
-        return HtmlReportRenderer.render(PRODUCT_REPORT_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(simpleListHeight(rows.size())));
+        return ThermalReceiptGenerator.renderProductReport(model);
     }
 
     public static byte[] ProductReportA4Pro(List<ProductEntity> products) {
@@ -250,10 +242,8 @@ public class PdfGenerator {
     public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details,
                                            double duePaidAmount) {
         Map<String, Object> model = orderModel(order, details, duePaidAmount);
-        int rows = details == null ? 0 : details.size();
 
-        return HtmlReportRenderer.render(INVOICE_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(invoiceHeight(rows)));
+        return ThermalReceiptGenerator.renderOrderBill(model);
     }
 
     // ================================================================
@@ -293,10 +283,8 @@ public class PdfGenerator {
 
         Map<String, Object> model = quotationModel(quotationId, date, customerName, customerContact,
                 items, discountPercent, taxPercent);
-        int rows = items == null ? 0 : items.size();
 
-        return HtmlReportRenderer.render(QUOTATION_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(quotationHeight(rows)));
+        return ThermalReceiptGenerator.renderQuotation(model);
     }
 
     // ================================================================
@@ -321,10 +309,8 @@ public class PdfGenerator {
     public static byte[] SalesSummaryReportThermal(LocalDate date, List<ProductSalesTM> sales,
                                                    double totalAmount, double totalQty) {
         Map<String, Object> model = salesSummaryModel(date, sales, totalAmount, totalQty, false);
-        int rows = sales == null ? 0 : sales.size();
 
-        return HtmlReportRenderer.render(SALES_SUMMARY_THERMAL, model,
-                HtmlReportRenderer.PageSpec.thermal(salesHeight(rows)));
+        return ThermalReceiptGenerator.renderSalesSummary(model);
     }
 
     // ================================================================
@@ -569,28 +555,8 @@ public class PdfGenerator {
     }
 
     // ================================================================
-    // Formatting / layout helpers
+    // Formatting helpers
     // ================================================================
-
-    private static double customerListHeight(int rows) {
-        return 98 + rows * 9.8;
-    }
-
-    private static double simpleListHeight(int rows) {
-        return 102 + rows * 6.4;
-    }
-
-    private static double invoiceHeight(int rows) {
-        return 150 + rows * 6.8;
-    }
-
-    private static double quotationHeight(int rows) {
-        return invoiceHeight(rows);
-    }
-
-    private static double salesHeight(int rows) {
-        return 102 + rows * 6.4;
-    }
 
     private static String money(double value) {
         return String.format(Locale.US, "%,.2f", value);

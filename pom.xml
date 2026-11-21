@@ -98,7 +98,15 @@
       <version>2.0.30</version>
     </dependency>
 
+    <!-- 80mm receipts: ESC/POS commands for thermal receipt printers -->
 
+    <dependency>
+      <groupId>com.github.anastaciocintra</groupId>
+      <artifactId>escpos-coffee</artifactId>
+      <version>4.1.0</version>
+    </dependency>
+
+    <!-- HTML to PDF for A4 bills/reports -->
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-pdfbox</artifactId>

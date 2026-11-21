@@ -462,10 +462,10 @@ public class OrderManageController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Generate Summary Report");
         alert.setHeaderText("Generate summary report for " + date);
-        alert.setContentText("Select PDF format(s):");
+        alert.setContentText("Select output format(s):");
 
         ButtonType a4Btn = new ButtonType("A4 PDF");
-        ButtonType smallBtn = new ButtonType("80mm PDF");
+        ButtonType smallBtn = new ButtonType("80mm Thermal Receipt");
         ButtonType bothBtn = new ButtonType("Both");
         ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(a4Btn, smallBtn, bothBtn, cancelBtn);
@@ -483,11 +483,8 @@ public class OrderManageController implements Initializable {
                 java.awt.Desktop.getDesktop().open(f);
             }
             if (result.get() == smallBtn || result.get() == bothBtn) {
-                byte[] pdf = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportThermal(date, sales, total, soldQty);
-                File f = File.createTempFile("SalesSummary_80mm_" + dateStr + "_", ".pdf");
-                f.deleteOnExit();
-                java.nio.file.Files.write(f.toPath(), pdf);
-                java.awt.Desktop.getDesktop().open(f);
+                byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportThermal(date, sales, total, soldQty);
+                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -578,26 +575,25 @@ public class OrderManageController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Print Bill");
             alert.setHeaderText("How do you want to print this bill?");
-            alert.setContentText("Select the PDF format you want to generate:");
+            alert.setContentText("Select the output format:");
 
-            ButtonType smallBtn = new ButtonType("Small (80mm) PDF", ButtonBar.ButtonData.YES);
-            ButtonType a4Btn = new ButtonType("Bill A4", ButtonBar.ButtonData.NO);
+            ButtonType smallBtn = new ButtonType("Small (80mm) - Thermal Printer", ButtonBar.ButtonData.YES);
+            ButtonType a4Btn = new ButtonType("Bill A4 (PDF)", ButtonBar.ButtonData.NO);
             ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(smallBtn, a4Btn, cancelBtn);
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() != cancelBtn) {
-                byte[] pdfBytes;
                 if (result.get() == smallBtn) {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
+                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
+                    com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
                 } else {
-                    pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
+                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
+                    File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
+                    tempFile.deleteOnExit();
+                    java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
+                    java.awt.Desktop.getDesktop().open(tempFile);
                 }
-                
-                File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                tempFile.deleteOnExit();
-                java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
-                java.awt.Desktop.getDesktop().open(tempFile);
             }
         } catch (Exception e) {
             e.printStackTrace();

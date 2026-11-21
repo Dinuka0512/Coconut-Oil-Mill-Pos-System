@@ -10,6 +10,7 @@ module com.dev09.kumaracoconutoil {
     requires de.rototor.pdfbox.graphics2d;
     requires java.desktop;
     requires java.logging;
+    requires escpos.coffee;
 
     opens com.dev09.kumaracoconutoil.dto to javafx.base;
     opens com.dev09.kumaracoconutoil.controller to javafx.fxml;

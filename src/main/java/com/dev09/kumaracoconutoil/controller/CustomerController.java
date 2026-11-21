@@ -353,29 +353,24 @@ public class CustomerController implements Initializable {
         alert.setHeaderText("How do you need to print?");
         alert.setContentText("Choose an option:");
 
-        ButtonType btn80mm = new ButtonType("Small (80mm)");
-        ButtonType btnA4 = new ButtonType("A4 Page");
+        ButtonType btn80mm = new ButtonType("Small (80mm) - Thermal Printer");
+        ButtonType btnA4 = new ButtonType("A4 Page (PDF)");
         ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btn80mm, btnA4, btnCancel);
 
         var result = alert.showAndWait();
         if (result.isPresent()) {
             var customers = customerBO.getAllCustomersEntity();
-            byte[] bytes;
-            String fileName;
             if (result.get() == btn80mm) {
-                bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportThermal(customers);
-                fileName = "CustomerReport_80mm";
+                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(
+                        com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportThermal(customers));
             } else if (result.get() == btnA4) {
-                bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportA4Pro(customers);
-                fileName = "CustomerReport_A4";
-            } else {
-                return;
+                byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportA4Pro(customers);
+                File tempFile = File.createTempFile("CustomerReport_A4", ".pdf");
+                tempFile.deleteOnExit();
+                java.nio.file.Files.write(tempFile.toPath(), bytes);
+                java.awt.Desktop.getDesktop().open(tempFile);
             }
-            File tempFile = File.createTempFile(fileName, ".pdf");
-            tempFile.deleteOnExit();
-            java.nio.file.Files.write(tempFile.toPath(), bytes);
-            java.awt.Desktop.getDesktop().open(tempFile);
         }
     }
 }
