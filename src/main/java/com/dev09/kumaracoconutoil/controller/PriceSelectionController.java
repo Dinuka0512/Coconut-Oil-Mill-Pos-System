@@ -190,16 +190,24 @@ public class PriceSelectionController implements Initializable {
 
         cmbPrice.showingProperty().addListener((observable, wasShowing, isShowing) -> {
             if (isShowing) {
-                installPopupNavigation();
+                installPopupNavigation(0);
             } else {
                 cmbPrice.getProperties().remove(HIGHLIGHT_KEY);
             }
         });
     }
 
-    private void installPopupNavigation() {
+    /**
+     * The popup's ListView is not always available on the very first showingProperty
+     * notification. Retry briefly, otherwise the one-click price handler is never
+     * attached and the first click only highlights the row ("have to click twice").
+     */
+    private void installPopupNavigation(int attempt) {
         ListView<?> listView = getPopupListView();
         if (listView == null) {
+            if (attempt < 10) {
+                Platform.runLater(() -> installPopupNavigation(attempt + 1));
+            }
             return;
         }
 

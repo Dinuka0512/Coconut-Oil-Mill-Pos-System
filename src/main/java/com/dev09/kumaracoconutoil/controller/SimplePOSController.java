@@ -102,8 +102,9 @@ public class SimplePOSController implements Initializable {
     private CustomerDto selectedCustomer;
     private Timeline productResetTimer;
     private Timeline customerResetTimer;
-    private String lastCommittedProductSelection;
-    private long lastCommittedProductAt;
+
+    /** Set while the code changes a combo value so JavaFX's synthetic ActionEvent is ignored. */
+    private static final String SUPPRESS_ACTION_KEY = "pos.suppressAction";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -224,23 +225,18 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbProductOnAction(ActionEvent event) {
+        // ComboBoxListViewSkin fires its own ActionEvent whenever valueProperty changes.
+        // Ignore the ones caused by our own setValue() calls, otherwise the price popup
+        // would be opened a second time (and the cashier would have to pick a price twice).
+        if (Boolean.TRUE.equals(cmbProduct.getProperties().get(SUPPRESS_ACTION_KEY))) {
+            return;
+        }
+
         String selection = cmbProduct.getValue();
         if ((selection == null || selection.trim().isEmpty()) && cmbProduct.getEditor() != null) {
             selection = cmbProduct.getEditor().getText();
         }
         String sel = selection == null ? "" : selection.trim();
-
-        // A single user commit can surface as more than one ActionEvent; only handle the
-        // first one per product selection so the price selection popup is not opened twice.
-        boolean duplicate = sel.equals(lastCommittedProductSelection)
-                && System.currentTimeMillis() - lastCommittedProductAt < 3000;
-        if (!duplicate) {
-            lastCommittedProductSelection = sel;
-            lastCommittedProductAt = System.currentTimeMillis();
-        }
-        if (duplicate) {
-            return;
-        }
 
         if (sel != null && currentProducts != null) {
             for (ProductDto dto : currentProducts) {
@@ -253,11 +249,7 @@ public class SimplePOSController implements Initializable {
                     }
                     selectedProduct = dto;
                     selectedTierQty = tier[PriceQtyArray.QTY];
-                    cmbProduct.setValue(display);
-                    if (cmbProduct.getEditor() != null) {
-                        cmbProduct.getEditor().setText(display);
-                        cmbProduct.getEditor().positionCaret(display.length());
-                    }
+                    setComboValueQuietly(cmbProduct, display);
                     txtUnitPriceDisplay.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
                     lblQtyOnHand.setText(selectedTierQty + " Kg");
                     lblItemName.setText(dto.getName());
@@ -266,6 +258,21 @@ public class SimplePOSController implements Initializable {
                     break;
                 }
             }
+        }
+    }
+
+    /** Changes a combo's value without firing another ActionEvent back into its handler. */
+    private void setComboValueQuietly(ComboBox<String> combo, String value) {
+        if (combo == null) return;
+        combo.getProperties().put(SUPPRESS_ACTION_KEY, true);
+        try {
+            combo.setValue(value);
+            if (combo.getEditor() != null) {
+                combo.getEditor().setText(value == null ? "" : value);
+                combo.getEditor().positionCaret(value == null ? 0 : value.length());
+            }
+        } finally {
+            combo.getProperties().put(SUPPRESS_ACTION_KEY, false);
         }
     }
 
@@ -288,8 +295,6 @@ public class SimplePOSController implements Initializable {
     private void resetProductSelection() {
         selectedProduct = null;
         selectedTierQty = 0;
-        lastCommittedProductSelection = null;
-        lastCommittedProductAt = 0;
         cmbProduct.getSelectionModel().clearSelection();
         if (cmbProduct.getEditor() != null) {
             cmbProduct.getEditor().clear();
@@ -476,6 +481,7 @@ public class SimplePOSController implements Initializable {
         if (combo == null || value == null) return;
         combo.getProperties().remove("pos.highlightIndex");
         combo.getProperties().put("pos.suppressFilter", true);
+        combo.getProperties().put(SUPPRESS_ACTION_KEY, true);
         try {
             if (combo.getSelectionModel() != null) {
                 combo.getSelectionModel().select(value);
@@ -486,9 +492,11 @@ public class SimplePOSController implements Initializable {
                 combo.getEditor().positionCaret(value.length());
             }
         } finally {
+            combo.getProperties().put(SUPPRESS_ACTION_KEY, false);
             combo.getProperties().put("pos.suppressFilter", false);
         }
         combo.hide();
+        // Exactly one ActionEvent for one user commit.
         combo.fireEvent(new javafx.event.ActionEvent(combo, combo));
     }
 
@@ -631,6 +639,9 @@ public class SimplePOSController implements Initializable {
 
     @FXML
     void cmbCustomerOnAction(ActionEvent event) {
+        if (Boolean.TRUE.equals(cmbCustomer.getProperties().get(SUPPRESS_ACTION_KEY))) {
+            return;
+        }
         resolveSelectedCustomer();
         if (selectedCustomer != null) {
             String display = selectedCustomer.getName() + " - " + (selectedCustomer.getContact() != null ? selectedCustomer.getContact() : "");
@@ -1022,7 +1033,7 @@ public class SimplePOSController implements Initializable {
             double netTotal = Double.parseDouble(totalText);
 
             boolean isDemoCustomer = AppConstants.DEMO_CUSTOMER_ID.equals(selectedCustomer.getCustId());
-            String fxmlPath = isDemoCustomer ? "/view/BalanceDemoCust.fxml" : "/view/balance.fxml";
+            String fxmlPath = isDemoCustomer ? "/view/BalanceDemoCust.fxml" : "/view/Balance.fxml";
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
 
@@ -1121,8 +1132,7 @@ public class SimplePOSController implements Initializable {
                 if (draft.customerId().equals(customer.getCustId())) {
                     selectedCustomer = customer;
                     String display = customerDisplay(customer);
-                    cmbCustomer.setValue(display);
-                    if (cmbCustomer.getEditor() != null) cmbCustomer.getEditor().setText(display);
+                    setComboValueQuietly(cmbCustomer, display);
                     checkCustomerDue();
                     customerRestored = true;
                     break;
@@ -1131,8 +1141,7 @@ public class SimplePOSController implements Initializable {
         }
         // The user may only have typed part of a name - keep that too.
         if (!customerRestored && draft.customerEditor() != null && !draft.customerEditor().isEmpty()) {
-            cmbCustomer.setValue(draft.customerEditor());
-            if (cmbCustomer.getEditor() != null) cmbCustomer.getEditor().setText(draft.customerEditor());
+            setComboValueQuietly(cmbCustomer, draft.customerEditor());
         }
 
         boolean productRestored = false;
@@ -1144,21 +1153,17 @@ public class SimplePOSController implements Initializable {
                     String display = draft.productDisplay() == null || draft.productDisplay().isBlank()
                             ? product.getName() + " (" + (product.getItemcode() != null ? product.getItemcode() : "") + ")"
                             : draft.productDisplay();
-                    cmbProduct.setValue(display);
-                    if (cmbProduct.getEditor() != null) cmbProduct.getEditor().setText(display);
+                    setComboValueQuietly(cmbProduct, display);
                     lblQtyOnHand.setText(selectedTierQty + " Kg");
                     lblItemName.setText(product.getName());
                     lblItemCode.setText(product.getItemcode() != null ? product.getItemcode() : "-");
-                    lastCommittedProductSelection = display;
-                    lastCommittedProductAt = System.currentTimeMillis();
                     productRestored = true;
                     break;
                 }
             }
         }
         if (!productRestored && draft.productEditor() != null && !draft.productEditor().isEmpty()) {
-            cmbProduct.setValue(draft.productEditor());
-            if (cmbProduct.getEditor() != null) cmbProduct.getEditor().setText(draft.productEditor());
+            setComboValueQuietly(cmbProduct, draft.productEditor());
         }
 
         Platform.runLater(() -> {

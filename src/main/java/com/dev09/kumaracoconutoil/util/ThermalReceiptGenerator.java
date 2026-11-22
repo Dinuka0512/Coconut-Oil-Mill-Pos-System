@@ -46,6 +46,9 @@ final class ThermalReceiptGenerator {
                 meta(p, "Due Paid", value(model, "duePaid"));
             }
             totalRow(p, "BALANCE" + value(model, "balanceSuffix"), value(model, "balanceText"));
+            if (flag(model, "hasDueBalance")) {
+                totalRow(p, "DUE BALANCE", value(model, "dueBalance"));
+            }
             footer(p, model);
         });
     }
@@ -220,9 +223,9 @@ final class ThermalReceiptGenerator {
         printer.write(printWidth, 0, printWidth.length);
     }
 
-    /** Extra 30-dot gap under the bill before the cut, so text clears the tear edge. */
+    /** Extra 250-dot gap under the bill before the cut, so text clears the tear edge. */
     private static void bottomMargin(EscPos printer) throws IOException {
-        byte[] feedDots = {0x1B, 0x4A, 0x1E}; // ESC J 30
+        byte[] feedDots = {0x1B, 0x4A, (byte) 0xFA}; // ESC J 250
         printer.write(feedDots, 0, feedDots.length);
     }
 

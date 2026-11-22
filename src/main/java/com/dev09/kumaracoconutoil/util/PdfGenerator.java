@@ -236,12 +236,17 @@ public class PdfGenerator {
     // ================================================================
 
     public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details) {
-        return generateOrderBill(order, details, 0.0);
+        return generateOrderBill(order, details, 0.0, -1);
     }
 
     public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details,
                                            double duePaidAmount) {
-        Map<String, Object> model = orderModel(order, details, duePaidAmount);
+        return generateOrderBill(order, details, duePaidAmount, -1);
+    }
+
+    public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details,
+                                           double duePaidAmount, double dueBalanceAmount) {
+        Map<String, Object> model = orderModel(order, details, duePaidAmount, dueBalanceAmount);
 
         return ThermalReceiptGenerator.renderOrderBill(model);
     }
@@ -251,7 +256,7 @@ public class PdfGenerator {
     // ================================================================
 
     public static byte[] generateOrderBillA4(OrderEntity order, List<OrderProductDetailsEntity> details) {
-        Map<String, Object> model = orderModel(order, details, 0.0);
+        Map<String, Object> model = orderModel(order, details, 0.0, -1);
 
         return HtmlReportRenderer.render(INVOICE_A4_BILL, model,
                 HtmlReportRenderer.PageSpec.a4());
@@ -262,12 +267,17 @@ public class PdfGenerator {
     // ================================================================
 
     public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details) {
-        return generateOrderBillA4Pro(order, details, 0.0);
+        return generateOrderBillA4Pro(order, details, 0.0, -1);
     }
 
     public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details,
                                                 double duePaidAmount) {
-        Map<String, Object> model = orderModel(order, details, duePaidAmount);
+        return generateOrderBillA4Pro(order, details, duePaidAmount, -1);
+    }
+
+    public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details,
+                                                double duePaidAmount, double dueBalanceAmount) {
+        Map<String, Object> model = orderModel(order, details, duePaidAmount, dueBalanceAmount);
 
         return HtmlReportRenderer.render(INVOICE_A4, model,
                 HtmlReportRenderer.PageSpec.a4());
@@ -373,6 +383,12 @@ public class PdfGenerator {
     private static Map<String, Object> orderModel(OrderEntity order,
                                                   List<OrderProductDetailsEntity> details,
                                                   double duePaidAmount) {
+        return orderModel(order, details, duePaidAmount, -1);
+    }
+
+    private static Map<String, Object> orderModel(OrderEntity order,
+                                                  List<OrderProductDetailsEntity> details,
+                                                  double duePaidAmount, double dueBalanceAmount) {
         Map<String, Object> model = baseModel("INVOICE");
         model.put("subtitle", "Sales invoice " + (order == null ? "-" : text(order.getOrderId())));
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -410,15 +426,19 @@ public class PdfGenerator {
         double total = subTotal - discount + tax;
 
         double amountPaid = order == null ? 0 : order.getAmountPaid();
-        double balance = order == null ? 0 : order.getBalance();
+        // Cash balance for this invoice only (change is positive, shortfall is negative).
+        double cashBalance = amountPaid - total;
+        double dueBalance = dueBalanceAmount >= 0
+                ? Math.max(0, dueBalanceAmount)
+                : (customer == null ? 0 : Math.max(0, customer.getDueAmount()));
         String paymentMethod = order == null ? null : order.getPaymentMethod();
         if (paymentMethod == null || paymentMethod.isBlank()) {
             paymentMethod = "CASH";
         }
 
-        String balanceSuffix = balance < 0 ? " (Due)" : (balance > 0 ? " (Change)" : "");
-        String balanceClass = balance < 0 ? "negative" : (balance > 0 ? "positive" : "");
-        String balanceLabel = balance < 0 ? "DUE" : (balance > 0 ? "CHANGE" : "PAID");
+        String balanceSuffix = cashBalance > 0.00001 ? " (Change)" : "";
+        String balanceClass = cashBalance > 0.00001 ? "positive" : (dueBalance > 0.00001 ? "negative" : "");
+        String balanceLabel = cashBalance > 0.00001 ? "CHANGE" : (dueBalance > 0.00001 ? "DUE" : "PAID");
 
         LocalDateTime orderSavedAt = order == null ? null : order.getCreatedAt();
         if (orderSavedAt == null && date != null) {
@@ -450,11 +470,16 @@ public class PdfGenerator {
         model.put("hasDuePaid", duePaidAmount > 0.00001);
         model.put("duePaid", plainMoney(duePaidAmount));
         model.put("duePaidA4", money(duePaidAmount));
-        model.put("balanceText", plainMoney(Math.abs(balance)));
-        model.put("balanceTextA4", money(Math.abs(balance)));
+        // Real cash balance for this bill (never show old/remaining due as "Balance").
+        model.put("balanceText", plainMoney(Math.max(0, cashBalance)));
+        model.put("balanceTextA4", money(Math.max(0, cashBalance)));
         model.put("balanceSuffix", balanceSuffix);
         model.put("balanceClass", balanceClass);
         model.put("balanceLabel", balanceLabel);
+        // Real outstanding due balance for the customer.
+        model.put("hasDueBalance", dueBalance > 0.00001);
+        model.put("dueBalance", plainMoney(dueBalance));
+        model.put("dueBalanceA4", money(dueBalance));
 
         return model;
     }

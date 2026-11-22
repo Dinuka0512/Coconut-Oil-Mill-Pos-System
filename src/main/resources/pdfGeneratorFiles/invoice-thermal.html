@@ -97,9 +97,15 @@
 
     <div class="summary">
         <div class="summary-row">
-            <div class="summary-label">BALANCE {{balanceSuffix}}</div>
+            <div class="summary-label">BALANCE{{balanceSuffix}}</div>
             <div class="summary-value">{{balanceText}}</div>
         </div>
+        {{#if hasDueBalance}}
+        <div class="summary-row">
+            <div class="summary-label">DUE BALANCE</div>
+            <div class="summary-value">{{dueBalance}}</div>
+        </div>
+        {{/if}}
     </div>
 
     <div class="report-footer">

@@ -546,7 +546,11 @@ public class BalanceController implements Initializable {
 
             if (isPlaced) {
                 orderPlaced = true;
-                showPrintDialog(orderId, duePaymentAmount);
+                double remainingDue = Math.max(0, existingDue - duePaymentAmount);
+                if (balance < 0) {
+                    remainingDue += Math.abs(balance);
+                }
+                showPrintDialog(orderId, duePaymentAmount, remainingDue);
                 closeStage();
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invoice Placement Failed!");
@@ -557,7 +561,7 @@ public class BalanceController implements Initializable {
         }
     }
 
-    private void showPrintDialog(String orderId, double duePaymentAmount) {
+    private void showPrintDialog(String orderId, double duePaymentAmount, double dueBalanceAmount) {
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
         printAlert.setTitle("Print Bill");
         printAlert.setHeaderText("Invoice Placed Successfully!");
@@ -575,10 +579,10 @@ public class BalanceController implements Initializable {
                         order != null && order.getOrderProducts() != null ? order.getOrderProducts() : new java.util.ArrayList<>();
 
                 if (result.get() == smallBtn) {
-                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount);
+                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount, dueBalanceAmount);
                     com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
                 } else {
-                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount);
+                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount, dueBalanceAmount);
                     if (pdfBytes != null) {
                         File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
                         tempFile.deleteOnExit();
