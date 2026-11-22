@@ -12,16 +12,15 @@ import java.util.Map;
 /**
  * Builds the 80mm receipt content as ESC/POS commands using escpos-coffee.
  *
- * <p>The data models are prepared by {@link PdfGenerator}; this class only
- * turns them into a 24-column double-size thermal receipt so the letters are
- * easy to read on paper. The resulting byte stream is sent to the receipt
- * printer by {@link ThermalPrinter}.</p>
+ * <p>The layout uses the printer's default single-width font, so bills and
+ * reports print as a normal, clear cash memo instead of oversized double-height
+ * text. 42 columns fit 80mm paper with a small margin. The resulting byte stream
+ * is sent to the receipt printer by {@link ThermalPrinter}.</p>
  */
 final class ThermalReceiptGenerator {
 
-    /** Double-width font fits 24 characters across 80mm paper. */
-    private static final int COLUMNS = 24;
-    private static final Style.FontSize LARGE = Style.FontSize._2;
+    /** Font A at normal size fits 42 columns across 80mm paper. */
+    private static final int COLUMNS = 42;
     private static final String DIVIDER = "-".repeat(COLUMNS);
 
     private ThermalReceiptGenerator() {
@@ -37,16 +36,17 @@ final class ThermalReceiptGenerator {
             }
             divider(p);
             itemRows(p, rows(model), "name");
+            divider(p);
             breakdown(p, model);
-            totalLine(p, "TOTAL (LKR) " + value(model, "total"));
+            totalRow(p, "TOTAL (LKR)", value(model, "total"));
             divider(p);
             meta(p, "Payment", value(model, "paymentMethod"));
             meta(p, "Paid", value(model, "amountPaid"));
             if (flag(model, "hasDuePaid")) {
                 meta(p, "Due Paid", value(model, "duePaid"));
             }
-            totalLine(p, "BALANCE" + value(model, "balanceSuffix") + " " + value(model, "balanceText"));
-            footer(p, model, "** Valid for 3 Days Only.");
+            totalRow(p, "BALANCE" + value(model, "balanceSuffix"), value(model, "balanceText"));
+            footer(p, model);
         });
     }
 
@@ -60,12 +60,13 @@ final class ThermalReceiptGenerator {
             }
             divider(p);
             itemRows(p, rows(model), "description");
+            divider(p);
             breakdown(p, model);
-            totalLine(p, "TOTAL (LKR) " + value(model, "total"));
+            totalRow(p, "TOTAL (LKR)", value(model, "total"));
             divider(p);
             meta(p, "Type", "Quotation");
             meta(p, "Validity", "Prices valid on issue date");
-            footer(p, model, "**Condition applied");
+            footer(p, model, "**Condition applied", "**Valid only for 24 hours");
         });
     }
 
@@ -75,17 +76,19 @@ final class ThermalReceiptGenerator {
             meta(p, "Date", value(model, "generatedAt"));
             meta(p, "Customers", value(model, "count"));
             divider(p);
-            fourColumnHeader(p, "ID", "Name", "Contact", "Due");
+            p.writeLF(bold(), customerColumns("ID", "Name", "Contact", "Due"));
+            divider(p);
             List<Map<String, Object>> rows = rows(model);
             if (rows.isEmpty()) {
                 p.writeLF(normal(), "No customers found.");
             }
             for (Map<String, Object> row : rows) {
-                fourColumns(p, value(row, "id"), value(row, "name"), value(row, "contact"), value(row, "due"));
+                p.writeLF(normal(), customerColumns(value(row, "id"), value(row, "name"),
+                        value(row, "contact"), value(row, "due")));
             }
             divider(p);
-            totalLine(p, "TOTAL DUE " + value(model, "totalDue"));
-            footer(p, model, null);
+            totalRow(p, "TOTAL DUE", value(model, "totalDue"));
+            footer(p, model);
         });
     }
 
@@ -95,17 +98,19 @@ final class ThermalReceiptGenerator {
             meta(p, "Date", value(model, "generatedAt"));
             meta(p, "Suppliers", value(model, "count"));
             divider(p);
-            threeColumnHeader(p, "ID", "Name", "Contact");
+            p.writeLF(bold(), supplierColumns("ID", "Name", "Contact"));
+            divider(p);
             List<Map<String, Object>> rows = rows(model);
             if (rows.isEmpty()) {
                 p.writeLF(normal(), "No suppliers found.");
             }
             for (Map<String, Object> row : rows) {
-                threeColumns(p, value(row, "id"), value(row, "name"), value(row, "contact"));
+                p.writeLF(normal(), supplierColumns(value(row, "id"), value(row, "name"),
+                        value(row, "contact")));
             }
             divider(p);
-            totalLine(p, "SUPPLIERS " + value(model, "count"));
-            footer(p, model, null);
+            totalRow(p, "SUPPLIERS", value(model, "count"));
+            footer(p, model);
         });
     }
 
@@ -115,17 +120,19 @@ final class ThermalReceiptGenerator {
             meta(p, "Date", value(model, "generatedAt"));
             meta(p, "Customers", value(model, "count"));
             divider(p);
-            fourColumnHeader(p, "ID", "Name", "Contact", "Due");
+            p.writeLF(bold(), customerColumns("ID", "Name", "Contact", "Due"));
+            divider(p);
             List<Map<String, Object>> rows = rows(model);
             if (rows.isEmpty()) {
                 p.writeLF(normal(), "No customers found.");
             }
             for (Map<String, Object> row : rows) {
-                fourColumns(p, value(row, "id"), value(row, "name"), value(row, "contact"), value(row, "due"));
+                p.writeLF(normal(), customerColumns(value(row, "id"), value(row, "name"),
+                        value(row, "contact"), value(row, "due")));
             }
             divider(p);
-            totalLine(p, "TOTAL DUE " + value(model, "totalDue"));
-            footer(p, model, null);
+            totalRow(p, "TOTAL DUE", value(model, "totalDue"));
+            footer(p, model);
         });
     }
 
@@ -135,17 +142,19 @@ final class ThermalReceiptGenerator {
             meta(p, "Date", value(model, "generatedAt"));
             meta(p, "Products", value(model, "count"));
             divider(p);
-            fourColumnHeader(p, "Code", "Name", "Price", "Qty");
+            p.writeLF(bold(), productColumns("Code", "Name", "Price", "Qty"));
+            divider(p);
             List<Map<String, Object>> rows = rows(model);
             if (rows.isEmpty()) {
                 p.writeLF(normal(), "No products found.");
             }
             for (Map<String, Object> row : rows) {
-                fourColumns(p, value(row, "itemCode"), value(row, "name"), value(row, "price"), value(row, "qty"));
+                p.writeLF(normal(), productColumns(value(row, "itemCode"), value(row, "name"),
+                        value(row, "price"), value(row, "qty")));
             }
             divider(p);
-            totalLine(p, "LOW STOCK " + value(model, "lowStock"));
-            footer(p, model, null);
+            totalRow(p, "LOW STOCK", value(model, "lowStock"));
+            footer(p, model);
         });
     }
 
@@ -155,17 +164,19 @@ final class ThermalReceiptGenerator {
             meta(p, "Date", value(model, "generatedAt"));
             meta(p, "Products Sold", value(model, "soldQty"));
             divider(p);
-            fourColumnHeader(p, "Code", "Name", "Qty", "Total");
+            p.writeLF(bold(), salesColumns("Code", "Name", "Qty", "Total"));
+            divider(p);
             List<Map<String, Object>> rows = rows(model);
             if (rows.isEmpty()) {
                 p.writeLF(normal(), "No sales found for this date.");
             }
             for (Map<String, Object> row : rows) {
-                fourColumns(p, value(row, "code"), value(row, "name"), value(row, "qty"), value(row, "total"));
+                p.writeLF(normal(), salesColumns(value(row, "code"), value(row, "name"),
+                        value(row, "qty"), value(row, "total")));
             }
             divider(p);
-            totalLine(p, "TOTAL SALES " + value(model, "totalAmount"));
-            footer(p, model, null);
+            totalRow(p, "TOTAL SALES", value(model, "totalAmount"));
+            footer(p, model);
         });
     }
 
@@ -183,8 +194,10 @@ final class ThermalReceiptGenerator {
             EscPos printer = new EscPos(out);
             printer.initializePrinter();
             printer.setCharacterCodeTable(EscPos.CharacterCodeTable.WPC1252);
+            centerOnPaper(printer);
             body.write(printer);
-            printer.feed(3);
+            printer.feed(2);
+            bottomMargin(printer);
             printer.cut(EscPos.CutMode.PART);
             printer.flush();
             return out.toByteArray();
@@ -193,28 +206,45 @@ final class ThermalReceiptGenerator {
         }
     }
 
+    /**
+     * Centers the 42-column receipt on 80mm paper with equal 36-dot (3 character)
+     * left and right margins. Printers that do not support these commands simply
+     * ignore them, so the bill still prints normally.
+     */
+    private static void centerOnPaper(EscPos printer) throws IOException {
+        // GS L nL nH: left margin = 36 dots (3 characters).
+        byte[] leftMargin = {0x1D, 0x4C, 0x24, 0x00};
+        // GS W nL nH: print width = 504 dots (42 characters) from the left margin.
+        byte[] printWidth = {0x1D, 0x57, (byte) 0xF8, 0x01};
+        printer.write(leftMargin, 0, leftMargin.length);
+        printer.write(printWidth, 0, printWidth.length);
+    }
+
+    /** Extra 30-dot gap under the bill before the cut, so text clears the tear edge. */
+    private static void bottomMargin(EscPos printer) throws IOException {
+        byte[] feedDots = {0x1B, 0x4A, 0x1E}; // ESC J 30
+        printer.write(feedDots, 0, feedDots.length);
+    }
+
     private static Style normal() {
-        return large(new Style());
+        return defaultSize(new Style());
     }
 
     private static Style bold() {
-        return large(new Style().setBold(true));
+        return defaultSize(new Style().setBold(true));
     }
 
     private static Style centered() {
-        return large(new Style().setJustification(Justification.Center));
+        return defaultSize(new Style().setJustification(Justification.Center));
     }
 
     private static Style centeredBold() {
-        return large(new Style().setBold(true).setJustification(Justification.Center));
+        return defaultSize(new Style().setBold(true).setJustification(Justification.Center));
     }
 
-    private static Style rightAligned() {
-        return large(new Style().setBold(true).setJustification(Justification.Right));
-    }
-
-    private static Style large(Style style) {
-        return style.setFontSize(LARGE, LARGE);
+    /** Single-width text: the standard font used on cash memos. */
+    private static Style defaultSize(Style style) {
+        return style.setFontSize(Style.FontSize._1, Style.FontSize._1);
     }
 
     private static void header(EscPos p, Map<String, Object> model, String title, String subtitle)
@@ -245,70 +275,68 @@ final class ThermalReceiptGenerator {
         twoColumns(p, "Sub Total", value(model, "subTotal"));
         twoColumns(p, "Discount (" + value(model, "discountPercent") + "%)", value(model, "discount"));
         twoColumns(p, "Tax (" + value(model, "taxRate") + "%)", value(model, "tax"));
-        divider(p);
     }
 
-    private static void totalLine(EscPos p, String text) throws IOException {
-        p.writeLF(rightAligned(), truncate(text, COLUMNS));
+    private static void totalRow(EscPos p, String label, String amount) throws IOException {
+        String safeAmount = truncate(amount, 12);
+        p.writeLF(bold(), left(label, COLUMNS - safeAmount.length() - 1) + " " + safeAmount);
     }
 
-    private static void footer(EscPos p, Map<String, Object> model, String note) throws IOException {
+    private static void footer(EscPos p, Map<String, Object> model, String... notes) throws IOException {
         p.feed(1);
-        if (note != null && !note.isBlank()) {
-            p.writeLF(centered(), truncate(note, COLUMNS));
+        if (notes != null) {
+            for (String note : notes) {
+                if (note != null && !note.isBlank()) {
+                    p.writeLF(centered(), truncate(note, COLUMNS));
+                }
+            }
         }
         p.writeLF(centered(), "Thank you for your business!");
         p.writeLF(centered(), truncate(value(model, "footerCompany"), COLUMNS));
     }
 
     // ------------------------------------------------------------------
-    // Fixed-width receipt tables (24 columns, double-size characters)
+    // Fixed-width receipt tables (42 columns, normal-size characters)
     // ------------------------------------------------------------------
 
     private static void itemRows(EscPos p, List<Map<String, Object>> rows, String descriptionKey)
             throws IOException {
-        twoColumns(p, "# Item", "Qty Rate Amt");
+        p.writeLF(bold(), "# " + left("Item", COLUMNS - 2));
         divider(p);
         if (rows.isEmpty()) {
             p.writeLF(normal(), "No items found.");
             return;
         }
         for (Map<String, Object> row : rows) {
-            p.writeLF(normal(), left(value(row, "index"), 2) + " " + left(value(row, descriptionKey), 21));
-            p.writeLF(normal(), "   " + right(value(row, "qty") + "x" + value(row, "rate"), 10)
-                    + " " + right(value(row, "amount"), 10));
+            p.writeLF(normal(), left(value(row, "index"), 2) + " "
+                    + left(value(row, descriptionKey), COLUMNS - 3));
+            String qtyRate = value(row, "qty") + " x " + value(row, "rate");
+            p.writeLF(normal(), "   " + right(qtyRate, 17) + " "
+                    + right(value(row, "amount"), COLUMNS - 21));
         }
     }
 
-    private static void fourColumnHeader(EscPos p, String c1, String c2, String c3, String c4)
-            throws IOException {
-        p.writeLF(bold(), left(c1 + " " + c2, COLUMNS));
-        p.writeLF(bold(), right(c3 + " " + c4, COLUMNS));
-        divider(p);
+    private static String customerColumns(String id, String name, String contact, String due) {
+        return left(id, 6) + " " + left(name, 14) + " " + left(contact, 10) + " " + right(due, 9);
     }
 
-    private static void threeColumnHeader(EscPos p, String c1, String c2, String c3) throws IOException {
-        p.writeLF(bold(), left(c1 + " " + c2, COLUMNS));
-        p.writeLF(bold(), right(c3, COLUMNS));
-        divider(p);
+    private static String supplierColumns(String id, String name, String contact) {
+        return left(id, 8) + " " + left(name, 20) + " " + right(contact, 11);
     }
 
-    private static void threeColumns(EscPos p, String c1, String c2, String c3) throws IOException {
-        p.writeLF(normal(), left(c1 + " " + c2, COLUMNS));
-        p.writeLF(normal(), right(c3, COLUMNS));
+    private static String productColumns(String code, String name, String price, String qty) {
+        return left(code, 8) + " " + left(name, 16) + " " + right(price, 8) + " " + right(qty, 7);
     }
 
-    private static void fourColumns(EscPos p, String c1, String c2, String c3, String c4) throws IOException {
-        p.writeLF(normal(), left(c1 + " " + c2, COLUMNS));
-        p.writeLF(normal(), right(c3 + " " + c4, COLUMNS));
+    private static String salesColumns(String code, String name, String qty, String total) {
+        return left(code, 7) + " " + left(name, 15) + " " + right(qty, 6) + " " + right(total, 10);
     }
 
     private static void twoColumns(EscPos p, String label, String amount) throws IOException {
         String safeAmount = truncate(amount, COLUMNS - 4);
         int labelWidth = Math.max(1, COLUMNS - safeAmount.length() - 1);
         String safeLabel = left(label, labelWidth);
-        String line = safeLabel + " " + right(safeAmount, COLUMNS - labelWidth - 1);
-        p.writeLF(normal(), line);
+        p.writeLF(normal(), safeLabel + " " + right(safeAmount, COLUMNS - labelWidth - 1));
     }
 
     private static String left(String text, int width) {

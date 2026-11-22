@@ -22,9 +22,14 @@ final class ThermalPdfRenderer {
 
     private static final float PAGE_WIDTH = 226.77f; // 80mm in points
     private static final float PAGE_HEIGHT = 841.89f; // 297mm in points
-    private static final float MARGIN = 12f;
-    private static final float FONT_SIZE = 11f;
-    private static final float LEADING = 14f;
+    /** 8pt Courier fits 42 normal-size receipt columns inside 80mm paper. */
+    private static final float FONT_SIZE = 8f;
+    private static final float LEADING = 10f;
+    private static final int COLUMNS = 42;
+    /** Equal side margins centre the bill block on the 80mm page. */
+    private static final float MARGIN = (PAGE_WIDTH - COLUMNS * FONT_SIZE * 0.6f) / 2f;
+    /** Small bottom gap kept clear at the foot of each preview page. */
+    private static final float BOTTOM_PADDING = 5f;
 
     private ThermalPdfRenderer() {
     }
@@ -54,7 +59,7 @@ final class ThermalPdfRenderer {
 
             float y = PAGE_HEIGHT - MARGIN - FONT_SIZE;
             for (String line : lines) {
-                if (y < MARGIN + FONT_SIZE) {
+                if (y < MARGIN + FONT_SIZE + BOTTOM_PADDING) {
                     content.close();
                     page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
                     document.addPage(page);
@@ -79,8 +84,8 @@ final class ThermalPdfRenderer {
 
     private static String fit(String value) {
         String safe = value == null ? "" : value.replace('\r', ' ');
-        // Courier is monospaced: 24 columns at 11pt fits comfortably in 80mm.
-        return safe.length() <= 24 ? safe : safe.substring(0, 24);
+        // Courier is monospaced: 42 columns at 8pt fits inside the 80mm page.
+        return safe.length() <= COLUMNS ? safe : safe.substring(0, COLUMNS);
     }
 
     /**

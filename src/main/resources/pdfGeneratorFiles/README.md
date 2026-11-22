@@ -63,9 +63,9 @@ uses the black/white receipt layout. The palette lives in `css/report.css`: gree
 
 Invoice and quotation PDFs print the date with time. Invoices use the saved
 `created_at` timestamp; quotations stamp the generation time because quotations
-are not stored in the database. Both A4 and 80 mm invoices include the small
-notice `** This Bill is Valid for 3 Days Only.`, and both quotation formats
-include `**Condition applied`.
+are not stored in the database. Invoices no longer print a validity notice.
+Both quotation formats include `**Condition applied` followed by
+`**Valid only for 24 hours`.
 
 The logo is read from `/asets/logo.png` on the classpath and injected into every
 template as the `logoDataUri` model value. It is embedded as a PNG data URI so

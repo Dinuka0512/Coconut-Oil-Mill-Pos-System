@@ -40,8 +40,10 @@ fresh-install schema is `src/main/resources/db/schema.sql`.
 
 ## Printing
 
-- **80mm receipts** are sent as raw ESC/POS data to a thermal printer using a large
-  double-size font (24 characters per line). Select the printer with the
+- **80mm receipts** are sent as raw ESC/POS data to a thermal printer using the normal
+  single-width font (42 characters per line) for a simple, clear bill, with equal side
+  margins so the bill is centered on the paper and a 30-dot gap at the bottom before
+  the cut. Select the printer with the
   `dilshan.thermal.printer` JVM system property or the `THERMAL_PRINTER` environment
   variable. If neither is set, the system default print service is used.
 - If the thermal printer is **not selected, not connected, or the print fails**, the app
