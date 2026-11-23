@@ -40,6 +40,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -125,6 +127,10 @@ public class DashboardController implements Initializable {
     private String currentSubView;
     private String homeFxml = "/view/dashboard.fxml";
 
+    /** Invalidates shortcuts on dashboards that are no longer the active screen. */
+    private static long shortcutGeneration = 0;
+    private long activeShortcutGeneration = -1;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateUserDisplay();
@@ -132,12 +138,41 @@ public class DashboardController implements Initializable {
         if (autoLockMinutes > 0) {
             IdleMonitor.start(Duration.minutes(autoLockMinutes), this::performIdleLogout);
         }
+        installDashboardShortcuts();
         if (userData != null && RoleUtil.isCashier(userData.getRole())) {
             subNavigateTo("/view/inventory.fxml");
             return;
         }
         setupTable();
         loadDashboardDataFast();
+    }
+
+    /**
+     * Shortcuts live on the dashboard root, so they disappear with it on logout.
+     * The login screen is a different subtree and never sees these keys.
+     */
+    private void installDashboardShortcuts() {
+        activeShortcutGeneration = ++shortcutGeneration;
+        body.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (activeShortcutGeneration != shortcutGeneration || userData == null
+                    || !event.isControlDown()
+                    || event.isAltDown() || event.isMetaDown() || event.isShiftDown()) {
+                return;
+            }
+            switch (event.getCode()) {
+                case L -> { event.consume(); logOut(null); }
+                case DIGIT1, NUMPAD1 -> { event.consume(); mainNavigateTo(homeFxml); }
+                case DIGIT2, NUMPAD2 -> { event.consume(); goToCustomer(null); }
+                case DIGIT3, NUMPAD3 -> { event.consume(); goToInventory(null); }
+                case DIGIT4, NUMPAD4 -> { event.consume(); goToSuppliers(null); }
+                case DIGIT5, NUMPAD5 -> { event.consume(); goToOrder(null); }
+                case DIGIT6, NUMPAD6 -> { event.consume(); goToQuotation(null); }
+                case DIGIT7, NUMPAD7 -> { event.consume(); goToDueManagement(null); }
+                case DIGIT8, NUMPAD8 -> { event.consume(); goToPrevious(null); }
+                case DIGIT9, NUMPAD9 -> { event.consume(); goToSettings(null); }
+                default -> { }
+            }
+        });
     }
 
     private void setupTable() {
@@ -392,7 +427,13 @@ public class DashboardController implements Initializable {
         SessionRestore.reopen(snapshot.windows());
     }
 
+    /** Called when the dashboard is replaced (logout, profile update) so old shortcuts go quiet. */
+    public static void deactivateShortcuts() {
+        shortcutGeneration++;
+    }
+
     private void mainNavigateTo(String path) {
+        deactivateShortcuts();
         try {
             AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
             body.getChildren().clear();

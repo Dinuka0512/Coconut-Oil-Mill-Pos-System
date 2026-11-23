@@ -127,6 +127,7 @@ public class SettingsController {
     }
 
     private void mainNavigateTo(String path) {
+        DashboardController.deactivateShortcuts();
         try {
             AnchorPane dashboardPane = FXMLLoader.load(getClass().getResource(path));
             dashboardTemp.getChildren().clear();
