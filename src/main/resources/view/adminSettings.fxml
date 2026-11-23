@@ -37,6 +37,7 @@
             <Button fx:id="btnDelete" layoutX="639.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
             <Button fx:id="btnClear" layoutX="559.0" layoutY="85.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="35.0" prefWidth="70.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
             <Button fx:id="userLogs" layoutX="20.0" layoutY="88.0" mnemonicParsing="false" onAction="#btnOpenUserLogs" prefHeight="30.0" prefWidth="264.0" style="-fx-background-color: #ffc000; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="User Logs" />
+            <Button fx:id="bankAccounts" layoutX="300.0" layoutY="88.0" mnemonicParsing="false" onAction="#btnOpenBankAccounts" prefHeight="30.0" prefWidth="240.0" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20;" text="Manage Bank Accounts" />
          </children>
       </AnchorPane>
       

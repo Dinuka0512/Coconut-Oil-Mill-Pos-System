@@ -40,7 +40,9 @@ public class FactoryConfiguration {
                     .addAnnotatedClass(CustomerEntity.class)
                     .addAnnotatedClass(DuePaymentEntity.class)
                     .addAnnotatedClass(UserLogEntity.class)
-                    .addAnnotatedClass(SupplierEntity.class);
+                    .addAnnotatedClass(SupplierEntity.class)
+                    .addAnnotatedClass(BankAccountEntity.class)
+                    .addAnnotatedClass(OrderPaymentEntity.class);
             DatabaseConfig.applyOverrides(config.getProperties());
             ensureSchema(config.getProperties());
             sessionFactory = config.buildSessionFactory();

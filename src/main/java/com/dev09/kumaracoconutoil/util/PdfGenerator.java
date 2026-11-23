@@ -59,6 +59,38 @@ public class PdfGenerator {
     private PdfGenerator() {
     }
 
+    /**
+     * Values saved from the payment screen. The PDF must print these exactly;
+     * it must never recalculate totals from the order items.
+     *
+     * <ul>
+     *   <li>{@code totalToPay}     - lblNetTotal</li>
+     *   <li>{@code totalPaid}      - lblPaymentTableTotal</li>
+     *   <li>{@code duePaid}        - amount of the old due paid in this sale</li>
+     *   <li>{@code balance}        - lblBalance (0 or CHANGE; never a shortfall)</li>
+     *   <li>{@code newDue}         - shortfall added to the customer's due</li>
+     *   <li>{@code totalDue}       - previous due remaining + new due</li>
+     * </ul>
+     */
+    public static class BillTotals {
+        public final double totalToPay;
+        public final double totalPaid;
+        public final double duePaid;
+        public final double balance;
+        public final double newDue;
+        public final double totalDue;
+
+        public BillTotals(double totalToPay, double totalPaid, double duePaid,
+                          double balance, double newDue, double totalDue) {
+            this.totalToPay = totalToPay;
+            this.totalPaid = totalPaid;
+            this.duePaid = duePaid;
+            this.balance = balance;
+            this.newDue = newDue;
+            this.totalDue = totalDue;
+        }
+    }
+
     // ================================================================
     // Customer reports
     // ================================================================
@@ -251,6 +283,14 @@ public class PdfGenerator {
         return ThermalReceiptGenerator.renderOrderBill(model);
     }
 
+    /** Uses the exact amounts saved from the payment screen. */
+    public static byte[] generateOrderBill(OrderEntity order, List<OrderProductDetailsEntity> details,
+                                           BillTotals totals) {
+        Map<String, Object> model = orderModel(order, details, 0, -1, totals);
+
+        return ThermalReceiptGenerator.renderOrderBill(model);
+    }
+
     // ================================================================
     // Order invoice - A4 POS bill
     // ================================================================
@@ -278,6 +318,15 @@ public class PdfGenerator {
     public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details,
                                                 double duePaidAmount, double dueBalanceAmount) {
         Map<String, Object> model = orderModel(order, details, duePaidAmount, dueBalanceAmount);
+
+        return HtmlReportRenderer.render(INVOICE_A4, model,
+                HtmlReportRenderer.PageSpec.a4());
+    }
+
+    /** Uses the exact amounts saved from the payment screen. */
+    public static byte[] generateOrderBillA4Pro(OrderEntity order, List<OrderProductDetailsEntity> details,
+                                                BillTotals totals) {
+        Map<String, Object> model = orderModel(order, details, 0, -1, totals);
 
         return HtmlReportRenderer.render(INVOICE_A4, model,
                 HtmlReportRenderer.PageSpec.a4());
@@ -383,12 +432,19 @@ public class PdfGenerator {
     private static Map<String, Object> orderModel(OrderEntity order,
                                                   List<OrderProductDetailsEntity> details,
                                                   double duePaidAmount) {
-        return orderModel(order, details, duePaidAmount, -1);
+        return orderModel(order, details, duePaidAmount, -1, null);
     }
 
     private static Map<String, Object> orderModel(OrderEntity order,
                                                   List<OrderProductDetailsEntity> details,
                                                   double duePaidAmount, double dueBalanceAmount) {
+        return orderModel(order, details, duePaidAmount, dueBalanceAmount, null);
+    }
+
+    private static Map<String, Object> orderModel(OrderEntity order,
+                                                  List<OrderProductDetailsEntity> details,
+                                                  double duePaidAmount, double dueBalanceAmount,
+                                                  BillTotals totals) {
         Map<String, Object> model = baseModel("INVOICE");
         model.put("subtitle", "Sales invoice " + (order == null ? "-" : text(order.getOrderId())));
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -426,8 +482,12 @@ public class PdfGenerator {
         double total = subTotal - discount + tax;
 
         double amountPaid = order == null ? 0 : order.getAmountPaid();
-        // Cash balance for this invoice only (change is positive, shortfall is negative).
+        // Cash balance for this invoice only: positive = change, negative = shortfall.
         double cashBalance = amountPaid - total;
+        // Shortfall created by THIS bill (OrderEntity stores it as a negative balance).
+        double newDue = order == null ? 0 : Math.max(0, -order.getBalance());
+        double change = Math.max(0.0, cashBalance);
+        // Total still owed: old due left after today's payment + this bill's shortfall.
         double dueBalance = dueBalanceAmount >= 0
                 ? Math.max(0, dueBalanceAmount)
                 : (customer == null ? 0 : Math.max(0, customer.getDueAmount()));
@@ -436,9 +496,9 @@ public class PdfGenerator {
             paymentMethod = "CASH";
         }
 
-        String balanceSuffix = cashBalance > 0.00001 ? " (Change)" : "";
-        String balanceClass = cashBalance > 0.00001 ? "positive" : (dueBalance > 0.00001 ? "negative" : "");
-        String balanceLabel = cashBalance > 0.00001 ? "CHANGE" : (dueBalance > 0.00001 ? "DUE" : "PAID");
+        // A shortfall is printed as New Due, never as BALANCE.
+        String balanceClass = change > 0.00001 ? "positive" : "";
+        String balanceLabel = change > 0.00001 ? "CHANGE" : "PAID";
 
         LocalDateTime orderSavedAt = order == null ? null : order.getCreatedAt();
         if (orderSavedAt == null && date != null) {
@@ -470,16 +530,49 @@ public class PdfGenerator {
         model.put("hasDuePaid", duePaidAmount > 0.00001);
         model.put("duePaid", plainMoney(duePaidAmount));
         model.put("duePaidA4", money(duePaidAmount));
-        // Real cash balance for this bill (never show old/remaining due as "Balance").
-        model.put("balanceText", plainMoney(Math.max(0, cashBalance)));
-        model.put("balanceTextA4", money(Math.max(0, cashBalance)));
-        model.put("balanceSuffix", balanceSuffix);
+        model.put("hasNewDue", newDue > 0.00001);
+        model.put("newDue", plainMoney(newDue));
+        model.put("newDueA4", money(newDue));
+        // Only overpayment is shown as BALANCE; shortfalls are on the New Due line.
+        model.put("balanceText", plainMoney(change));
+        model.put("balanceTextA4", money(change));
+        model.put("balanceSuffix", "");
         model.put("balanceClass", balanceClass);
         model.put("balanceLabel", balanceLabel);
-        // Real outstanding due balance for the customer.
-        model.put("hasDueBalance", dueBalance > 0.00001);
-        model.put("dueBalance", plainMoney(dueBalance));
-        model.put("dueBalanceA4", money(dueBalance));
+        // Total outstanding customer due (old remaining + this bill's shortfall).
+        model.put("hasTotalDue", dueBalance > 0.00001);
+        model.put("totalDue", plainMoney(dueBalance));
+        model.put("totalDueA4", money(dueBalance));
+
+        // The payment screen values are authoritative: never recalculate them here.
+        if (totals != null) {
+            // lblBalance is 0 or change only. Shortfalls are printed as New Due.
+            double savedChange = Math.max(0.0, totals.balance);
+            double savedNewDue = Math.max(0.0, totals.newDue);
+
+            model.put("total", plainMoney(totals.totalToPay));
+            model.put("totalA4", money(totals.totalToPay));
+            model.put("amountPaid", plainMoney(totals.totalPaid));
+            model.put("amountPaidA4", money(totals.totalPaid));
+
+            model.put("hasDuePaid", totals.duePaid > 0.00001);
+            model.put("duePaid", plainMoney(totals.duePaid));
+            model.put("duePaidA4", money(totals.duePaid));
+
+            model.put("hasNewDue", savedNewDue > 0.00001);
+            model.put("newDue", plainMoney(savedNewDue));
+            model.put("newDueA4", money(savedNewDue));
+
+            model.put("balanceText", plainMoney(savedChange));
+            model.put("balanceTextA4", money(savedChange));
+            model.put("balanceSuffix", "");
+            model.put("balanceClass", savedChange > 0.00001 ? "positive" : "");
+            model.put("balanceLabel", savedChange > 0.00001 ? "CHANGE" : "PAID");
+
+            model.put("hasTotalDue", totals.totalDue > 0.00001);
+            model.put("totalDue", plainMoney(totals.totalDue));
+            model.put("totalDueA4", money(totals.totalDue));
+        }
 
         return model;
     }

@@ -1,10 +1,14 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
+import com.dev09.kumaracoconutoil.bo.custom.BankAccountBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
+import com.dev09.kumaracoconutoil.bo.custom.OrderPaymentBO;
 import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
 import com.dev09.kumaracoconutoil.bo.custom.TaxBO;
+import com.dev09.kumaracoconutoil.dto.BankAccountDto;
 import com.dev09.kumaracoconutoil.dto.CustomerDto;
+import com.dev09.kumaracoconutoil.dto.OrderPaymentDto;
 import com.dev09.kumaracoconutoil.dto.OrderDto;
 import com.dev09.kumaracoconutoil.dto.OrderProductDetailsDto;
 import com.dev09.kumaracoconutoil.dto.ProductDto;
@@ -12,12 +16,16 @@ import com.dev09.kumaracoconutoil.dto.TaxDto;
 import com.dev09.kumaracoconutoil.util.AlertUtil;
 import com.dev09.kumaracoconutoil.util.AppConstants;
 import com.dev09.kumaracoconutoil.view.tm.CartTM;
+import com.dev09.kumaracoconutoil.view.tm.PaymentRowTM;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
@@ -43,16 +51,16 @@ public class BalanceController implements Initializable {
     private Label lblExistingDue;
 
     @FXML
-    private TextField txtAmountPaid;
+    private TextField txtAmountPaid1;
 
     @FXML
-    private ComboBox<String> cmbPaymentMethod;
+    private ComboBox<String> cmbPaymentMethod1;
 
     @FXML
     private Label lblBalance;
 
     @FXML
-    private Label lblBalance1;
+    private Label lblNetTotal;
 
     @FXML
     private Label lblBillTotal;
@@ -64,16 +72,7 @@ public class BalanceController implements Initializable {
     private TextField txtPayDueAmount;
 
     @FXML
-    private CheckBox chkPayDue1;
-
-    @FXML
-    private CheckBox chkPayDue;
-
-    @FXML
     private ComboBox<String> duePayType;
-
-    @FXML
-    private Label lblCustomer1;
 
     @FXML
     private TextField txtTax;
@@ -87,9 +86,26 @@ public class BalanceController implements Initializable {
     @FXML
     private Button btnCancel;
 
+    @FXML private ComboBox<BankAccountDto> cmbBankAccount;
+    @FXML private TextField txtCheckId;
+    @FXML private Button btnAddPayment;
+    @FXML private TableView<PaymentRowTM> tblPayments;
+    @FXML private TableColumn<PaymentRowTM, String> colPayMethod;
+    @FXML private TableColumn<PaymentRowTM, String> colPayAmount;
+    @FXML private TableColumn<PaymentRowTM, String> colPayDetail;
+    @FXML private TableColumn<PaymentRowTM, Void> colPayAction;
+    @FXML private Label lblPaymentTableTotal;
+
     private final TaxBO taxBO = (TaxBO) BOFactory.getInstance().getBo(BOFactory.BOType.TAX);
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
     private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
+    private final BankAccountBO bankAccountBO = (BankAccountBO) BOFactory.getInstance()
+            .getBo(BOFactory.BOType.BANK_ACCOUNT);
+    private final OrderPaymentBO orderPaymentBO = (OrderPaymentBO) BOFactory.getInstance()
+            .getBo(BOFactory.BOType.ORDER_PAYMENT);
+
+    /** All payment rows entered for this single order. */
+    private final ObservableList<PaymentRowTM> paymentRows = FXCollections.observableArrayList();
 
     private ObservableList<CartTM> cartItems;
     private CustomerDto customer;
@@ -100,65 +116,97 @@ public class BalanceController implements Initializable {
     private double existingDue;
     private boolean orderPlaced = false;
 
+    /*
+     * Source-of-truth values shown on screen. These are saved, never recomputed
+     * from other values:
+     *   lblNetTotal          -> totalToPay
+     *   lblExistingDue       -> existingDue
+     *   lblPaymentTableTotal -> totalPaid
+     * Balance is always derived from these three.
+     */
+    private double totalToPay;
+    private double totalPaid;
+    private double duePaid;
+    /** Exact value displayed in lblBalance. Shortfalls move to {@link #newDue}, so this is 0 or change only. */
+    private double balance;
+    /** Shortfall added to the customer's due; printed as "New Due" on the bill. */
+    private double newDue;
+    /** Previous due remaining + new due; printed as "Total Due" on the bill. */
+    private double totalDue;
+
+    /** Set while code changes the due dropdown, so the FXML handler does not reset it. */
+    private boolean applyingDuePaymentRule = false;
+
+    /** Set when Enter confirms the highlighted payment method, before the combo closes. */
+    private boolean paymentMethodCommitted = false;
+
+    /** The Enter that confirmed the combo must not also fire Complete Sale. */
+    private boolean ignoreNextSceneEnter = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        cmbPaymentMethod.getItems().addAll("Cash", "Card", "Credit");
-        cmbPaymentMethod.getSelectionModel().select("Cash");
+        cmbPaymentMethod1.getItems().addAll("Cash", "Card", "Cheque");
+        cmbPaymentMethod1.getSelectionModel().select("Cash");
 
-        duePayType.getItems().addAll("Full Payment", "Custom");
+        // "None" means this sale does not touch the customer's old due.
+        duePayType.getItems().addAll("None", "Full Payment", "Custom");
         duePayType.getSelectionModel().selectFirst();
-        duePayType.setDisable(true);
+        duePayType.setDisable(false);
+        txtPayDueAmount.setDisable(true);
+        txtPayDueAmount.clear();
 
         currentTaxRate = loadTaxRate();
         loadedTaxRate = currentTaxRate;
         txtTax.setText(String.valueOf(currentTaxRate));
         btnSaveTax.setDisable(true);
 
-        styleComboSelectionVisible(cmbPaymentMethod);
+        styleComboSelectionVisible(cmbPaymentMethod1);
         styleComboSelectionVisible(duePayType);
+        setupPaymentSection();
 
-        Platform.runLater(() -> txtAmountPaid.requestFocus());
+        // Amount is the first field when the screen loads.
+        Platform.runLater(() -> {
+            txtAmountPaid1.requestFocus();
+            txtAmountPaid1.selectAll();
+        });
 
-        cmbPaymentMethod.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.ENTER && !cmbPaymentMethod.isShowing()) {
-                focusAfterPaymentMethod();
+        // Enter on the (closed) payment combo opens the list so arrow keys can be
+        // used. Enter while it is open lets JavaFX confirm the highlighted value;
+        // the hide listener below then moves to the field for that method.
+        cmbPaymentMethod1.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.ENTER) return;
+            if (cmbPaymentMethod1.isShowing()) {
+                paymentMethodCommitted = true;
+                ignoreNextSceneEnter = true;
+            } else {
+                cmbPaymentMethod1.show();
                 event.consume();
             }
         });
-        if (cmbPaymentMethod.getEditor() != null) {
-            cmbPaymentMethod.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-                if (event.getCode() == KeyCode.ENTER) {
-                    focusAfterPaymentMethod();
-                    event.consume();
-                }
-            });
-        }
-
-        chkPayDue.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                if (!chkPayDue.isSelected()) {
-                    // move forward without enabling due pay
-                    if (btnCompleteSale != null) btnCompleteSale.requestFocus();
-                } else {
-                    if (duePayType != null && !duePayType.isDisable()) {
-                        duePayType.requestFocus();
-                    } else if (btnCompleteSale != null) {
-                        btnCompleteSale.requestFocus();
-                    }
-                }
-                event.consume();
+        cmbPaymentMethod1.addEventHandler(ActionEvent.ACTION, e -> paymentMethodCommitted = true);
+        cmbPaymentMethod1.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (wasShowing && !isShowing && paymentMethodCommitted) {
+                paymentMethodCommitted = false;
+                focusAfterPaymentMethod();
             }
         });
 
         duePayType.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER && !duePayType.isShowing()) {
-                String type = duePayType.getValue();
-                if ("Custom".equals(type) && txtPayDueAmount != null && !txtPayDueAmount.isDisable()) {
-                    txtPayDueAmount.requestFocus();
-                } else if (btnCompleteSale != null) {
-                    btnCompleteSale.requestFocus();
-                }
+                duePayType.show();
                 event.consume();
+            }
+        });
+        duePayType.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (wasShowing && !isShowing && duePayType.getValue() != null) {
+                String selected = duePayType.getValue();
+                Platform.runLater(() -> {
+                    if ("Custom".equals(selected) && !txtPayDueAmount.isDisable()) {
+                        txtPayDueAmount.requestFocus();
+                    } else {
+                        btnCompleteSale.requestFocus();
+                    }
+                });
             }
         });
 
@@ -178,6 +226,210 @@ public class BalanceController implements Initializable {
             // ignore
         }
         return 0.0;
+    }
+
+    /* ---------- Split payments ---------- */
+
+    private void setupPaymentSection() {
+        colPayMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
+        colPayAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        colPayDetail.setCellValueFactory(new PropertyValueFactory<>("detail"));
+        tblPayments.setItems(paymentRows);
+        tblPayments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblPayments.setPlaceholder(new Label("No payments added yet"));
+
+        colPayAction.setCellFactory(column -> new TableCell<PaymentRowTM, Void>() {
+            private final Button remove = new Button("X");
+
+            {
+                remove.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 2 6 2 6; -fx-cursor: hand;");
+                remove.setTooltip(new Tooltip("Remove payment (or select the row and press Delete)"));
+                remove.setOnAction(e -> {
+                    PaymentRowTM row = getTableRow() == null ? null : getTableRow().getItem();
+                    if (row != null) removePaymentRow(row);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty || getTableRow() == null || getTableRow().getItem() == null ? null : remove);
+            }
+        });
+
+        ArrayList<BankAccountDto> accounts = bankAccountBO.getAllBankAccounts();
+        cmbBankAccount.getItems().clear();
+        if (accounts != null) cmbBankAccount.getItems().addAll(accounts);
+        cmbBankAccount.setCellFactory(list -> new ListCell<BankAccountDto>() {
+            @Override
+            protected void updateItem(BankAccountDto item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : bankLabel(item));
+            }
+        });
+        cmbBankAccount.setButtonCell(new ListCell<BankAccountDto>() {
+            @Override
+            protected void updateItem(BankAccountDto item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Select bank account" : bankLabel(item));
+            }
+        });
+
+        updateMethodSpecificFields();
+        cmbPaymentMethod1.valueProperty().addListener((obs, oldValue, newValue) -> updateMethodSpecificFields());
+
+        cmbBankAccount.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && !cmbBankAccount.isShowing()) {
+                cmbBankAccount.show();
+                event.consume();
+            }
+        });
+        cmbBankAccount.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (wasShowing && !isShowing && cmbBankAccount.getValue() != null) {
+                Platform.runLater(() -> btnAddPayment.requestFocus());
+            }
+        });
+
+        tblPayments.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+                PaymentRowTM selected = tblPayments.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    removePaymentRow(selected);
+                    event.consume();
+                }
+            }
+        });
+
+        updatePaymentsTotal();
+    }
+
+    private String bankLabel(BankAccountDto bank) {
+        String branch = bank.getBranch() == null || bank.getBranch().isBlank() ? "" : " (" + bank.getBranch() + ")";
+        return bank.getBankName() + " - " + bank.getAccountNumber() + branch;
+    }
+
+    /** Show only the field that belongs to the chosen payment method. */
+    private void updateMethodSpecificFields() {
+        String method = cmbPaymentMethod1.getValue();
+        boolean card = "Card".equals(method);
+        boolean cheque = "Cheque".equals(method);
+        cmbBankAccount.setDisable(!card);
+        txtCheckId.setDisable(!cheque);
+        if (!card) cmbBankAccount.getSelectionModel().clearSelection();
+        if (!cheque) txtCheckId.clear();
+    }
+
+    @FXML
+    void btnAddPaymentOnAction(ActionEvent event) {
+        addPaymentFromFields();
+    }
+
+    /** Cheque: after the check ID, move to the Add Payment button. */
+    @FXML
+    void onCheckIdAction(ActionEvent event) {
+        btnAddPayment.requestFocus();
+    }
+
+    private void addPaymentFromFields() {
+        double amount;
+        try {
+            amount = Double.parseDouble(txtAmountPaid1.getText() == null ? "" : txtAmountPaid1.getText().trim());
+        } catch (NumberFormatException e) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid payment amount!");
+            txtAmountPaid1.requestFocus();
+            txtAmountPaid1.selectAll();
+            return;
+        }
+        // 0 is allowed: the customer may be paying only the old due and nothing
+        // toward the current bill. Negative amounts are still invalid.
+        if (amount < 0) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Payment amount cannot be negative!");
+            txtAmountPaid1.requestFocus();
+            txtAmountPaid1.selectAll();
+            return;
+        }
+
+        String method = cmbPaymentMethod1.getValue();
+        if (method == null || method.isBlank()) method = "Cash";
+
+        String bankId = null;
+        String bankName = null;
+        String checkNo = null;
+        String detail = "-";
+
+        if ("Card".equals(method)) {
+            BankAccountDto selectedBank = cmbBankAccount.getValue();
+            if (selectedBank == null) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Select a bank account for the card payment!");
+                cmbBankAccount.requestFocus();
+                return;
+            }
+            bankId = selectedBank.getBankId();
+            bankName = bankLabel(selectedBank);
+            detail = bankName;
+        } else if ("Cheque".equals(method)) {
+            String check = txtCheckId.getText() == null ? "" : txtCheckId.getText().trim();
+            if (check.isEmpty()) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter the check ID for the cheque payment!");
+                txtCheckId.requestFocus();
+                return;
+            }
+            checkNo = check;
+            detail = "Check ID: " + check;
+        }
+
+        paymentRows.add(new PaymentRowTM(method, String.format("%.2f", amount), detail, bankId, bankName, checkNo));
+
+        // Clear the staged input before recalculating, otherwise the just-added
+        // amount would be counted twice (once in the row, once in the text field).
+        txtAmountPaid1.clear();
+        txtCheckId.clear();
+        updatePaymentsTotal();
+        calculateBalance();
+        txtAmountPaid1.requestFocus();
+    }
+
+    private void removePaymentRow(PaymentRowTM row) {
+        paymentRows.remove(row);
+        updatePaymentsTotal();
+        calculateBalance();
+        txtAmountPaid1.requestFocus();
+    }
+
+    private double paymentRowsTotal() {
+        double total = 0.0;
+        for (PaymentRowTM row : paymentRows) {
+            try {
+                total += Double.parseDouble(row.getAmount());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return total;
+    }
+
+    private void updatePaymentsTotal() {
+        totalPaid = paymentRowsTotal();
+        lblPaymentTableTotal.setText(String.format("LKR %.2f", totalPaid));
+    }
+
+    private void saveOrderPayments(String orderId) {
+        int failed = 0;
+        for (PaymentRowTM row : paymentRows) {
+            OrderPaymentDto dto = new OrderPaymentDto(
+                    java.util.UUID.randomUUID().toString(),
+                    orderId,
+                    row.getMethod(),
+                    Double.parseDouble(row.getAmount()),
+                    row.getBankId(),
+                    row.getBankName(),
+                    row.getCheckNo()
+            );
+            if (!orderPaymentBO.savePayment(dto)) failed++;
+        }
+        if (failed > 0) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING,
+                    "Sale saved, but " + failed + " payment detail(s) could not be recorded.");
+        }
     }
 
     public void setOrderData(ObservableList<CartTM> items, CustomerDto cust, double netTotal) {
@@ -203,17 +455,9 @@ public class BalanceController implements Initializable {
         existingDue = cust.getDueAmount();
         lblExistingDue.setText("Rs. " + String.format("%.2f", existingDue));
 
-        if (existingDue > 0) {
-            chkPayDue.setDisable(false);
-            chkPayDue.setSelected(false);
-            txtPayDueAmount.setDisable(true);
-            txtPayDueAmount.clear();
-            txtPayDueAmount.setPromptText("0.00");
-        } else {
-            chkPayDue.setDisable(true);
-            chkPayDue.setSelected(false);
-            txtPayDueAmount.setDisable(true);
-        }
+        // The dropdown replaced the old "Pay Due" checkbox: every sale starts at None.
+        duePayType.getSelectionModel().selectFirst();
+        onDuePayTupe();
 
         recalculate();
     }
@@ -228,81 +472,140 @@ public class BalanceController implements Initializable {
 
         lblBillTotal.setText(String.format("%.2f", originalNetTotal));
         lblPrecent.setText(String.format("%.2f", taxAmount));
-        lblBalance1.setText("LKR " + String.format("%.2f", currentTotalWithTax));
+        totalToPay = currentTotalWithTax;
+        lblNetTotal.setText("LKR " + String.format("%.2f", totalToPay));
 
         calculateBalance();
     }
 
-    private void calculateBalance() {
+    /** Amount the customer is paying toward the old due right now. */
+    private double rawDuePayment() throws NumberFormatException {
+        String type = duePayType.getValue();
+        if ("Full Payment".equals(type)) return existingDue;
+        if ("Custom".equals(type)) {
+            String text = txtPayDueAmount.getText();
+            return (text == null || text.trim().isEmpty()) ? 0.0 : Double.parseDouble(text.trim());
+        }
+        return 0.0; // None - the old due is not part of this sale
+    }
+
+    private double selectedDuePayment() {
         try {
-            String amountText = txtAmountPaid.getText();
-
-            double totalOwed = currentTotalWithTax + existingDue;
-
-            if (amountText == null || amountText.isEmpty()) {
-                lblBalance.setText("0.00");
-                lblBalance.setStyle("-fx-text-fill: #16a34a;");
-                return;
-            }
-
-            double amount = Double.parseDouble(amountText);
-
-            double duePaymentAmount = 0.0;
-            if (!txtPayDueAmount.isDisable() && txtPayDueAmount.getText() != null && !txtPayDueAmount.getText().isEmpty()) {
-                duePaymentAmount = Double.parseDouble(txtPayDueAmount.getText());
-            } else if ("Full Payment".equals(duePayType.getValue())) {
-                duePaymentAmount = existingDue;
-            }
-            if (duePaymentAmount > existingDue) duePaymentAmount = existingDue;
-
-            double balance = (amount + duePaymentAmount) - totalOwed;
-
-            if (balance < 0) {
-                lblBalance.setText(String.format("%.2f", Math.abs(balance)) + " Due");
-                lblBalance.setStyle("-fx-text-fill: red;");
-            } else {
-                lblBalance.setText(String.format("%.2f", balance));
-                lblBalance.setStyle("-fx-text-fill: #16a34a;");
-            }
+            return Math.max(0.0, Math.min(existingDue, rawDuePayment()));
         } catch (NumberFormatException e) {
-            lblBalance.setText("0.00");
+            return 0.0;
+        }
+    }
+
+    /**
+     * Example: net total 500, old due 20, customer paid 510.
+     * "Full Payment" would show 10 as a NEW due. Instead, switch to "Custom"
+     * and treat 10 as payment toward the OLD due, so balance becomes 0.
+     */
+    private void applyFullPaymentOverflowRule() {
+        if (applyingDuePaymentRule) return;
+        if (!"Full Payment".equals(duePayType.getValue())) return;
+
+        double extraPaid = totalPaid - totalToPay;
+        if (extraPaid <= 0.00001 || existingDue <= 0.00001) return;
+
+        double dueToPayNow = Math.min(existingDue, extraPaid);
+        applyingDuePaymentRule = true;
+        try {
+            duePayType.getSelectionModel().select("Custom");
+            txtPayDueAmount.setDisable(false);
+            txtPayDueAmount.setPromptText("0.00");
+            txtPayDueAmount.setText(String.format("%.2f", dueToPayNow));
+        } finally {
+            applyingDuePaymentRule = false;
+        }
+    }
+
+    private void calculateBalance() {
+        // Always use the saved screen values; never recompute them here.
+        // If "Full Payment" would create a new due after the customer has already
+        // paid more than the bill total, move that extra money to the old due.
+        applyFullPaymentOverflowRule();
+
+        String type = duePayType.getValue();
+        duePaid = selectedDuePayment();
+
+        double calculated;
+        if ("Full Payment".equals(type)) {
+            // (lblNetTotal + lblExistingDue) - lblPaymentTableTotal
+            calculated = (totalToPay + existingDue) - totalPaid;
+        } else if ("Custom".equals(type)) {
+            // (lblNetTotal + amount being paid now) - lblPaymentTableTotal
+            calculated = (totalToPay + duePaid) - totalPaid;
+        } else {
+            // None / normal: lblNetTotal - lblPaymentTableTotal
+            calculated = totalToPay - totalPaid;
+        }
+
+        // Positive "calculated" is a shortfall. It is NOT shown as balance:
+        // it becomes New Due on the bill and is added to the customer's due.
+        newDue = Math.max(0.0, calculated);
+        balance = Math.max(0.0, -calculated); // only change (overpayment)
+        totalDue = Math.max(0.0, existingDue - duePaid) + newDue;
+
+        if (balance > 0.005) {
+            lblBalance.setText("LKR " + String.format("%.2f", balance));
+            lblBalance.setStyle("-fx-text-fill: #16a34a;");
+        } else {
+            lblBalance.setText("LKR 0.00");
+            lblBalance.setStyle("-fx-text-fill: #16a34a;");
         }
     }
 
     @FXML
     void onAmountPaidAction() {
-        String text = txtAmountPaid.getText();
-        if (text == null || text.isEmpty()) {
+        String text = txtAmountPaid1.getText();
+        if (text == null || text.trim().isEmpty()) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter the received amount!");
             return;
         }
         try {
-            Double.parseDouble(text);
-            cmbPaymentMethod.requestFocus();
-            if (cmbPaymentMethod != null && !cmbPaymentMethod.isShowing()) {
-                // open list so user can immediately navigate/select
-                // cmbPaymentMethod.show(); // optional, keep simple
-            }
+            Double.parseDouble(text.trim());
         } catch (NumberFormatException e) {
             AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number for the amount!");
+            return;
         }
+        calculateBalance();
+        focusPaymentMethod();
     }
 
     @FXML
     void onPaymentMethodAction() {
+        // Navigation is handled when the dropdown closes (Enter or mouse click).
         calculateBalance();
     }
 
-    private boolean hasDuePaymentSection() {
-        return chkPayDue != null && !chkPayDue.isDisable() && existingDue > 0;
+    /** Amount Enter -> payment method dropdown; arrow keys then choose the method. */
+    private void focusPaymentMethod() {
+        cmbPaymentMethod1.requestFocus();
+        if (!cmbPaymentMethod1.isShowing()) cmbPaymentMethod1.show();
     }
 
+    /** Method confirmed: Cash -> Add, Card -> bank account -> Add, Cheque -> check ID -> Add. */
     private void focusAfterPaymentMethod() {
-        if (hasDuePaymentSection()) {
-            chkPayDue.requestFocus();
-        } else if (btnCompleteSale != null) {
-            btnCompleteSale.requestFocus();
-        }
+        String method = cmbPaymentMethod1.getValue();
+
+        // The ComboBox restores focus to itself after the popup closes, so move
+        // focus on the next pulse; otherwise Cash would never land on Add Payment.
+        Platform.runLater(() -> {
+            updateMethodSpecificFields();
+            if ("Card".equals(method)) {
+                cmbBankAccount.requestFocus();
+                if (!cmbBankAccount.isDisable() && !cmbBankAccount.getItems().isEmpty()) {
+                    cmbBankAccount.show();
+                }
+            } else if ("Cheque".equals(method)) {
+                txtCheckId.requestFocus();
+                txtCheckId.selectAll();
+            } else {
+                btnAddPayment.requestFocus();
+            }
+        });
     }
 
     private void styleComboSelectionVisible(ComboBox<String> combo) {
@@ -364,65 +667,73 @@ public class BalanceController implements Initializable {
     }
 
     @FXML
-    void isPayDuePayment() {
-        boolean selected = chkPayDue.isSelected();
-        duePayType.setDisable(!selected);
-        if (selected) {
-            duePayType.getSelectionModel().selectFirst();
-            onDuePayTupe();
-        } else {
-            txtPayDueAmount.setDisable(true);
-            txtPayDueAmount.clear();
-            duePayType.getSelectionModel().clearSelection();
-            calculateBalance();
-        }
-    }
-
-    @FXML
     void onDuePayTupe() {
+        if (applyingDuePaymentRule) return;
         String type = duePayType.getValue();
         if (type == null) return;
 
-        if ("Full Payment".equals(type)) {
+        if ("None".equals(type)) {
+            // Old due is not being paid in this sale; ignore it completely.
+            txtPayDueAmount.setDisable(true);
+            txtPayDueAmount.clear();
+        } else if ("Full Payment".equals(type)) {
             txtPayDueAmount.setDisable(true);
             txtPayDueAmount.setText(String.format("%.2f", existingDue));
-            calculateBalance();
         } else if ("Custom".equals(type)) {
             txtPayDueAmount.setDisable(false);
             txtPayDueAmount.clear();
             txtPayDueAmount.setPromptText("0.00");
-            txtPayDueAmount.requestFocus();
-            calculateBalance();
         }
+        calculateBalance();
     }
 
     @FXML
     void onDueAmountAction() {
-        String text = txtPayDueAmount.getText();
-        if (text != null && !text.isEmpty()) {
-            try {
-                double duePay = Double.parseDouble(text);
-                if (duePay > existingDue) {
-                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
-                    txtPayDueAmount.setText(String.format("%.2f", existingDue));
-                }
-            } catch (NumberFormatException e) {
-                AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number!");
-                txtPayDueAmount.clear();
-            }
-        }
+        enforceDueLimit(true);
         calculateBalance();
     }
 
     @FXML
     void onDueAmountChanged() {
+        enforceDueLimit(false);
         calculateBalance();
+    }
+
+    /** Keeps the custom due amount inside 0..existingDue. */
+    private boolean enforceDueLimit(boolean warn) {
+        if (!"Custom".equals(duePayType.getValue())) return true;
+
+        String text = txtPayDueAmount.getText();
+        if (text == null || text.trim().isEmpty()) return true;
+
+        try {
+            double value = Double.parseDouble(text.trim());
+            if (value > existingDue) {
+                if (warn) {
+                    AlertUtil.showAlert(Alert.AlertType.WARNING,
+                            "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
+                }
+                txtPayDueAmount.setText(String.format("%.2f", existingDue));
+            } else if (value < 0) {
+                if (warn) {
+                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot be negative!");
+                }
+                txtPayDueAmount.setText("0.00");
+            }
+            return true;
+        } catch (NumberFormatException e) {
+            if (warn) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number!");
+            }
+            txtPayDueAmount.clear();
+            return false;
+        }
     }
 
     private boolean shortcutsInstalled = false;
 
     private void setupKeyboardHandlers() {
-        txtAmountPaid.sceneProperty().addListener((obs, oldScene, newScene) -> {
+        txtAmountPaid1.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null && !shortcutsInstalled) {
                 shortcutsInstalled = true;
 
@@ -442,27 +753,50 @@ public class BalanceController implements Initializable {
                             }
                         }
                 );
+                // The old Pay Due checkbox is gone; Ctrl+D now jumps to the dropdown.
                 newScene.getAccelerators().put(
                         new javafx.scene.input.KeyCodeCombination(KeyCode.D, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> duePayType.requestFocus()
+                );
+
+                // Fast access to the method-specific fields.
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.B, javafx.scene.input.KeyCombination.CONTROL_DOWN),
                         () -> {
-                            if (chkPayDue != null && !chkPayDue.isDisable()) {
-                                chkPayDue.setSelected(!chkPayDue.isSelected());
-                                isPayDuePayment();
-                                if (chkPayDue.isSelected()) {
-                                    if (duePayType != null && !duePayType.isDisable()) {
-                                        duePayType.requestFocus();
-                                    }
-                                } else if (btnCompleteSale != null) {
-                                    btnCompleteSale.requestFocus();
-                                }
-                            }
+                            if (!cmbBankAccount.isDisable()) cmbBankAccount.requestFocus();
                         }
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.K, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> {
+                            if (!txtCheckId.isDisable()) txtCheckId.requestFocus();
+                        }
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.P, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> {
+                            txtAmountPaid1.requestFocus();
+                            txtAmountPaid1.selectAll();
+                        }
+                );
+                newScene.getAccelerators().put(
+                        new javafx.scene.input.KeyCodeCombination(KeyCode.M, javafx.scene.input.KeyCombination.CONTROL_DOWN),
+                        () -> cmbPaymentMethod1.requestFocus()
                 );
 
                 newScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+                    if (ignoreNextSceneEnter && event.getCode() == KeyCode.ENTER) {
+                        ignoreNextSceneEnter = false;
+                        event.consume();
+                        return;
+                    }
                     if (event.getCode() == KeyCode.ENTER && !event.isControlDown()
-                            && !txtAmountPaid.isFocused() && !cmbPaymentMethod.isFocused()
-                            && !txtPayDueAmount.isFocused() && !txtTax.isFocused()) {
+                            && !txtAmountPaid1.isFocused() && !cmbPaymentMethod1.isFocused()
+                            && !duePayType.isFocused()
+                            && !txtPayDueAmount.isFocused() && !txtTax.isFocused()
+                            && !cmbBankAccount.isFocused() && !txtCheckId.isFocused()
+                            && !tblPayments.isFocused() && !btnAddPayment.isFocused()
+                            && !btnCompleteSale.isFocused() && !btnCancel.isFocused()) {
                         btnConfirmOnAction();
                     }
                 });
@@ -483,55 +817,46 @@ public class BalanceController implements Initializable {
 
             double taxAmount = originalNetTotal * (currentTaxRate / 100.0);
 
-            double amountPaid = 0.0;
-            String amountText = txtAmountPaid.getText();
-            if (amountText != null && !amountText.isEmpty()) {
-                amountPaid = Double.parseDouble(amountText);
+            // Fast path: if nothing was added yet, turn the current fields into a row.
+            if (paymentRows.isEmpty()) {
+                addPaymentFromFields();
+                if (paymentRows.isEmpty()) return; // validation already showed a warning
             }
 
-            String paymentMethod = cmbPaymentMethod.getValue();
-            if (paymentMethod == null || paymentMethod.isBlank()) {
-                paymentMethod = "Cash";
+            String paymentMethod = paymentRows.size() == 1
+                    ? paymentRows.get(0).getMethod()
+                    : "Multiple";
+
+            double duePaymentAmount;
+            try {
+                duePaymentAmount = rawDuePayment();
+            } catch (NumberFormatException e) {
+                AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid due payment amount!");
+                return;
             }
-            if (("Cash".equals(paymentMethod) || "Card".equals(paymentMethod)) && amountPaid <= 0) {
+            if (duePaymentAmount < 0 || duePaymentAmount > existingDue) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING,
-                        "Please enter a valid received amount for " + paymentMethod + " payment!");
-                txtAmountPaid.requestFocus();
+                        "Due payment must be between 0 and Rs. " + String.format("%.2f", existingDue));
                 return;
             }
 
-            double duePaymentAmount = 0.0;
-            if (existingDue > 0 && chkPayDue.isSelected()) {
-                String type = duePayType.getValue();
-                if ("Full Payment".equals(type)) {
-                    duePaymentAmount = existingDue;
-                } else {
-                    String dueText = txtPayDueAmount.getText();
-                    if (dueText != null && !dueText.isEmpty()) {
-                        try {
-                            duePaymentAmount = Double.parseDouble(dueText);
-                        } catch (NumberFormatException e) {
-                            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid due payment amount!");
-                            return;
-                        }
-                        if (duePaymentAmount > existingDue) {
-                            AlertUtil.showAlert(Alert.AlertType.WARNING, "Due payment cannot exceed existing due of Rs. " + String.format("%.2f", existingDue));
-                            return;
-                        }
-                    }
-                }
-            }
+            // Use the saved screen values only; refresh the saved balance from them.
+            duePaid = duePaymentAmount;
+            calculateBalance();
 
-            if (AppConstants.DEMO_CUSTOMER_ID.equals(customer.getCustId()) && amountPaid < currentTotalWithTax) {
+            double invoicePortion = Math.max(0.0, totalPaid - duePaid);
+            if (AppConstants.DEMO_CUSTOMER_ID.equals(customer.getCustId()) && invoicePortion < totalToPay) {
                 AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer (" + AppConstants.DEMO_CUSTOMER_ID + ") must pay in full!");
                 return;
             }
 
-            if (duePaymentAmount > 0) {
-                orderBO.payCustomerDue(customer.getCustId(), duePaymentAmount, "Due payment received");
+            if (duePaid > 0) {
+                orderBO.payCustomerDue(customer.getCustId(), duePaid, "Due payment received");
             }
 
-            double balance = amountPaid - currentTotalWithTax;
+            // OrderEntity convention: negative = new due, positive = change.
+            // The shortfall is saved as New Due; lblBalance stays 0 in that case.
+            double orderBalance = balance - newDue;
 
             ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
             for (CartTM tm : cartItems) {
@@ -540,17 +865,15 @@ public class BalanceController implements Initializable {
             }
 
             OrderDto orderDto = new OrderDto(orderId, date, customer, details,
-                    amountPaid, 0, taxAmount, currentTaxRate, balance, paymentMethod);
+                    totalPaid, 0, taxAmount, currentTaxRate, orderBalance, paymentMethod);
 
             boolean isPlaced = orderBO.placeOrder(orderDto);
 
             if (isPlaced) {
                 orderPlaced = true;
-                double remainingDue = Math.max(0, existingDue - duePaymentAmount);
-                if (balance < 0) {
-                    remainingDue += Math.abs(balance);
-                }
-                showPrintDialog(orderId, duePaymentAmount, remainingDue);
+                saveOrderPayments(orderId);
+                showPrintDialog(orderId, new com.dev09.kumaracoconutoil.util.PdfGenerator.BillTotals(
+                        totalToPay, totalPaid, duePaid, balance, newDue, totalDue));
                 closeStage();
             } else {
                 AlertUtil.showAlert(Alert.AlertType.ERROR, "Invoice Placement Failed!");
@@ -561,7 +884,8 @@ public class BalanceController implements Initializable {
         }
     }
 
-    private void showPrintDialog(String orderId, double duePaymentAmount, double dueBalanceAmount) {
+    private void showPrintDialog(String orderId,
+                                 com.dev09.kumaracoconutoil.util.PdfGenerator.BillTotals totals) {
         Alert printAlert = new Alert(Alert.AlertType.CONFIRMATION);
         printAlert.setTitle("Print Bill");
         printAlert.setHeaderText("Invoice Placed Successfully!");
@@ -579,10 +903,10 @@ public class BalanceController implements Initializable {
                         order != null && order.getOrderProducts() != null ? order.getOrderProducts() : new java.util.ArrayList<>();
 
                 if (result.get() == smallBtn) {
-                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, duePaymentAmount, dueBalanceAmount);
+                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, totals);
                     com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
                 } else {
-                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, duePaymentAmount, dueBalanceAmount);
+                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, totals);
                     if (pdfBytes != null) {
                         File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
                         tempFile.deleteOnExit();

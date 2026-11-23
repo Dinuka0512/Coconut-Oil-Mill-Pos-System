@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="rootPane" prefHeight="540.0" prefWidth="800.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.BankAccountsController">
+   <children>
+      <Label layoutX="24.0" layoutY="16.0" text="Manage Bank Accounts" textFill="#2c3e50">
+         <font>
+            <Font name="System Bold" size="22.0" />
+         </font>
+      </Label>
+
+      <AnchorPane layoutX="24.0" layoutY="56.0" prefHeight="186.0" prefWidth="752.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+         <children>
+            <Label layoutX="20.0" layoutY="12.0" text="Bank Name *" textFill="#7f8c8d" />
+            <TextField fx:id="txtBankName" layoutX="20.0" layoutY="32.0" onAction="#onBankNameAction" prefHeight="30.0" prefWidth="330.0" promptText="Enter Bank Name" style="-fx-background-radius: 5;" />
+
+            <Label layoutX="370.0" layoutY="12.0" text="Account Number *" textFill="#7f8c8d" />
+            <TextField fx:id="txtAccountNumber" layoutX="370.0" layoutY="32.0" onAction="#onAccountNumberAction" prefHeight="30.0" prefWidth="360.0" promptText="Enter Account Number" style="-fx-background-radius: 5;" />
+
+            <Label layoutX="20.0" layoutY="76.0" text="Account Holder Name *" textFill="#7f8c8d" />
+            <TextField fx:id="txtHolderName" layoutX="20.0" layoutY="96.0" onAction="#onHolderNameAction" prefHeight="30.0" prefWidth="330.0" promptText="Enter Account Holder Name" style="-fx-background-radius: 5;" />
+
+            <Label layoutX="370.0" layoutY="76.0" text="Branch *" textFill="#7f8c8d" />
+            <TextField fx:id="txtBranch" layoutX="370.0" layoutY="96.0" onAction="#onBranchAction" prefHeight="30.0" prefWidth="360.0" promptText="Enter Branch" style="-fx-background-radius: 5;" />
+            <Button fx:id="btnClear" layoutX="350.0" layoutY="140.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Clear" />
+            <Button fx:id="btnDelete" layoutX="440.0" layoutY="140.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnUpdate" disable="true" layoutX="530.0" layoutY="140.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnSave" layoutX="620.0" layoutY="140.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="30.0" prefWidth="110.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+         </children>
+      </AnchorPane>
+
+      <TextField fx:id="txtSearch" layoutX="24.0" layoutY="249.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="752.0" promptText="Search by Bank Name, Account Number, Holder or Branch..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+
+      <TableView fx:id="tblBankAccounts" layoutX="24.0" layoutY="292.0" prefHeight="222.0" prefWidth="752.0" style="-fx-background-radius: 5;">
+        <columns>
+            <TableColumn fx:id="colBankName" prefWidth="175.0" text="Bank Name" />
+            <TableColumn fx:id="colAccountNumber" prefWidth="185.0" text="Account Number" />
+            <TableColumn fx:id="colHolderName" prefWidth="190.0" text="Account Holder Name" />
+            <TableColumn fx:id="colBranch" prefWidth="180.0" text="Branch" />
+        </columns>
+      </TableView>
+   </children>
+</AnchorPane>

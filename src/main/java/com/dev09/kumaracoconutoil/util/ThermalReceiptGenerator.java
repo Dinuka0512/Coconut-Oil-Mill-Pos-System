@@ -45,9 +45,12 @@ final class ThermalReceiptGenerator {
             if (flag(model, "hasDuePaid")) {
                 meta(p, "Due Paid", value(model, "duePaid"));
             }
-            totalRow(p, "BALANCE" + value(model, "balanceSuffix"), value(model, "balanceText"));
-            if (flag(model, "hasDueBalance")) {
-                totalRow(p, "DUE BALANCE", value(model, "dueBalance"));
+            if (flag(model, "hasNewDue")) {
+                meta(p, "New Due", value(model, "newDue"));
+            }
+            totalRow(p, "BALANCE", value(model, "balanceText"));
+            if (flag(model, "hasTotalDue")) {
+                totalRow(p, "TOTAL DUE", value(model, "totalDue"));
             }
             footer(p, model);
         });

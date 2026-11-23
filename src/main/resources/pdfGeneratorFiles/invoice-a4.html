@@ -70,13 +70,14 @@
                     {{#if hasDuePaid}}
                     <div class="payment-line">Due Paid: LKR {{duePaidA4}}</div>
                     {{/if}}
+                    {{#if hasNewDue}}
+                    <div class="payment-line negative">New Due: LKR {{newDueA4}}</div>
+                    {{/if}}
                     <div class="payment-line">
-                        Balance: LKR {{balanceTextA4}}{{balanceSuffix}}
+                        Balance: LKR {{balanceTextA4}}
                     </div>
-                    {{#if hasDueBalance}}
-                    <div class="payment-line negative">
-                        Due Balance: LKR {{dueBalanceA4}}
-                    </div>
+                    {{#if hasTotalDue}}
+                    <div class="payment-line negative">Total Due: LKR {{totalDueA4}}</div>
                     {{/if}}
                 </div>
             </td>

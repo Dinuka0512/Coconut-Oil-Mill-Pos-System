@@ -50,6 +50,7 @@ public class AdminSettingsController implements Initializable {
     @FXML private Button btnDelete;
     @FXML private Button btnClear;
     @FXML private Button userLogs;
+    @FXML private Button bankAccounts;
     @FXML private TableView<UserDto> tblUsers;
     @FXML private TableColumn<UserDto, String> colId;
     @FXML private TableColumn<UserDto, String> colName;
@@ -195,6 +196,10 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
         if (userLogs != null) {
             userLogs.setVisible(isAdmin());
             userLogs.setManaged(isAdmin());
+        }
+        if (bankAccounts != null) {
+            bankAccounts.setVisible(isAdmin());
+            bankAccounts.setManaged(isAdmin());
         }
         tblUsers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -455,6 +460,29 @@ AlertUtil.showAlert(Alert.AlertType.INFORMATION, "User deleted successfully!");
         } catch (IOException e) {
             e.printStackTrace();
             AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open user logs: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    void btnOpenBankAccounts(ActionEvent event) {
+        if (!RoleUtil.isAdmin(currentRole())) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Only admins can manage bank accounts.");
+            return;
+        }
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/view/bankAccounts.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("Manage Bank Accounts");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            if (rootPane != null && rootPane.getScene() != null) {
+                stage.initOwner(rootPane.getScene().getWindow());
+            }
+            stage.setResizable(false);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Cannot open bank accounts: " + e.getMessage());
         }
     }
 

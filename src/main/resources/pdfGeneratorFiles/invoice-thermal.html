@@ -93,17 +93,22 @@
             <td><span class="meta-label">Due Paid:</span> {{duePaid}}</td>
         </tr>
         {{/if}}
+        {{#if hasNewDue}}
+        <tr>
+            <td><span class="meta-label">New Due:</span> {{newDue}}</td>
+        </tr>
+        {{/if}}
     </table>
 
     <div class="summary">
         <div class="summary-row">
-            <div class="summary-label">BALANCE{{balanceSuffix}}</div>
+            <div class="summary-label">BALANCE</div>
             <div class="summary-value">{{balanceText}}</div>
         </div>
-        {{#if hasDueBalance}}
+        {{#if hasTotalDue}}
         <div class="summary-row">
-            <div class="summary-label">DUE BALANCE</div>
-            <div class="summary-value">{{dueBalance}}</div>
+            <div class="summary-label">TOTAL DUE</div>
+            <div class="summary-value">{{totalDue}}</div>
         </div>
         {{/if}}
     </div>
