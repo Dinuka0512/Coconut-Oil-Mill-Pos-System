@@ -1,6 +1,7 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AutoLockSettings;
 import com.dev09.kumaracoconutoil.util.AuditUtil;
 import com.dev09.kumaracoconutoil.util.DatabaseBackupUtil;
 import com.dev09.kumaracoconutoil.util.FormState;
@@ -42,6 +43,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -126,7 +128,10 @@ public class DashboardController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         updateUserDisplay();
-        IdleMonitor.start(this::performIdleLogout);
+        int autoLockMinutes = AutoLockSettings.getMinutes();
+        if (autoLockMinutes > 0) {
+            IdleMonitor.start(Duration.minutes(autoLockMinutes), this::performIdleLogout);
+        }
         if (userData != null && RoleUtil.isCashier(userData.getRole())) {
             subNavigateTo("/view/inventory.fxml");
             return;
@@ -360,8 +365,12 @@ public class DashboardController implements Initializable {
             userData = null;
             AuditUtil.clear();
             mainNavigateTo("/view/login.fxml");
+            int minutes = AutoLockSettings.getMinutes();
+            String idleText = minutes > 0
+                    ? minutes + (minutes == 1 ? " minute" : " minutes")
+                    : "a period";
             AlertUtil.showAlert(Alert.AlertType.INFORMATION,
-                    "You were logged out due to 1 minute of inactivity.\n"
+                    "You were logged out due to " + idleText + " of inactivity.\n"
                             + "Your current work will be restored when you sign in again as the same user.");
         });
     }

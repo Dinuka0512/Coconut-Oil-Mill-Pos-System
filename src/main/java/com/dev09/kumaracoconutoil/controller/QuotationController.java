@@ -562,7 +562,7 @@ public class QuotationController implements Initializable {
             cmbProductId.getSelectionModel().clearSelection();
             if (cmbProductId.getEditor() != null) cmbProductId.getEditor().clear();
             txtUnitPrice.clear();
-            lblQtyOnHand.setText("0Kg");
+            lblQtyOnHand.setText("0.00 Kg");
             loadProductIds();
             focusComboEditor(cmbProductId);
             if (!cmbProductId.getItems().isEmpty()) {
@@ -735,7 +735,7 @@ public class QuotationController implements Initializable {
                         cmbProductId.getEditor().positionCaret(display.length());
                     }
                     txtUnitPrice.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
-                    lblQtyOnHand.setText(selectedTierQty + " Kg");
+                    lblQtyOnHand.setText(String.format("%.2f", selectedTierQty) + " Kg");
                     txtQty.requestFocus();
                     break;
                 }
@@ -972,7 +972,7 @@ public class QuotationController implements Initializable {
         txtQty.clear();
         txtQty.setText("1");
         txtUnitPrice.clear();
-        lblQtyOnHand.setText("0Kg");
+        lblQtyOnHand.setText("0.00 Kg");
         cmbProductId.getEditor().clear();
         cmbProductId.getSelectionModel().clearSelection();
         repopulateAllProducts();

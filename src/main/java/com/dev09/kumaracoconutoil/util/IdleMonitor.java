@@ -2,6 +2,7 @@ package com.dev09.kumaracoconutoil.util;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -11,6 +12,7 @@ import javafx.scene.input.InputEvent;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -24,8 +26,11 @@ public final class IdleMonitor {
 
     private static Timeline timeline;
     private static Runnable onTimeout;
+    /** Remembered so a settings change can restart the monitor without the caller. */
+    private static Runnable configuredAction;
     private static boolean running;
     private static final Map<Scene, EventHandler<? super InputEvent>> sceneFilters = new IdentityHashMap<>();
+    private static final Map<Window, ChangeListener<Scene>> windowListeners = new IdentityHashMap<>();
     private static final EventHandler<? super InputEvent> ACTIVITY_HANDLER = e -> reset();
     private static final ListChangeListener<Window> WINDOW_LISTENER = change -> {
         while (change.next()) {
@@ -52,6 +57,7 @@ public final class IdleMonitor {
     public static void start(Duration timeout, Runnable timeoutAction) {
         stop();
         onTimeout = timeoutAction;
+        configuredAction = timeoutAction;
         timeline = new Timeline(new KeyFrame(timeout, e -> {
             if (onTimeout != null) {
                 onTimeout.run();
@@ -67,6 +73,17 @@ public final class IdleMonitor {
         timeline.playFromStart();
     }
 
+    /** Applies a new timeout immediately. A zero/negative duration disables monitoring. */
+    public static void setTimeout(Duration timeout) {
+        if (timeout == null || timeout.toMillis() <= 0) {
+            stop();
+            return;
+        }
+        if (configuredAction != null) {
+            start(timeout, configuredAction);
+        }
+    }
+
     public static void stop() {
         running = false;
         if (timeline != null) {
@@ -76,6 +93,9 @@ public final class IdleMonitor {
         try {
             Window.getWindows().removeListener(WINDOW_LISTENER);
         } catch (Exception ignored) {
+        }
+        for (Window w : new ArrayList<>(windowListeners.keySet())) {
+            detachFromWindow(w);
         }
         for (Map.Entry<Scene, EventHandler<? super InputEvent>> entry : sceneFilters.entrySet()) {
             try {
@@ -94,19 +114,25 @@ public final class IdleMonitor {
     }
 
     private static void attachToWindow(Window window) {
-        if (window == null) return;
+        if (window == null || windowListeners.containsKey(window)) return;
         Scene scene = window.getScene();
         if (scene != null) {
             attachToScene(scene);
         }
-        window.sceneProperty().addListener((obs, oldScene, newScene) -> {
+        ChangeListener<Scene> listener = (obs, oldScene, newScene) -> {
             if (oldScene != null) detachFromScene(oldScene);
             if (newScene != null) attachToScene(newScene);
-        });
+        };
+        window.sceneProperty().addListener(listener);
+        windowListeners.put(window, listener);
     }
 
     private static void detachFromWindow(Window window) {
         if (window == null) return;
+        ChangeListener<Scene> listener = windowListeners.remove(window);
+        if (listener != null) {
+            window.sceneProperty().removeListener(listener);
+        }
         Scene scene = window.getScene();
         if (scene != null) {
             detachFromScene(scene);

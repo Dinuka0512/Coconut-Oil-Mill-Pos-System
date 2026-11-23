@@ -251,7 +251,7 @@ public class SimplePOSController implements Initializable {
                     selectedTierQty = tier[PriceQtyArray.QTY];
                     setComboValueQuietly(cmbProduct, display);
                     txtUnitPriceDisplay.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
-                    lblQtyOnHand.setText(selectedTierQty + " Kg");
+                    lblQtyOnHand.setText(String.format("%.2f", selectedTierQty) + " Kg");
                     lblItemName.setText(dto.getName());
                     lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
                     txtQty.requestFocus();
@@ -999,7 +999,7 @@ public class SimplePOSController implements Initializable {
         txtQty.clear();
         txtQty.setText("1");
         txtUnitPriceDisplay.clear();
-        lblQtyOnHand.setText("0Kg");
+        lblQtyOnHand.setText("0.00 Kg");
         lblItemName.setText("-");
         lblItemCode.setText("-");
         cmbProduct.getEditor().clear();
@@ -1154,7 +1154,7 @@ public class SimplePOSController implements Initializable {
                             ? product.getName() + " (" + (product.getItemcode() != null ? product.getItemcode() : "") + ")"
                             : draft.productDisplay();
                     setComboValueQuietly(cmbProduct, display);
-                    lblQtyOnHand.setText(selectedTierQty + " Kg");
+                    lblQtyOnHand.setText(String.format("%.2f", selectedTierQty) + " Kg");
                     lblItemName.setText(product.getName());
                     lblItemCode.setText(product.getItemcode() != null ? product.getItemcode() : "-");
                     productRestored = true;

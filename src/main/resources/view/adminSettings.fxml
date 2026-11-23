@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
+<AnchorPane fx:id="rootPane" prefHeight="587.0" prefWidth="960.0" style="-fx-background-color: white;" stylesheets="@../css/styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dev09.kumaracoconutoil.controller.AdminSettingsController">
    <children>
       <Label layoutX="32.0" layoutY="24.0" text="Admin Settings" textFill="#2c3e50">
          <font>
@@ -18,7 +18,7 @@
          </font>
       </Label>
       
-      <AnchorPane layoutX="32.0" layoutY="70.0" prefHeight="140.0" prefWidth="895.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+      <AnchorPane layoutX="32.0" layoutY="88.0" prefHeight="141.0" prefWidth="895.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
          <children>
             <Label layoutX="20.0" layoutY="15.0" text="Name" textFill="#7f8c8d" />
 <TextField fx:id="txtName" layoutX="20.0" layoutY="35.0" onAction="#onNameAction" prefHeight="30.0" prefWidth="273.0" promptText="Enter Name" style="-fx-background-radius: 5;" />
@@ -40,9 +40,9 @@
          </children>
       </AnchorPane>
       
-      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="225.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="895.0" promptText="Search User by ID, Name or Email..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
+      <TextField fx:id="txtSearch" layoutX="32.0" layoutY="240.0" onKeyReleased="#txtSearchOnKeyReleased" prefHeight="35.0" prefWidth="895.0" promptText="Search User by ID, Name or Email..." style="-fx-background-radius: 20; -fx-padding: 0 15 0 15; -fx-border-color: #bdc3c7; -fx-border-radius: 20;" />
       
-      <TableView fx:id="tblUsers" layoutX="32.0" layoutY="275.0" prefHeight="286.0" prefWidth="895.0" style="-fx-background-radius: 5;">
+      <TableView fx:id="tblUsers" layoutX="32.0" layoutY="286.0" prefHeight="272.0" prefWidth="895.0" style="-fx-background-radius: 5;">
         <columns>
           <TableColumn fx:id="colId" prefWidth="74.0" text="User ID" />
           <TableColumn fx:id="colName" prefWidth="151.0" text="Name" />
@@ -53,5 +53,17 @@
           <TableColumn fx:id="colUpdated" prefWidth="161.0" text="Updated (By / At)" />
         </columns>
       </TableView>
+      <AnchorPane layoutX="461.0" layoutY="25.0" prefHeight="54.0" prefWidth="466.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">
+         <children>
+            <Label layoutX="14.0" layoutY="17.0" text="Set Auto Lock Time" textFill="#7f8c8d">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <ComboBox fx:id="cmbAutoLock" layoutX="144.0" layoutY="13.0" prefHeight="30.0" prefWidth="119.0" />
+            <Button fx:id="btnSaveAutoLock" layoutX="272.0" layoutY="13.0" mnemonicParsing="false" onAction="#btnSaveAutoLockOnAction" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #37be90; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="Save" />
+            <Label fx:id="lblAutoLockStatus" layoutX="370.0" layoutY="19.0" prefHeight="18.0" prefWidth="93.0" textFill="#27ae60" />
+         </children>
+      </AnchorPane>
    </children>
 </AnchorPane>

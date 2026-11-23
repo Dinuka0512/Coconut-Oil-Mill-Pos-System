@@ -1,12 +1,15 @@
 package com.dev09.kumaracoconutoil.controller;
 
 import com.dev09.kumaracoconutoil.util.AlertUtil;
+import com.dev09.kumaracoconutoil.util.AutoLockSettings;
 import com.dev09.kumaracoconutoil.util.AuditCell;
+import com.dev09.kumaracoconutoil.util.IdleMonitor;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
 import com.dev09.kumaracoconutoil.bo.custom.UserBo;
 import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.util.RoleUtil;
+import com.dev09.kumaracoconutoil.util.UserLogUtil;
 import com.dev09.kumaracoconutoil.util.Validation;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -38,6 +41,9 @@ public class AdminSettingsController implements Initializable {
     @FXML private TextField txtEmail;
     @FXML private PasswordField txtPassword;
     @FXML private ComboBox<String> cmbRole;
+    @FXML private ComboBox<String> cmbAutoLock;
+    @FXML private Button btnSaveAutoLock;
+    @FXML private Label lblAutoLockStatus;
     @FXML private TextField txtSearch;
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
@@ -158,6 +164,23 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
             cmbRole.getItems().addAll("casheer");
         }
         
+        cmbAutoLock.getItems().addAll(AutoLockSettings.NONE, "1 min", "2 min", "5 min", "10 min");
+        cmbAutoLock.getSelectionModel().select(AutoLockSettings.currentLabel());
+        lblAutoLockStatus.setText("Current: " + AutoLockSettings.currentLabel());
+
+        // Enter on the dropdown moves to the auto-lock Save button.
+        cmbAutoLock.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER && !cmbAutoLock.isShowing()) {
+                btnSaveAutoLock.requestFocus();
+                event.consume();
+            }
+        });
+        cmbAutoLock.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (wasShowing && !isShowing && cmbAutoLock.getValue() != null) {
+                javafx.application.Platform.runLater(() -> btnSaveAutoLock.requestFocus());
+            }
+        });
+
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
@@ -200,6 +223,25 @@ private UserBo userBo = (UserBo) BOFactory.getInstance().getBo(BOFactory.BOType.
                 btnDelete.setDisable(false);
             }
         });
+    }
+
+    @FXML
+    void btnSaveAutoLockOnAction(ActionEvent event) {
+        String selected = cmbAutoLock.getValue();
+        if (selected == null) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Select an auto lock time!");
+            return;
+        }
+
+        int minutes = AutoLockSettings.minutesFromLabel(selected);
+        AutoLockSettings.setMinutes(minutes);
+        IdleMonitor.setTimeout(AutoLockSettings.timeout());
+        lblAutoLockStatus.setText("Saved: " + AutoLockSettings.currentLabel());
+        UserLogUtil.record("AUTO_LOCK_SETTING " + AutoLockSettings.currentLabel());
+
+        AlertUtil.showAlert(Alert.AlertType.INFORMATION, minutes == 0
+                ? "Auto lock disabled."
+                : "Auto lock time set to " + AutoLockSettings.currentLabel() + ".");
     }
 
     private void loadPasswordForEditing(String password) {

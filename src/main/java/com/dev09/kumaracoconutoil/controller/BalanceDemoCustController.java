@@ -50,6 +50,18 @@ public class BalanceDemoCustController implements Initializable {
     private Label lblPrecent;
 
     @FXML
+    private TextField txtPaidAmount;
+
+    @FXML
+    private Label lblPriceBalance;
+
+    @FXML
+    private Button btnCompleteSale;
+
+    @FXML
+    private Button btnCancel;
+
+    @FXML
     private CheckBox chkPayDue1;
 
     @FXML
@@ -79,9 +91,17 @@ public class BalanceDemoCustController implements Initializable {
         btnSaveTax.setDisable(true);
 
         Platform.runLater(() -> {
+            txtPaidAmount.requestFocus();
+            txtPaidAmount.selectAll();
+
             if (txtDescription.getScene() != null) {
                 txtDescription.getScene().addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                     if (event.getCode() == KeyCode.ENTER) {
+                        javafx.scene.Node focusOwner = txtDescription.getScene().getFocusOwner();
+                        // These controls handle ENTER themselves (validate / complete / cancel)
+                        if (focusOwner == txtPaidAmount || focusOwner == btnCompleteSale || focusOwner == btnCancel) {
+                            return;
+                        }
                         btnConfirmOnAction();
                     } else if (event.getCode() == KeyCode.ESCAPE) {
                         btnCancelOnAction();
@@ -143,6 +163,70 @@ public class BalanceDemoCustController implements Initializable {
         lblBillTotal.setText(String.format("%.2f", originalNetTotal));
         lblPrecent.setText(String.format("%.2f", taxAmount));
         lblBalance1.setText("LKR " + String.format("%.2f", currentTotalWithTax));
+        calculateBalance();
+    }
+
+    private void calculateBalance() {
+        String amountText = txtPaidAmount.getText();
+        if (amountText == null || amountText.trim().isEmpty()) {
+            lblPriceBalance.setText("LKR 0.00");
+            lblPriceBalance.setStyle("-fx-text-fill: #16a34a;");
+            return;
+        }
+
+        try {
+            double balance = Double.parseDouble(amountText.trim()) - currentTotalWithTax;
+            if (balance < 0) {
+                lblPriceBalance.setText("LKR " + String.format("%.2f", Math.abs(balance)) + " Due");
+                lblPriceBalance.setStyle("-fx-text-fill: #c90404;");
+            } else {
+                lblPriceBalance.setText("LKR " + String.format("%.2f", balance));
+                lblPriceBalance.setStyle("-fx-text-fill: #16a34a;");
+            }
+        } catch (NumberFormatException e) {
+            lblPriceBalance.setText("LKR 0.00");
+            lblPriceBalance.setStyle("-fx-text-fill: #16a34a;");
+        }
+    }
+
+    @FXML
+    void onPaidAmountChanged() {
+        calculateBalance();
+    }
+
+    @FXML
+    void onPaidAmountAction() {
+        if (getValidatedPaidAmount() >= 0 && btnCompleteSale != null) {
+            btnCompleteSale.requestFocus();
+        }
+    }
+
+    /** Returns the paid amount, or -1 when the input is missing, invalid or below the net total. */
+    private double getValidatedPaidAmount() {
+        String amountText = txtPaidAmount.getText();
+        if (amountText == null || amountText.trim().isEmpty()) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter the paid amount!");
+            txtPaidAmount.requestFocus();
+            return -1;
+        }
+
+        double amountPaid;
+        try {
+            amountPaid = Double.parseDouble(amountText.trim());
+        } catch (NumberFormatException e) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Please enter a valid number for the paid amount!");
+            txtPaidAmount.requestFocus();
+            txtPaidAmount.selectAll();
+            return -1;
+        }
+
+        if (amountPaid < currentTotalWithTax) {
+            AlertUtil.showAlert(Alert.AlertType.WARNING, "Demo customer canot place the due payments");
+            txtPaidAmount.requestFocus();
+            txtPaidAmount.selectAll();
+            return -1;
+        }
+        return amountPaid;
     }
 
     @FXML
@@ -152,12 +236,17 @@ public class BalanceDemoCustController implements Initializable {
             return;
         }
 
+        double amountPaid = getValidatedPaidAmount();
+        if (amountPaid < 0) {
+            return;
+        }
+
         try {
             String orderId = orderBO.generateNextOrderId();
             LocalDate date = LocalDate.now();
 
             double taxAmount = originalNetTotal * (currentTaxRate / 100.0);
-            double balance = 0;
+            double balance = amountPaid - currentTotalWithTax;
 
             ArrayList<OrderProductDetailsDto> details = new ArrayList<>();
             for (CartTM tm : cartItems) {
@@ -166,7 +255,7 @@ public class BalanceDemoCustController implements Initializable {
             }
 
             OrderDto orderDto = new OrderDto(orderId, date, customer, details,
-                    currentTotalWithTax, 0, taxAmount, currentTaxRate, balance, "Cash");
+                    amountPaid, 0, taxAmount, currentTaxRate, balance, "Cash");
 
             boolean isPlaced = orderBO.placeOrder(orderDto);
 
