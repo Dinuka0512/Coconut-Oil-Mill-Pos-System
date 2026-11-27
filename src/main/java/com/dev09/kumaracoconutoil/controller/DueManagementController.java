@@ -223,13 +223,12 @@ public class DueManagementController implements Initializable {
         }
 
         if (result.get() == btn80mm) {
-            com.dev09.kumaracoconutoil.util.ThermalPrinter.print(PdfGenerator.DuePaymentReportThermal(entities));
+            com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                    () -> PdfGenerator.DuePaymentReportThermal(entities));
         } else {
-            byte[] bytes = PdfGenerator.DuePaymentReportA4Pro(entities);
-            File tempFile = File.createTempFile("DueReport_A4", ".pdf");
-            tempFile.deleteOnExit();
-            Files.write(tempFile.toPath(), bytes);
-            java.awt.Desktop.getDesktop().open(tempFile);
+            com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                    "DueReport_A4_",
+                    () -> PdfGenerator.DuePaymentReportA4Pro(entities));
         }
     }
 }

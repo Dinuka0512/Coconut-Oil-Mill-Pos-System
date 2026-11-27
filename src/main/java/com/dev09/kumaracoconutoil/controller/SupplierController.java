@@ -499,14 +499,12 @@ public class SupplierController implements Initializable {
         if (result.isPresent()) {
             var suppliers = supplierBO.getAllSuppliersEntity();
             if (result.get() == btn80mm) {
-                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(
-                        com.dev09.kumaracoconutoil.util.PdfGenerator.SupplierReportThermal(suppliers));
+                com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                        () -> com.dev09.kumaracoconutoil.util.PdfGenerator.SupplierReportThermal(suppliers));
             } else if (result.get() == btnA4) {
-                byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.SupplierReportA4Pro(suppliers);
-                File tempFile = File.createTempFile("SupplierReport_A4", ".pdf");
-                tempFile.deleteOnExit();
-                Files.write(tempFile.toPath(), bytes);
-                Desktop.getDesktop().open(tempFile);
+                com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                        "SupplierReport_A4_",
+                        () -> com.dev09.kumaracoconutoil.util.PdfGenerator.SupplierReportA4Pro(suppliers));
             }
         }
     }

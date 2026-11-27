@@ -10,6 +10,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 
 public class AppLauncher extends Application {
 
@@ -46,6 +47,10 @@ public class AppLauncher extends Application {
     private static void startAutomaticBackup() {
         Thread thread = new Thread(() -> {
             try {
+                // Exporting every table is expensive; do it at most once per calendar day.
+                if (DatabaseBackupUtil.hasBackupFor(LocalDate.now())) {
+                    return;
+                }
                 DatabaseBackupUtil.BackupResult result = DatabaseBackupUtil.backupDatabase();
                 System.out.println("Automatic startup backup created: " + result.getFile().getName()
                         + " (" + result.getTableCount() + " tables, " + result.getRowCount() + " rows)");

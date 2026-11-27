@@ -590,18 +590,12 @@ public class OrderController implements Initializable {
                 if (result.isPresent()) {
                     try {
                         if (result.get() == smallBtn) {
-                            byte[] escpos = orderBO.generateOrderBill80mm(orderId);
-                            if (escpos != null) {
-                                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
-                            }
+                            com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                                    () -> orderBO.generateOrderBill80mm(orderId));
                         } else {
-                            byte[] pdfBytes = orderBO.generateOrderBillA4(orderId);
-                            if (pdfBytes != null) {
-                                File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                                tempFile.deleteOnExit();
-                                Files.write(tempFile.toPath(), pdfBytes);
-                                Desktop.getDesktop().open(tempFile);
-                            }
+                            com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                                    "Invoice_" + orderId + "_",
+                                    () -> orderBO.generateOrderBillA4(orderId));
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();

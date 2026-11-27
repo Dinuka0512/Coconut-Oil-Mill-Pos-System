@@ -473,22 +473,18 @@ public class OrderManageController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (!result.isPresent() || result.get() == cancelBtn) return;
 
-        try {
-            String dateStr = date.toString();
-            if (result.get() == a4Btn || result.get() == bothBtn) {
-                byte[] pdf = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportA4Pro(date, sales, total, soldQty);
-                File f = File.createTempFile("SalesSummary_A4_" + dateStr + "_", ".pdf");
-                f.deleteOnExit();
-                java.nio.file.Files.write(f.toPath(), pdf);
-                java.awt.Desktop.getDesktop().open(f);
-            }
-            if (result.get() == smallBtn || result.get() == bothBtn) {
-                byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportThermal(date, sales, total, soldQty);
-                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating summary report: " + e.getMessage());
+        final double reportTotal = total;
+        final double reportSoldQty = soldQty;
+        if (result.get() == a4Btn || result.get() == bothBtn) {
+            com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                    "SalesSummary_A4_" + date + "_",
+                    () -> com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportA4Pro(
+                            date, sales, reportTotal, reportSoldQty));
+        }
+        if (result.get() == smallBtn || result.get() == bothBtn) {
+            com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                    () -> com.dev09.kumaracoconutoil.util.PdfGenerator.SalesSummaryReportThermal(
+                            date, sales, reportTotal, reportSoldQty));
         }
     }
 
@@ -570,7 +566,8 @@ public class OrderManageController implements Initializable {
             }
             
             List<OrderProductDetailsEntity> details = order.getOrderProducts();
-            if (details == null) details = new ArrayList<>();
+            final List<OrderProductDetailsEntity> billDetails =
+                    details != null ? details : new ArrayList<>();
             
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Print Bill");
@@ -585,14 +582,12 @@ public class OrderManageController implements Initializable {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() != cancelBtn) {
                 if (result.get() == smallBtn) {
-                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details);
-                    com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
+                    com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, billDetails));
                 } else {
-                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details);
-                    File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                    tempFile.deleteOnExit();
-                    java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
-                    java.awt.Desktop.getDesktop().open(tempFile);
+                    com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                            "Invoice_" + orderId + "_",
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, billDetails));
                 }
             }
         } catch (Exception e) {

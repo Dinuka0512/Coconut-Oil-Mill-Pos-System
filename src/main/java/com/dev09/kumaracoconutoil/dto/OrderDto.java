@@ -17,6 +17,8 @@ public class OrderDto {
     private double taxRate; // Tax rate at time of order (e.g., 8.0 for 8%)
     private double balance;
     private String paymentMethod;
+    private String billCustomerName;
+    private String billContact;
     private String createdBy;
     private LocalDateTime createdAt;
     private String updatedBy;
@@ -58,6 +60,10 @@ public class OrderDto {
     public void setBalance(double balance) { this.balance = balance; }
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getBillCustomerName() { return billCustomerName; }
+    public void setBillCustomerName(String billCustomerName) { this.billCustomerName = billCustomerName; }
+    public String getBillContact() { return billContact; }
+    public void setBillContact(String billContact) { this.billContact = billContact; }
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -71,10 +77,16 @@ public class OrderDto {
     public String getUpdatedInfo() { return AuditFormat.info(updatedBy, updatedAt); }
 
     public String getCustomerName() {
+        if (billCustomerName != null && !billCustomerName.trim().isEmpty()) {
+            return billCustomerName;
+        }
         return customer != null ? customer.getName() : "";
     }
 
     public String getContact() {
+        if (billContact != null && !billContact.trim().isEmpty()) {
+            return billContact;
+        }
         return customer != null ? customer.getContact() : "";
     }
 

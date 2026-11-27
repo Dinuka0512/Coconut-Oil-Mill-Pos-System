@@ -43,6 +43,8 @@ public class OrderBOImpl implements OrderBO {
             entity.setTaxRate(dto.getTaxRate());
             entity.setBalance(dto.getBalance());
             entity.setPaymentMethod(dto.getPaymentMethod());
+            entity.setBillCustomerName(dto.getBillCustomerName());
+            entity.setBillContact(dto.getBillContact());
 
             CustomerEntity customerRef = session.getReference(CustomerEntity.class, dto.getCustomer().getCustId());
             entity.setCustomer(customerRef);
@@ -135,6 +137,8 @@ public class OrderBOImpl implements OrderBO {
             dto.setTaxRate(entity.getTaxRate());
             dto.setBalance(entity.getBalance());
             dto.setPaymentMethod(entity.getPaymentMethod());
+            dto.setBillCustomerName(entity.getBillCustomerName());
+            dto.setBillContact(entity.getBillContact());
             dto.setCreatedBy(entity.getCreatedBy());
             dto.setCreatedAt(entity.getCreatedAt());
             dto.setUpdatedBy(entity.getUpdatedBy());
@@ -205,6 +209,8 @@ public class OrderBOImpl implements OrderBO {
             entity.setTax(dto.getTax());
             entity.setBalance(dto.getBalance());
             entity.setPaymentMethod(dto.getPaymentMethod());
+            entity.setBillCustomerName(dto.getBillCustomerName());
+            entity.setBillContact(dto.getBillContact());
 
             List<OrderProductDetailsEntity> orderProducts = entity.getOrderProducts();
             if (orderProducts == null) {
@@ -418,5 +424,35 @@ public class OrderBOImpl implements OrderBO {
         } finally {
             session.close();
         }
+    }
+
+    @Override
+    public double getSalesBetween(LocalDate fromInclusive, LocalDate toExclusive) {
+        return orderDAO.getSalesBetween(fromInclusive, toExclusive);
+    }
+
+    @Override
+    public long getActiveCustomerCount() {
+        return orderDAO.getActiveCustomerCount();
+    }
+
+    @Override
+    public long getActiveProductCount() {
+        return orderDAO.getActiveProductCount();
+    }
+
+    @Override
+    public double getTotalCustomerDue() {
+        return orderDAO.getTotalCustomerDue();
+    }
+
+    @Override
+    public List<Object[]> getRecentSales(int limit) {
+        return orderDAO.getRecentSales(limit);
+    }
+
+    @Override
+    public List<Object[]> getSalesByDay(LocalDate fromInclusive, LocalDate toExclusive) {
+        return orderDAO.getSalesByDay(fromInclusive, toExclusive);
     }
 }

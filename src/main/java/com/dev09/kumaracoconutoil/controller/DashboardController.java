@@ -10,12 +10,7 @@ import com.dev09.kumaracoconutoil.util.RoleUtil;
 import com.dev09.kumaracoconutoil.util.SessionRestore;
 
 import com.dev09.kumaracoconutoil.bo.BOFactory;
-import com.dev09.kumaracoconutoil.bo.custom.CustomerBO;
 import com.dev09.kumaracoconutoil.bo.custom.OrderBO;
-import com.dev09.kumaracoconutoil.bo.custom.ProductBO;
-import com.dev09.kumaracoconutoil.dto.CustomerDto;
-import com.dev09.kumaracoconutoil.dto.OrderDto;
-import com.dev09.kumaracoconutoil.dto.ProductDto;
 import com.dev09.kumaracoconutoil.dto.UserDto;
 import com.dev09.kumaracoconutoil.view.tm.DashboardTM;
 import javafx.collections.FXCollections;
@@ -52,10 +47,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class DashboardController implements Initializable {
@@ -116,12 +115,15 @@ public class DashboardController implements Initializable {
     private LineChart<String, Number> lineChart;
 
     private final OrderBO orderBO = (OrderBO) BOFactory.getInstance().getBo(BOFactory.BOType.ORDER);
-    private final CustomerBO customerBO = (CustomerBO) BOFactory.getInstance().getBo(BOFactory.BOType.CUSTOMER);
-    private final ProductBO productBO = (ProductBO) BOFactory.getInstance().getBo(BOFactory.BOType.PRODUCT);
 
-    private ArrayList<OrderDto> cachedOrders;
-    private ArrayList<CustomerDto> cachedCustomers;
-    private ArrayList<ProductDto> cachedProducts;
+    /** Small aggregates loaded off the FX thread instead of whole tables. */
+    private double todaySales;
+    private double weeklySales;
+    private long totalCustomers;
+    private long totalProducts;
+    private double totalCustomerDue;
+    private List<Object[]> recentSales;
+    private final Map<LocalDate, Double> dailySales = new HashMap<>();
 
     /** Screen currently shown in the content area, remembered for idle-logout resume. */
     private String currentSubView;
@@ -184,90 +186,74 @@ public class DashboardController implements Initializable {
     }
 
     private void loadDashboardDataFast() {
-        Task<Void> loadTask = new Task<Void>() {
+        Task<Void> loadTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                cachedOrders = orderBO.getAllOrders();
-                cachedCustomers = customerBO.getAllCustomers();
-                cachedProducts = productBO.getAllProducts();
+                LocalDate today = LocalDate.now();
+                LocalDate tomorrow = today.plusDays(1);
+                LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                LocalDate monthStart = today.minusMonths(5).withDayOfMonth(1);
+
+                todaySales = orderBO.getSalesBetween(today, tomorrow);
+                weeklySales = orderBO.getSalesBetween(weekStart, tomorrow);
+                totalCustomers = orderBO.getActiveCustomerCount();
+                totalProducts = orderBO.getActiveProductCount();
+                totalCustomerDue = orderBO.getTotalCustomerDue();
+                recentSales = orderBO.getRecentSales(5);
+
+                dailySales.clear();
+                for (Object[] row : orderBO.getSalesByDay(monthStart, tomorrow)) {
+                    if (row[0] instanceof LocalDate date && row[1] instanceof Number total) {
+                        dailySales.put(date, total.doubleValue());
+                    }
+                }
                 return null;
             }
         };
 
+        // Task callbacks already run on the JavaFX application thread.
         loadTask.setOnSucceeded(e -> {
-            Platform.runLater(() -> {
-                loadSalesData();
-                loadCounts();
-                loadRecentSales();
-                loadWeeklySalesChart();
-                loadMonthlySalesLineChart();
-            });
+            loadSalesData();
+            loadCounts();
+            loadRecentSales();
+            loadWeeklySalesChart();
+            loadMonthlySalesLineChart();
         });
 
         loadTask.setOnFailed(e -> {
-            Platform.runLater(() -> {
-                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading dashboard data");
-                loadTask.getException().printStackTrace();
-            });
+            AlertUtil.showAlert(Alert.AlertType.ERROR, "Error loading dashboard data");
+            loadTask.getException().printStackTrace();
         });
 
-        new Thread(loadTask).start();
+        new Thread(loadTask, "dashboard-stats").start();
     }
 
     private void loadSalesData() {
-        LocalDate today = LocalDate.now();
-        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-
-        double todaySales = 0;
-        double weeklySales = 0;
-
-        for (OrderDto order : cachedOrders) {
-            if (order.getDate() != null) {
-                LocalDate orderDate = order.getDate();
-                if (orderDate.equals(today)) {
-                    todaySales += order.getTotal();
-                }
-                if (!orderDate.isBefore(weekStart) && !orderDate.isAfter(today)) {
-                    weeklySales += order.getTotal();
-                }
-            }
-        }
-
         lblSalesToday.setText(String.format("Rs.%,.2f", todaySales));
         lblWeeklySales.setText(String.format("Rs.%,.2f", weeklySales));
     }
 
     private void loadCounts() {
-        lblTotalCustomers.setText(String.valueOf(cachedCustomers.size()));
-        lblTotalProducts.setText(String.valueOf(cachedProducts.size()));
+        lblTotalCustomers.setText(String.valueOf(totalCustomers));
+        lblTotalProducts.setText(String.valueOf(totalProducts));
         if (lblTotalDue != null) {
-            double totalDue = cachedCustomers.stream().mapToDouble(CustomerDto::getDueAmount).sum();
-            lblTotalDue.setText(String.format("Rs.%,.2f", totalDue));
+            lblTotalDue.setText(String.format("Rs.%,.2f", totalCustomerDue));
         }
     }
 
     private void loadRecentSales() {
         ObservableList<DashboardTM> data = FXCollections.observableArrayList();
-
-        cachedOrders.stream()
-                .sorted((o1, o2) -> o2.getDate().compareTo(o1.getDate()))
-                .limit(5)
-                .forEach(order -> {
-                    double totalQty = 0;
-                    if (order.getOrderProducts() != null) {
-                        for (var detail : order.getOrderProducts()) {
-                            totalQty += detail.getQuantity();
-                        }
-                    }
-                    data.add(new DashboardTM(
-                            order.getDate().toString(),
-                            order.getOrderId(),
-                            order.getCustomerName(),
-                            totalQty,
-                            order.getTotal()
-                    ));
-                });
-
+        if (recentSales != null) {
+            for (Object[] row : recentSales) {
+                LocalDate date = (LocalDate) row[1];
+                data.add(new DashboardTM(
+                        date == null ? "" : date.toString(),
+                        String.valueOf(row[0]),
+                        String.valueOf(row[2]),
+                        ((Number) row[3]).doubleValue(),
+                        ((Number) row[4]).doubleValue()));
+            }
+        }
         tblRecentSales.setItems(data);
     }
 
@@ -280,13 +266,7 @@ public class DashboardController implements Initializable {
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             String dayName = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-            final LocalDate finalDate = date;
-            double daySales = cachedOrders.stream()
-                    .filter(o -> o.getDate() != null && o.getDate().equals(finalDate))
-                    .mapToDouble(OrderDto::getTotal)
-                    .sum();
-
-            series.getData().add(new XYChart.Data<>(dayName, daySales));
+            series.getData().add(new XYChart.Data<>(dayName, dailySales.getOrDefault(date, 0.0)));
         }
 
         barChart.getData().clear();
@@ -297,25 +277,19 @@ public class DashboardController implements Initializable {
     private void loadMonthlySalesLineChart() {
         LocalDate today = LocalDate.now();
 
+        Map<YearMonth, Double> salesByMonth = new HashMap<>();
+        for (Map.Entry<LocalDate, Double> entry : dailySales.entrySet()) {
+            salesByMonth.merge(YearMonth.from(entry.getKey()), entry.getValue(), Double::sum);
+        }
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Monthly Sales");
 
         for (int i = 5; i >= 0; i--) {
-            LocalDate date = today.minusMonths(i);
-            String monthName = date.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-            int monthValue = date.getMonthValue();
-            int yearValue = date.getYear();
-
-            double monthSales = cachedOrders.stream()
-                    .filter(o -> o.getDate() != null)
-                    .filter(o -> {
-                        LocalDate od = o.getDate();
-                        return od.getMonthValue() == monthValue && od.getYear() == yearValue;
-                    })
-                    .mapToDouble(OrderDto::getTotal)
-                    .sum();
-
-            series.getData().add(new XYChart.Data<>(monthName, monthSales));
+            YearMonth month = YearMonth.from(today.minusMonths(i));
+            series.getData().add(new XYChart.Data<>(
+                    month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH),
+                    salesByMonth.getOrDefault(month, 0.0)));
         }
 
         lineChart.getData().clear();

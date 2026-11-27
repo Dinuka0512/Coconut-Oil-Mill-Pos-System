@@ -362,14 +362,12 @@ public class CustomerController implements Initializable {
         if (result.isPresent()) {
             var customers = customerBO.getAllCustomersEntity();
             if (result.get() == btn80mm) {
-                com.dev09.kumaracoconutoil.util.ThermalPrinter.print(
-                        com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportThermal(customers));
+                com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                        () -> com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportThermal(customers));
             } else if (result.get() == btnA4) {
-                byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportA4Pro(customers);
-                File tempFile = File.createTempFile("CustomerReport_A4", ".pdf");
-                tempFile.deleteOnExit();
-                java.nio.file.Files.write(tempFile.toPath(), bytes);
-                java.awt.Desktop.getDesktop().open(tempFile);
+                com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                        "CustomerReport_A4_",
+                        () -> com.dev09.kumaracoconutoil.util.PdfGenerator.CustomerReportA4Pro(customers));
             }
         }
     }

@@ -26,4 +26,12 @@ public interface OrderBO extends SuperBo {
     double payCustomerDue(String customerId, double amount, String note) throws SQLException, ClassNotFoundException;
     List<OrderProductDetailsEntity> getProductDetailsByDate(LocalDate date) throws SQLException, ClassNotFoundException;
     int clearFullyPaidOrders() throws SQLException, ClassNotFoundException;
+
+    /** Dashboard aggregates - avoid loading every order/line into Java memory. */
+    double getSalesBetween(LocalDate fromInclusive, LocalDate toExclusive);
+    long getActiveCustomerCount();
+    long getActiveProductCount();
+    double getTotalCustomerDue();
+    List<Object[]> getRecentSales(int limit);
+    List<Object[]> getSalesByDay(LocalDate fromInclusive, LocalDate toExclusive);
 }

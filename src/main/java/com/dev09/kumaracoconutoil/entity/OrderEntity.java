@@ -29,6 +29,12 @@ public class OrderEntity extends AuditableEntity {
 
     private String paymentMethod;
 
+    @Column(name = "bill_customer_name")
+    private String billCustomerName;
+
+    @Column(name = "bill_contact")
+    private String billContact;
+
     @Column(name = "is_deleted", columnDefinition = "boolean default false")
     private boolean isDeleted = false;
 
@@ -69,6 +75,10 @@ public class OrderEntity extends AuditableEntity {
     public void setBalance(double balance) { this.balance = balance; }
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getBillCustomerName() { return billCustomerName; }
+    public void setBillCustomerName(String billCustomerName) { this.billCustomerName = billCustomerName; }
+    public String getBillContact() { return billContact; }
+    public void setBillContact(String billContact) { this.billContact = billContact; }
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
     public List<OrderProductDetailsEntity> getOrderProducts() { return orderProducts; }

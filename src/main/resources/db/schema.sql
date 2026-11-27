@@ -83,6 +83,8 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `discount` double NOT NULL,
   `is_deleted` tinyint(1) DEFAULT '0',
   `paymentMethod` varchar(255) DEFAULT NULL,
+  `bill_customer_name` varchar(255) DEFAULT NULL,
+  `bill_contact` varchar(255) DEFAULT NULL,
   `tax` double NOT NULL,
   `taxRate` double NOT NULL,
   `customer_id` varchar(255) DEFAULT NULL,
@@ -90,6 +92,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   KEY `FK624gtjin3po807j3vix093tlf` (`customer_id`),
   CONSTRAINT `FK624gtjin3po807j3vix093tlf` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`custId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE INDEX `idx_orders_date` ON `orders` (`date`);
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

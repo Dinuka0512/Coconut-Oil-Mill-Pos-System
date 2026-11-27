@@ -33,6 +33,7 @@ public class DatabaseBackupUtil {
     private static final String FILE_SUFFIX = ".sql";
     private static final String FILE_PATTERN = FILE_PREFIX + "*" + FILE_SUFFIX;
     private static final DateTimeFormatter FILE_NAME_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private static final DateTimeFormatter FILE_DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
     public static final int MAX_BACKUP_FILES = 10;
 
     public static Path backupDir() {
@@ -41,6 +42,16 @@ public class DatabaseBackupUtil {
             return Paths.get(override);
         }
         return Paths.get(System.getProperty("user.home"), "OilMillBackups");
+    }
+
+    /** True when at least one completed backup file exists for the given date. */
+    public static boolean hasBackupFor(LocalDate date) {
+        String prefix = FILE_PREFIX + date.format(FILE_DATE_FMT) + "_";
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(backupDir(), prefix + "*" + FILE_SUFFIX)) {
+            return stream.iterator().hasNext();
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public static BackupResult backupDatabase() throws Exception {

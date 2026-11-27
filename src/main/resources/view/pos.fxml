@@ -52,10 +52,10 @@
           <columns>
              <TableColumn fx:id="colIndex" minWidth="3.99993896484375" prefWidth="24.800018310546875" text="#" />
              <TableColumn fx:id="colProduct" prefWidth="139.20004272460938" text="Product" />
-             <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="67.199951171875" text="Qty (Kg)" />
-             <TableColumn fx:id="colPrice" prefWidth="78.4000244140625" text="Unit Price" />
-             <TableColumn fx:id="colTotal" prefWidth="73.0" text="Total" />
-             <TableColumn fx:id="colAction" prefWidth="62.0" text="Remove" />
+             <TableColumn fx:id="colQty" minWidth="3.99993896484375" prefWidth="56.80003356933594" text="Qty (Kg)" />
+             <TableColumn fx:id="colPrice" prefWidth="64.0" text="Unit Price" />
+             <TableColumn fx:id="colTotal" prefWidth="107.20001220703125" text="Total" />
+             <TableColumn fx:id="colAction" prefWidth="56.79998779296875" text="Remove" />
           </columns>
       </TableView>
       <AnchorPane layoutX="501.0" layoutY="87.0" prefHeight="70.0" prefWidth="332.0" style="-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-border-color: #dee2e6; -fx-border-radius: 10;">

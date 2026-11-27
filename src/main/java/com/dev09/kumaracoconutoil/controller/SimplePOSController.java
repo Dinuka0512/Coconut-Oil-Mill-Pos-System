@@ -36,6 +36,9 @@ import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -96,6 +99,13 @@ public class SimplePOSController implements Initializable {
     private ObservableList<CartTM> obList = FXCollections.observableArrayList();
     private ArrayList<ProductDto> currentProducts;
     private ArrayList<CustomerDto> currentCustomers;
+
+    /** Lookup indexes so selecting a product/customer is not an O(n) scan per keystroke. */
+    private final Map<String, ProductDto> productsByDisplay = new HashMap<>();
+    private final Map<String, CustomerDto> customersByDisplay = new HashMap<>();
+    private final Map<String, CustomerDto> customersByName = new HashMap<>();
+    private final Map<String, CustomerDto> customersByContact = new HashMap<>();
+
     private ProductDto selectedProduct;
     /** Stock available at the currently selected price tier. */
     private double selectedTierQty;
@@ -204,16 +214,33 @@ public class SimplePOSController implements Initializable {
 
     private void loadProducts() {
         currentProducts = productBO.getAllProducts();
+        productsByDisplay.clear();
         for (ProductDto dto : currentProducts) {
-            cmbProduct.getItems().add(dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")");
+            String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
+            cmbProduct.getItems().add(display);
+            productsByDisplay.put(display.toLowerCase(Locale.ROOT), dto);
+            if (dto.getName() != null) {
+                productsByDisplay.putIfAbsent(dto.getName().toLowerCase(Locale.ROOT), dto);
+            }
         }
     }
 
     private void loadCustomers() {
         currentCustomers = customerBO.getAllCustomers();
+        customersByDisplay.clear();
+        customersByName.clear();
+        customersByContact.clear();
         int index = 0;
         for (CustomerDto dto : currentCustomers) {
-            cmbCustomer.getItems().add(dto.getName() + " - " + dto.getContact());
+            String display = dto.getName() + " - " + dto.getContact();
+            cmbCustomer.getItems().add(display);
+            customersByDisplay.put(display.toLowerCase(Locale.ROOT), dto);
+            if (dto.getName() != null) {
+                customersByName.putIfAbsent(dto.getName().toLowerCase(Locale.ROOT), dto);
+            }
+            if (dto.getContact() != null) {
+                customersByContact.putIfAbsent(dto.getContact().toLowerCase(Locale.ROOT), dto);
+            }
             if (AppConstants.DEMO_CUSTOMER_ID.equals(dto.getCustId())) {
                 selectedCustomer = dto;
                 cmbCustomer.getSelectionModel().select(index);
@@ -238,25 +265,23 @@ public class SimplePOSController implements Initializable {
         }
         String sel = selection == null ? "" : selection.trim();
 
-        if (sel != null && currentProducts != null) {
-            for (ProductDto dto : currentProducts) {
-                String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
-                if (display.equalsIgnoreCase(sel) || dto.getName().equalsIgnoreCase(sel)) {
-                    double[] tier = resolveProductTier(dto);
-                    if (tier == null) {
-                        resetProductSelection();
-                        return;
-                    }
-                    selectedProduct = dto;
-                    selectedTierQty = tier[PriceQtyArray.QTY];
-                    setComboValueQuietly(cmbProduct, display);
-                    txtUnitPriceDisplay.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
-                    lblQtyOnHand.setText(String.format("%.2f", selectedTierQty) + " Kg");
-                    lblItemName.setText(dto.getName());
-                    lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
-                    txtQty.requestFocus();
-                    break;
+        if (!sel.isEmpty()) {
+            ProductDto dto = productsByDisplay.get(sel.toLowerCase(Locale.ROOT));
+            if (dto != null) {
+                double[] tier = resolveProductTier(dto);
+                if (tier == null) {
+                    resetProductSelection();
+                    return;
                 }
+                selectedProduct = dto;
+                selectedTierQty = tier[PriceQtyArray.QTY];
+                String display = dto.getName() + " (" + (dto.getItemcode() != null ? dto.getItemcode() : "") + ")";
+                setComboValueQuietly(cmbProduct, display);
+                txtUnitPriceDisplay.setText(String.valueOf(tier[PriceQtyArray.PRICE]));
+                lblQtyOnHand.setText(String.format("%.2f", selectedTierQty) + " Kg");
+                lblItemName.setText(dto.getName());
+                lblItemCode.setText(dto.getItemcode() != null ? dto.getItemcode() : "-");
+                txtQty.requestFocus();
             }
         }
     }
@@ -712,16 +737,11 @@ public class SimplePOSController implements Initializable {
     }
 
     private CustomerDto findExactCustomerMatch(String candidate) {
-        for (CustomerDto dto : currentCustomers) {
-            if (customerDisplay(dto).equalsIgnoreCase(candidate)) return dto;
-        }
-        for (CustomerDto dto : currentCustomers) {
-            if (dto.getName() != null && dto.getName().equalsIgnoreCase(candidate)) return dto;
-        }
-        for (CustomerDto dto : currentCustomers) {
-            if (dto.getContact() != null && dto.getContact().equalsIgnoreCase(candidate)) return dto;
-        }
-        return null;
+        String key = candidate.toLowerCase(Locale.ROOT);
+        CustomerDto match = customersByDisplay.get(key);
+        if (match == null) match = customersByName.get(key);
+        if (match == null) match = customersByContact.get(key);
+        return match;
     }
 
     private CustomerDto findUniquePartialCustomerMatch(String candidate) {
@@ -1037,13 +1057,8 @@ public class SimplePOSController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
 
-            if (isDemoCustomer) {
-                BalanceDemoCustController demoController = loader.getController();
-                demoController.setOrderData(obList, selectedCustomer, netTotal);
-            } else {
-                BalanceController balanceController = loader.getController();
-                balanceController.setOrderData(obList, selectedCustomer, netTotal);
-            }
+            BalanceController balanceController = loader.getController();
+            balanceController.setOrderData(obList, selectedCustomer, netTotal);
 
             Stage balanceStage = new Stage();
             balanceStage.setScene(new Scene(root));
@@ -1052,12 +1067,7 @@ public class SimplePOSController implements Initializable {
             balanceStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             balanceStage.showAndWait();
 
-            boolean orderDone = false;
-            if (isDemoCustomer) {
-                orderDone = ((BalanceDemoCustController) loader.getController()).isOrderPlaced();
-            } else {
-                orderDone = ((BalanceController) loader.getController()).isOrderPlaced();
-            }
+            boolean orderDone = balanceController.isOrderPlaced();
 
             if (orderDone) {
                 Stage stage = (Stage) tblCart.getScene().getWindow();

@@ -364,14 +364,12 @@ public class ProductController implements Initializable {
             try {
                 var products = productBO.getAllProductsEntity();
                 if (result.get() == btn80mm) {
-                    com.dev09.kumaracoconutoil.util.ThermalPrinter.print(
-                            com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportThermal(products));
+                    com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportThermal(products));
                 } else if (result.get() == btnA4) {
-                    byte[] bytes = com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportA4Pro(products);
-                    File tempFile = File.createTempFile("ProductReport_A4", ".pdf");
-                    tempFile.deleteOnExit();
-                    Files.write(tempFile.toPath(), bytes);
-                    Desktop.getDesktop().open(tempFile);
+                    com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                            "ProductReport_A4_",
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.ProductReportA4Pro(products));
                 }
             } catch (Exception e) {
                 e.printStackTrace();

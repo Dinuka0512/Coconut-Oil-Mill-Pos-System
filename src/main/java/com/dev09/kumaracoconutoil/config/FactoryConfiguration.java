@@ -59,8 +59,9 @@ public class FactoryConfiguration {
 
     /**
      * hibernate.hbm2ddl.auto is "validate", so the product.price_qty column must
-     * exist before the SessionFactory is built. Existing price/stock data is
-     * migrated into it once from the legacy columns/table.
+     * exist before the SessionFactory is built. Schema setup and the one-time
+     * legacy price migration are guarded by a version marker so they do not run
+     * on every application start.
      */
     private void ensureSchema(Properties properties) {
         String url = properties.getProperty("hibernate.connection.url");
@@ -74,17 +75,67 @@ public class FactoryConfiguration {
         try (Connection connection = DriverManager.getConnection(url, username, password);
              Statement statement = connection.createStatement()) {
 
-            // Fresh installations have no tables yet (hbm2ddl.auto=validate), so create
-            // them from the bundled schema before Hibernate validates the mappings.
-            runSchemaScript(statement);
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS app_meta "
+                    + "(meta_key VARCHAR(64) PRIMARY KEY, meta_value VARCHAR(64))");
 
-            if (!columnExists(connection, "product", "price_qty")) {
-                statement.executeUpdate("ALTER TABLE product ADD COLUMN price_qty TEXT");
+            boolean initialized;
+            try (ResultSet marker = statement.executeQuery(
+                    "SELECT meta_value FROM app_meta WHERE meta_key = 'schema_version'")) {
+                initialized = marker.next();
             }
-            migrateLegacyPrices(connection, statement);
+
+            if (!initialized) {
+                // Fresh installations have no tables yet (hbm2ddl.auto=validate), so
+                // create them from the bundled schema before Hibernate validates.
+                runSchemaScript(statement);
+
+                if (!columnExists(connection, "product", "price_qty")) {
+                    statement.executeUpdate("ALTER TABLE product ADD COLUMN price_qty TEXT");
+                }
+                migrateLegacyPrices(connection, statement);
+
+                statement.executeUpdate("INSERT INTO app_meta (meta_key, meta_value) "
+                        + "VALUES ('schema_version', '1')");
+            }
+
+            // Date-range reports are much faster with this index. It is safe to
+            // create it once for databases that predate this change.
+            if (!indexExists(connection, "orders", "idx_orders_date")) {
+                try {
+                    statement.executeUpdate("CREATE INDEX idx_orders_date ON orders (`date`)");
+                } catch (SQLException ignored) {
+                    // Table may not exist yet on a broken fresh install; Hibernate
+                    // validation will report the real problem below.
+                }
+            }
+
+            // Demo/walk-in bills can store the actual bill customer details.
+            if (!columnExists(connection, "orders", "bill_customer_name")) {
+                try {
+                    statement.executeUpdate("ALTER TABLE orders ADD COLUMN bill_customer_name VARCHAR(255)");
+                } catch (SQLException ignored) {
+                }
+            }
+            if (!columnExists(connection, "orders", "bill_contact")) {
+                try {
+                    statement.executeUpdate("ALTER TABLE orders ADD COLUMN bill_contact VARCHAR(255)");
+                } catch (SQLException ignored) {
+                }
+            }
         } catch (Exception e) {
-            System.err.println("Could not prepare product price_qty column: " + e.getMessage());
+            System.err.println("Could not prepare database schema: " + e.getMessage());
         }
+    }
+
+    private static boolean indexExists(Connection connection, String table, String index) throws SQLException {
+        try (ResultSet indexes = connection.getMetaData().getIndexInfo(null, null, table, false, false)) {
+            while (indexes.next()) {
+                if (index.equalsIgnoreCase(indexes.getString("INDEX_NAME"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Creates the database/tables on a new machine; every statement is idempotent. */

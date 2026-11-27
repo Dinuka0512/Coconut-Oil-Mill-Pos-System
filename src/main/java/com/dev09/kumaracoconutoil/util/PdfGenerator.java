@@ -505,12 +505,19 @@ public class PdfGenerator {
             orderSavedAt = date.atStartOfDay();
         }
 
+        String billName = order == null ? null : order.getBillCustomerName();
+        String billContact = order == null ? null : order.getBillContact();
+        String displayCustomerName = hasText(billName)
+                ? text(billName)
+                : (customer == null ? "-" : text(customer.getName()));
+        String displayContact = hasText(billContact) ? text(billContact) : text(contact);
+
         model.put("orderId", order == null ? "-" : text(order.getOrderId()));
         model.put("orderDate", date == null ? "-" : date.format(BILL_DATE_FORMAT));
         model.put("orderDateTime", orderSavedAt == null ? "-" : orderSavedAt.format(BILL_DATETIME_FORMAT));
-        model.put("customerName", customer == null ? "-" : text(customer.getName()));
-        model.put("customerContact", text(contact));
-        model.put("hasContact", hasText(contact));
+        model.put("customerName", displayCustomerName);
+        model.put("customerContact", displayContact);
+        model.put("hasContact", hasText(displayContact));
         model.put("rows", rows);
 
         model.put("subTotal", plainMoney(subTotal));

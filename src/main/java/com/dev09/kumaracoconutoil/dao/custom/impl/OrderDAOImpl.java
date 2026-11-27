@@ -134,11 +134,13 @@ public class OrderDAOImpl implements OrderDAO {
     public List<LocalDate> getOrderDatesByMonth(int year, int month) {
         Session session = FactoryConfiguration.getInstance().getSession();
         try {
+            LocalDate start = LocalDate.of(year, month, 1);
             Query<LocalDate> query = session.createQuery(
-                "SELECT DISTINCT o.date FROM OrderEntity o WHERE FUNCTION('YEAR', o.date) = :year AND FUNCTION('MONTH', o.date) = :month ORDER BY o.date",
+                "SELECT DISTINCT o.date FROM OrderEntity o "
+                        + "WHERE o.date >= :start AND o.date < :end ORDER BY o.date",
                 LocalDate.class);
-            query.setParameter("year", year);
-            query.setParameter("month", month);
+            query.setParameter("start", start);
+            query.setParameter("end", start.plusMonths(1));
             return query.list();
         } finally {
             session.close();
@@ -234,6 +236,99 @@ public class OrderDAOImpl implements OrderDAO {
             transaction.rollback();
             e.printStackTrace();
             return -1;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public double getSalesBetween(LocalDate fromInclusive, LocalDate toExclusive) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Double total = session.createQuery(
+                    "SELECT COALESCE(SUM(o.amountPaid - o.balance), 0) FROM OrderEntity o "
+                            + "WHERE o.isDeleted = false AND o.date >= :from AND o.date < :to",
+                    Double.class)
+                    .setParameter("from", fromInclusive)
+                    .setParameter("to", toExclusive)
+                    .uniqueResult();
+            return total != null ? total : 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public long getActiveCustomerCount() {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Long count = session.createQuery(
+                    "SELECT COUNT(c) FROM CustomerEntity c WHERE c.isDeleted = false", Long.class)
+                    .uniqueResult();
+            return count != null ? count : 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public long getActiveProductCount() {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Long count = session.createQuery(
+                    "SELECT COUNT(p) FROM ProductEntity p WHERE p.isDeleted = false", Long.class)
+                    .uniqueResult();
+            return count != null ? count : 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public double getTotalCustomerDue() {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            Double total = session.createQuery(
+                    "SELECT COALESCE(SUM(c.dueAmount), 0) FROM CustomerEntity c WHERE c.isDeleted = false",
+                    Double.class)
+                    .uniqueResult();
+            return total != null ? total : 0;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public List<Object[]> getRecentSales(int limit) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            return session.createQuery(
+                    "SELECT o.orderId, o.date, COALESCE(c.name, ''), "
+                            + "COALESCE(SUM(d.quantity), 0), (o.amountPaid - o.balance) "
+                            + "FROM OrderEntity o "
+                            + "LEFT JOIN o.customer c "
+                            + "LEFT JOIN o.orderProducts d "
+                            + "WHERE o.isDeleted = false "
+                            + "GROUP BY o.orderId, o.date, c.name, o.amountPaid, o.balance "
+                            + "ORDER BY o.date DESC, o.orderId DESC", Object[].class)
+                    .setMaxResults(limit)
+                    .list();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public List<Object[]> getSalesByDay(LocalDate fromInclusive, LocalDate toExclusive) {
+        Session session = FactoryConfiguration.getInstance().getSession();
+        try {
+            return session.createQuery(
+                    "SELECT o.date, COALESCE(SUM(o.amountPaid - o.balance), 0) FROM OrderEntity o "
+                            + "WHERE o.isDeleted = false AND o.date >= :from AND o.date < :to "
+                            + "GROUP BY o.date ORDER BY o.date", Object[].class)
+                    .setParameter("from", fromInclusive)
+                    .setParameter("to", toExclusive)
+                    .list();
         } finally {
             session.close();
         }

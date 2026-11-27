@@ -923,26 +923,18 @@ public class QuotationController implements Initializable {
 
         Optional<ButtonType> result = printAlert.showAndWait();
         if (result.isPresent()) {
-            try {
-                if (result.get() == smallBtn) {
-                    byte[] escpos = PdfGenerator.generateQuotationBill80mm(
-                            quotationId, date, customerName, customerContact,
-                            new ArrayList<>(obList), 0, 0);
-                    ThermalPrinter.print(escpos);
-                } else {
-                    byte[] pdfBytes = PdfGenerator.generateQuotationBillA4Pro(
-                            quotationId, date, customerName, customerContact,
-                            new ArrayList<>(obList), 0, 0);
-                    File tempFile = File.createTempFile("Quotation_" + quotationId, ".pdf");
-                    tempFile.deleteOnExit();
-                    Files.write(tempFile.toPath(), pdfBytes);
-                    Desktop.getDesktop().open(tempFile);
-                }
-                resetForm();
-            } catch (Exception e) {
-                e.printStackTrace();
-                AlertUtil.showAlert(Alert.AlertType.ERROR, "Error generating PDF: " + e.getMessage());
+            final java.util.List<CartTM> items = new ArrayList<>(obList);
+            if (result.get() == smallBtn) {
+                com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                        () -> PdfGenerator.generateQuotationBill80mm(
+                                quotationId, date, customerName, customerContact, items, 0, 0));
+            } else {
+                com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                        "Quotation_" + quotationId + "_",
+                        () -> PdfGenerator.generateQuotationBillA4Pro(
+                                quotationId, date, customerName, customerContact, items, 0, 0));
             }
+            resetForm();
         }
     }
 

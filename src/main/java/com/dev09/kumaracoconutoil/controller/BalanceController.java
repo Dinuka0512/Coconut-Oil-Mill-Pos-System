@@ -23,9 +23,11 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
@@ -88,6 +90,8 @@ public class BalanceController implements Initializable {
 
     @FXML private ComboBox<BankAccountDto> cmbBankAccount;
     @FXML private TextField txtCheckId;
+    @FXML private TextField txtCheckId1;   // Demo UI: bill customer name
+    @FXML private TextField txtCheckId11;  // Demo UI: bill customer contact
     @FXML private Button btnAddPayment;
     @FXML private TableView<PaymentRowTM> tblPayments;
     @FXML private TableColumn<PaymentRowTM, String> colPayMethod;
@@ -170,21 +174,25 @@ public class BalanceController implements Initializable {
             txtAmountPaid1.selectAll();
         });
 
-        // Enter on the (closed) payment combo opens the list so arrow keys can be
-        // used. Enter while it is open lets JavaFX confirm the highlighted value;
-        // the hide listener below then moves to the field for that method.
-        cmbPaymentMethod1.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() != KeyCode.ENTER) return;
-            if (cmbPaymentMethod1.isShowing()) {
-                paymentMethodCommitted = true;
-                ignoreNextSceneEnter = true;
-            } else {
-                cmbPaymentMethod1.show();
-                event.consume();
+        // Payment method dropdown: POS-style navigation.
+        // Enter opens with Cash selected, Enter again commits highlighted (Cash default),
+        // arrow keys move selection, mouse click also commits.
+        installComboNavigation(cmbPaymentMethod1, "Cash");
+        cmbPaymentMethod1.addEventHandler(ActionEvent.ACTION, e -> {
+            paymentMethodCommitted = true;
+            if (!cmbPaymentMethod1.isShowing()) {
+                Platform.runLater(() -> {
+                    if (paymentMethodCommitted) {
+                        paymentMethodCommitted = false;
+                        focusAfterPaymentMethod();
+                    }
+                });
             }
         });
-        cmbPaymentMethod1.addEventHandler(ActionEvent.ACTION, e -> paymentMethodCommitted = true);
         cmbPaymentMethod1.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (!wasShowing && isShowing) {
+                paymentMethodCommitted = false;
+            }
             if (wasShowing && !isShowing && paymentMethodCommitted) {
                 paymentMethodCommitted = false;
                 focusAfterPaymentMethod();
@@ -378,12 +386,32 @@ public class BalanceController implements Initializable {
             detail = "Check ID: " + check;
         }
 
-        paymentRows.add(new PaymentRowTM(method, String.format("%.2f", amount), detail, bankId, bankName, checkNo));
+        if ("Cash".equals(method)) {
+            PaymentRowTM existingCash = null;
+            for (PaymentRowTM row : paymentRows) {
+                if ("Cash".equals(row.getMethod())) {
+                    existingCash = row;
+                    break;
+                }
+            }
+            if (existingCash != null) {
+                double existingAmount = 0.0;
+                try { existingAmount = Double.parseDouble(existingCash.getAmount()); } catch (NumberFormatException ignored) {}
+                existingCash.setAmount(String.format("%.2f", existingAmount + amount));
+                tblPayments.refresh();
+            } else {
+                paymentRows.add(new PaymentRowTM(method, String.format("%.2f", amount), detail, bankId, bankName, checkNo));
+            }
+        } else {
+            paymentRows.add(new PaymentRowTM(method, String.format("%.2f", amount), detail, bankId, bankName, checkNo));
+        }
 
         // Clear the staged input before recalculating, otherwise the just-added
         // amount would be counted twice (once in the row, once in the text field).
         txtAmountPaid1.clear();
         txtCheckId.clear();
+        cmbPaymentMethod1.getSelectionModel().select("Cash");
+        paymentMethodCommitted = false;
         updatePaymentsTotal();
         calculateBalance();
         txtAmountPaid1.requestFocus();
@@ -405,6 +433,22 @@ public class BalanceController implements Initializable {
             }
         }
         return total;
+    }
+
+    private double stagedAmount() {
+        if (txtAmountPaid1 == null) return 0.0;
+        String text = txtAmountPaid1.getText();
+        if (text == null || text.trim().isEmpty()) return 0.0;
+        try {
+            double value = Double.parseDouble(text.trim());
+            return value > 0 ? value : 0.0;
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    private double effectivePaid() {
+        return paymentRowsTotal() + stagedAmount();
     }
 
     private void updatePaymentsTotal() {
@@ -506,7 +550,7 @@ public class BalanceController implements Initializable {
         if (applyingDuePaymentRule) return;
         if (!"Full Payment".equals(duePayType.getValue())) return;
 
-        double extraPaid = totalPaid - totalToPay;
+        double extraPaid = effectivePaid() - totalToPay;
         if (extraPaid <= 0.00001 || existingDue <= 0.00001) return;
 
         double dueToPayNow = Math.min(existingDue, extraPaid);
@@ -530,16 +574,17 @@ public class BalanceController implements Initializable {
         String type = duePayType.getValue();
         duePaid = selectedDuePayment();
 
+        double paid = effectivePaid();
         double calculated;
         if ("Full Payment".equals(type)) {
-            // (lblNetTotal + lblExistingDue) - lblPaymentTableTotal
-            calculated = (totalToPay + existingDue) - totalPaid;
+            // (lblNetTotal + lblExistingDue) - paid
+            calculated = (totalToPay + existingDue) - paid;
         } else if ("Custom".equals(type)) {
-            // (lblNetTotal + amount being paid now) - lblPaymentTableTotal
-            calculated = (totalToPay + duePaid) - totalPaid;
+            // (lblNetTotal + amount being paid now) - paid
+            calculated = (totalToPay + duePaid) - paid;
         } else {
-            // None / normal: lblNetTotal - lblPaymentTableTotal
-            calculated = totalToPay - totalPaid;
+            // None / normal: lblNetTotal - paid
+            calculated = totalToPay - paid;
         }
 
         // Positive "calculated" is a shortfall. It is NOT shown as balance:
@@ -548,7 +593,10 @@ public class BalanceController implements Initializable {
         balance = Math.max(0.0, -calculated); // only change (overpayment)
         totalDue = Math.max(0.0, existingDue - duePaid) + newDue;
 
-        if (balance > 0.005) {
+        if (calculated > 0.005) {
+            lblBalance.setText("-LKR " + String.format("%.2f", calculated));
+            lblBalance.setStyle("-fx-text-fill: #ef4444;");
+        } else if (balance > 0.005) {
             lblBalance.setText("LKR " + String.format("%.2f", balance));
             lblBalance.setStyle("-fx-text-fill: #16a34a;");
         } else {
@@ -603,9 +651,231 @@ public class BalanceController implements Initializable {
                 txtCheckId.requestFocus();
                 txtCheckId.selectAll();
             } else {
-                btnAddPayment.requestFocus();
+                // Cash: add immediately on Enter confirmation.
+                btnAddPaymentOnAction(null);
             }
         });
+    }
+
+    private void installComboNavigation(ComboBox<String> combo, String defaultOnOpen) {
+        if (combo == null) return;
+
+        combo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                Object hi = combo.getProperties().get("pos.highlightIndex");
+                boolean highlighted = !empty && item != null && hi instanceof Integer && ((Integer) hi) == getIndex();
+                setStyle(highlighted ? "-fx-background-color: #2563eb; -fx-text-fill: white;" : "");
+            }
+        });
+
+        combo.showingProperty().addListener((obs, was, showing) -> {
+            if (showing) {
+                installPopupNavigation(combo, 0);
+                Platform.runLater(() -> installPopupNavigation(combo, 1));
+            } else {
+                combo.getProperties().remove("pos.highlightIndex");
+            }
+        });
+
+        javafx.event.EventHandler<KeyEvent> handler = event -> {
+            if (event.getEventType() != KeyEvent.KEY_PRESSED) return;
+            KeyCode code = event.getCode();
+            if (code == KeyCode.DOWN || code == KeyCode.UP) {
+                event.consume();
+                if (!combo.isShowing()) {
+                    if (combo.getItems().isEmpty()) return;
+                    if (defaultOnOpen != null) {
+                        combo.getSelectionModel().select(defaultOnOpen);
+                        paymentMethodCommitted = false;
+                    }
+                    combo.show();
+                    int idx = combo.getItems().indexOf(combo.getValue());
+                    combo.getProperties().put("pos.highlightIndex", Math.max(idx, 0));
+                    Platform.runLater(() -> moveComboHighlight(combo, 0, 0));
+                }
+                moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
+            } else if (code == KeyCode.ENTER) {
+                if (combo.isShowing()) {
+                    String highlighted = getHighlightedComboItem(combo);
+                    if (highlighted != null) {
+                        event.consume();
+                        commitComboSelection(combo, highlighted);
+                    } else if (combo.getValue() != null) {
+                        event.consume();
+                        commitComboSelection(combo, combo.getValue());
+                    }
+                } else {
+                    event.consume();
+                    if (defaultOnOpen != null) {
+                        combo.getSelectionModel().select(defaultOnOpen);
+                        paymentMethodCommitted = false;
+                    }
+                    combo.show();
+                    int idx = combo.getItems().indexOf(combo.getValue());
+                    combo.getProperties().put("pos.highlightIndex", Math.max(idx, 0));
+                    Platform.runLater(() -> moveComboHighlight(combo, 0, 0));
+                }
+            } else if (code == KeyCode.ESCAPE && combo.isShowing()) {
+                combo.getProperties().remove("pos.highlightIndex");
+                combo.hide();
+                event.consume();
+            }
+        };
+        combo.addEventFilter(KeyEvent.KEY_PRESSED, handler);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void installPopupNavigation(ComboBox<String> combo, int attempt) {
+        ListView listView = getComboPopupListView(combo);
+        if (listView == null) {
+            if (attempt < 10) {
+                Platform.runLater(() -> installPopupNavigation(combo, attempt + 1));
+            }
+            return;
+        }
+        if (Boolean.TRUE.equals(listView.getProperties().get("pos.navInstalled"))) return;
+        listView.getProperties().put("pos.navInstalled", true);
+        listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            KeyCode code = event.getCode();
+            if (code == KeyCode.DOWN || code == KeyCode.UP) {
+                event.consume();
+                moveComboHighlight(combo, code == KeyCode.DOWN ? 1 : -1, 0);
+            } else if (code == KeyCode.PAGE_DOWN) {
+                event.consume();
+                moveComboHighlight(combo, 5, 0);
+            } else if (code == KeyCode.PAGE_UP) {
+                event.consume();
+                moveComboHighlight(combo, -5, 0);
+            } else if (code == KeyCode.HOME) {
+                event.consume();
+                combo.getProperties().put("pos.highlightIndex", 0);
+                listView.refresh();
+            } else if (code == KeyCode.END) {
+                event.consume();
+                if (!combo.getItems().isEmpty()) {
+                    combo.getProperties().put("pos.highlightIndex", combo.getItems().size() - 1);
+                    listView.refresh();
+                }
+            } else if (code == KeyCode.ENTER) {
+                event.consume();
+                if (!combo.isShowing()) return;
+                String highlighted = getHighlightedComboItem(combo);
+                if (highlighted != null) commitComboSelection(combo, highlighted);
+            } else if (code == KeyCode.ESCAPE) {
+                event.consume();
+                combo.getProperties().remove("pos.highlightIndex");
+                combo.hide();
+            }
+        });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void moveComboHighlight(ComboBox<String> combo, int delta, int attempt) {
+        if (combo == null) return;
+        ObservableList<String> items = combo.getItems();
+        if (items == null || items.isEmpty()) {
+            combo.getProperties().remove("pos.highlightIndex");
+            return;
+        }
+
+        if (!combo.isShowing()) {
+            combo.show();
+        }
+
+        ListView listView = getComboPopupListView(combo);
+        if (listView == null) {
+            if (attempt < 15) {
+                Platform.runLater(() -> moveComboHighlight(combo, delta, attempt + 1));
+            }
+            return;
+        }
+
+        Object hi = combo.getProperties().get("pos.highlightIndex");
+        int current = hi instanceof Integer ? (Integer) hi : -1;
+        int size = items.size();
+        if (current < 0 || current >= size) {
+            current = delta > 0 ? -1 : size;
+        }
+        int target = current + delta;
+        if (target < 0) target = 0;
+        if (target >= size) target = size - 1;
+
+        combo.getProperties().put("pos.highlightIndex", target);
+        try {
+            listView.refresh();
+            listView.scrollTo(target);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void commitComboSelection(ComboBox<String> combo, String value) {
+        if (combo == null || value == null) return;
+        combo.getProperties().remove("pos.highlightIndex");
+        combo.getSelectionModel().select(value);
+        combo.setValue(value);
+        if (combo == cmbPaymentMethod1) {
+            paymentMethodCommitted = true;
+            ignoreNextSceneEnter = true;
+        }
+        combo.hide();
+    }
+
+    private String getHighlightedComboItem(ComboBox<String> combo) {
+        ObservableList<String> items = combo.getItems();
+        if (items == null || items.isEmpty()) return null;
+        Object hi = combo.getProperties().get("pos.highlightIndex");
+        int idx = hi instanceof Integer ? (Integer) hi : -1;
+        if (idx >= 0 && idx < items.size()) return items.get(idx);
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private ListView getComboPopupListView(ComboBox<String> combo) {
+        try {
+            if (combo.getSkin() instanceof ComboBoxListViewSkin) {
+                Node popupContent = ((ComboBoxListViewSkin) combo.getSkin()).getPopupContent();
+                if (popupContent instanceof ListView) return (ListView) popupContent;
+                if (popupContent != null) {
+                    Node n = popupContent.lookup(".list-view");
+                    if (n instanceof ListView) return (ListView) n;
+                    ListView found = findListView(popupContent);
+                    if (found != null) return found;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            if (combo.getSkin() != null && combo.getSkin().getNode() != null) {
+                Node skinNode = combo.getSkin().getNode();
+                Node lv = skinNode.lookup(".list-view");
+                if (lv instanceof ListView) return (ListView) lv;
+                ListView found = findListView(skinNode);
+                if (found != null) return found;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            Node n = combo.lookup(".list-view");
+            if (n instanceof ListView) return (ListView) n;
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private ListView findListView(Node node) {
+        if (node == null) return null;
+        if (node instanceof ListView) return (ListView) node;
+        if (node instanceof javafx.scene.Parent) {
+            for (Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                ListView found = findListView(child);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private void styleComboSelectionVisible(ComboBox<String> combo) {
@@ -827,6 +1097,24 @@ public class BalanceController implements Initializable {
                     ? paymentRows.get(0).getMethod()
                     : "Multiple";
 
+            String billCustomerName = txtCheckId1 == null ? "" : txtCheckId1.getText().trim();
+            String billContact = txtCheckId11 == null ? "" : txtCheckId11.getText().trim();
+            boolean isDemoCustomer = AppConstants.DEMO_CUSTOMER_ID.equals(customer.getCustId());
+            boolean requiresBillInfo = isDemoCustomer
+                    && ("Card".equals(paymentMethod) || "Cheque".equals(paymentMethod) || "Multiple".equals(paymentMethod));
+            if (requiresBillInfo) {
+                if (billCustomerName.isEmpty()) {
+                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter the bill customer name for card/cheque/multiple payments!");
+                    if (txtCheckId1 != null) txtCheckId1.requestFocus();
+                    return;
+                }
+                if (billContact.isEmpty()) {
+                    AlertUtil.showAlert(Alert.AlertType.WARNING, "Enter the bill contact for card/cheque/multiple payments!");
+                    if (txtCheckId11 != null) txtCheckId11.requestFocus();
+                    return;
+                }
+            }
+
             double duePaymentAmount;
             try {
                 duePaymentAmount = rawDuePayment();
@@ -866,6 +1154,10 @@ public class BalanceController implements Initializable {
 
             OrderDto orderDto = new OrderDto(orderId, date, customer, details,
                     totalPaid, 0, taxAmount, currentTaxRate, orderBalance, paymentMethod);
+            if (isDemoCustomer) {
+                if (!billCustomerName.isEmpty()) orderDto.setBillCustomerName(billCustomerName);
+                if (!billContact.isEmpty()) orderDto.setBillContact(billContact);
+            }
 
             boolean isPlaced = orderBO.placeOrder(orderDto);
 
@@ -903,16 +1195,12 @@ public class BalanceController implements Initializable {
                         order != null && order.getOrderProducts() != null ? order.getOrderProducts() : new java.util.ArrayList<>();
 
                 if (result.get() == smallBtn) {
-                    byte[] escpos = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, totals);
-                    com.dev09.kumaracoconutoil.util.ThermalPrinter.print(escpos);
+                    com.dev09.kumaracoconutoil.util.PrintUtil.printThermalAsync(
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBill(order, details, totals));
                 } else {
-                    byte[] pdfBytes = com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, totals);
-                    if (pdfBytes != null) {
-                        File tempFile = File.createTempFile("Invoice_" + orderId, ".pdf");
-                        tempFile.deleteOnExit();
-                        Files.write(tempFile.toPath(), pdfBytes);
-                        Desktop.getDesktop().open(tempFile);
-                    }
+                    com.dev09.kumaracoconutoil.util.PrintUtil.openPdfAsync(
+                            "Invoice_" + orderId + "_",
+                            () -> com.dev09.kumaracoconutoil.util.PdfGenerator.generateOrderBillA4Pro(order, details, totals));
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
